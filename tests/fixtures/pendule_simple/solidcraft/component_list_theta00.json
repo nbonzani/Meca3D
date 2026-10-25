@@ -1,0 +1,182 @@
+{
+ "active": 0,
+ "components": [
+  {
+   "bodies": [],
+   "children": [
+    {
+     "component": 1,
+     "grounded": true,
+     "id": 2,
+     "name": "Bati:1",
+     "parent": 0,
+     "transform": [
+      [
+       1.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0,
+       1.0
+      ]
+     ]
+    },
+    {
+     "component": 4,
+     "grounded": false,
+     "id": 5,
+     "name": "Barre:1",
+     "parent": 0,
+     "transform": [
+      [
+       1.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0,
+       1.0
+      ]
+     ]
+    }
+   ],
+   "construction": [],
+   "features": [],
+   "id": 0,
+   "name": "pendule_simple",
+   "occurrences": [],
+   "parent": null,
+   "sketches": []
+  },
+  {
+   "bodies": [
+    "Bati_corps"
+   ],
+   "children": [],
+   "construction": [],
+   "features": [
+    "Box1"
+   ],
+   "id": 1,
+   "name": "Bati",
+   "occurrences": [
+    {
+     "component": 1,
+     "grounded": true,
+     "id": 2,
+     "name": "Bati:1",
+     "parent": 0,
+     "transform": [
+      [
+       1.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0,
+       1.0
+      ]
+     ]
+    }
+   ],
+   "parent": 0,
+   "sketches": []
+  },
+  {
+   "bodies": [
+    "Barre_corps"
+   ],
+   "children": [],
+   "construction": [],
+   "features": [
+    "Box2"
+   ],
+   "id": 4,
+   "name": "Barre",
+   "occurrences": [
+    {
+     "component": 4,
+     "grounded": false,
+     "id": 5,
+     "name": "Barre:1",
+     "parent": 0,
+     "transform": [
+      [
+       1.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0,
+       1.0
+      ]
+     ]
+    }
+   ],
+   "parent": 0,
+   "sketches": []
+  }
+ ],
+ "pending_moves": []
+}

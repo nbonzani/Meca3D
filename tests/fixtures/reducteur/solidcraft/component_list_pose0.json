@@ -1,0 +1,264 @@
+{
+ "active": 0,
+ "components": [
+  {
+   "bodies": [],
+   "children": [
+    {
+     "component": 1,
+     "grounded": true,
+     "id": 2,
+     "name": "Bati:1",
+     "parent": 0,
+     "transform": [
+      [
+       1.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0,
+       1.0
+      ]
+     ]
+    },
+    {
+     "component": 4,
+     "grounded": false,
+     "id": 5,
+     "name": "Roue1:1",
+     "parent": 0,
+     "transform": [
+      [
+       1.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0,
+       1.0
+      ]
+     ]
+    },
+    {
+     "component": 7,
+     "grounded": false,
+     "id": 8,
+     "name": "Roue2:1",
+     "parent": 0,
+     "transform": [
+      [
+       1.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0,
+       1.0
+      ]
+     ]
+    }
+   ],
+   "construction": [],
+   "features": [],
+   "id": 0,
+   "name": "reducteur",
+   "occurrences": [],
+   "parent": null,
+   "sketches": []
+  },
+  {
+   "bodies": [
+    "Bati_corps"
+   ],
+   "children": [],
+   "construction": [],
+   "features": [
+    "Box1"
+   ],
+   "id": 1,
+   "name": "Bati",
+   "occurrences": [
+    {
+     "component": 1,
+     "grounded": true,
+     "id": 2,
+     "name": "Bati:1",
+     "parent": 0,
+     "transform": [
+      [
+       1.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0,
+       1.0
+      ]
+     ]
+    }
+   ],
+   "parent": 0,
+   "sketches": []
+  },
+  {
+   "bodies": [
+    "Roue1_corps"
+   ],
+   "children": [],
+   "construction": [],
+   "features": [
+    "Cylinder1"
+   ],
+   "id": 4,
+   "name": "Roue1",
+   "occurrences": [
+    {
+     "component": 4,
+     "grounded": false,
+     "id": 5,
+     "name": "Roue1:1",
+     "parent": 0,
+     "transform": [
+      [
+       1.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0,
+       1.0
+      ]
+     ]
+    }
+   ],
+   "parent": 0,
+   "sketches": []
+  },
+  {
+   "bodies": [
+    "Roue2_corps"
+   ],
+   "children": [],
+   "construction": [],
+   "features": [
+    "Cylinder2"
+   ],
+   "id": 7,
+   "name": "Roue2",
+   "occurrences": [
+    {
+     "component": 7,
+     "grounded": false,
+     "id": 8,
+     "name": "Roue2:1",
+     "parent": 0,
+     "transform": [
+      [
+       1.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0,
+       1.0
+      ]
+     ]
+    }
+   ],
+   "parent": 0,
+   "sketches": []
+  }
+ ],
+ "pending_moves": []
+}

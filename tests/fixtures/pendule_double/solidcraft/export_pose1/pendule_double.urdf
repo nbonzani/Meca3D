@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!-- Exported by SolidCraft; units: m, kg, rad -->
+<robot name="pendule_double">
+  <link name="base_link">
+  </link>
+  <link name="Bati">
+    <inertial>
+      <origin xyz="0 0.02 0" rpy="0 0 0"/>
+      <mass value="0.5616"/>
+      <inertia ixx="1.8719999999999997e-4" ixy="0" ixz="0" iyy="3.3695999999999997e-4" iyz="0" izz="1.8719999999999997e-4"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="pendule_double-Bati.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="pendule_double-Bati.stl"/></geometry>
+    </collision>
+  </link>
+  <link name="Barre1">
+    <inertial>
+      <origin xyz="0.2 0 0" rpy="0 0 0"/>
+      <mass value="1.248"/>
+      <inertia ixx="8.320000000000061e-5" ixy="1.4528632164001465e-20" ixz="1.4528632164001465e-20" iyy="0.01668159999999999" iyz="0" izz="0.01668159999999999"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.5707963267948966 0 -1.5707963267948966"/>
+      <geometry><mesh filename="pendule_double-Barre1.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5707963267948966 0 -1.5707963267948966"/>
+      <geometry><mesh filename="pendule_double-Barre1.stl"/></geometry>
+    </collision>
+  </link>
+  <link name="Barre2">
+    <inertial>
+      <origin xyz="0.2 -5.684341886080802e-17 0" rpy="0 0 0"/>
+      <mass value="1.248"/>
+      <inertia ixx="8.320000000000061e-5" ixy="5.811452865600586e-20" ixz="5.811452865600586e-20" iyy="0.01668159999999984" iyz="0" izz="0.01668159999999984"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.4 -5.684341886080802e-17 0" rpy="1.5707963267948966 0 -1.5707963267948966"/>
+      <geometry><mesh filename="pendule_double-Barre2.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="-0.4 -5.684341886080802e-17 0" rpy="1.5707963267948966 0 -1.5707963267948966"/>
+      <geometry><mesh filename="pendule_double-Barre2.stl"/></geometry>
+    </collision>
+  </link>
+  <joint name="Bati_fixed" type="fixed">
+    <parent link="base_link"/>
+    <child link="Bati"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <joint name="L01_pivot" type="continuous">
+    <parent link="Bati"/>
+    <child link="Barre1"/>
+    <origin xyz="0 0 0" rpy="0 1.5707963267948966 1.5707963267948966"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="1000" velocity="10"/>
+  </joint>
+  <joint name="L12_pivot" type="continuous">
+    <parent link="Barre1"/>
+    <child link="Barre2"/>
+    <origin xyz="0.4000000000000001 -2.842170943040401e-17 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="1000" velocity="10"/>
+  </joint>
+</robot>
