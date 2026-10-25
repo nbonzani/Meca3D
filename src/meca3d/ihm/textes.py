@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Tous les textes de l'interface, en français (règle IHM). Unités toujours indiquées."""
 
+import re
+
 from meca3d.modele.liaison import Statut, TypeLiaison
 
 TITRE_FENETRE = "Meca3D"
@@ -63,6 +65,13 @@ def etiquette_h(h: int | None) -> str:
 
 # --- commandes ------------------------------------------------------------------------------
 MENU_FICHIER = "&Fichier"
+ACTION_NOUVEAU = "&Nouvelle étude"
+ACTION_OUVRIR = "&Ouvrir une étude…"
+ACTION_ENREGISTRER = "&Enregistrer"
+ACTION_ENREGISTRER_SOUS = "Enregistrer &sous…"
+ACTION_EXPORTER_CSV = "Exporter les résultats en CSV…"
+FILTRE_ETUDE = "Étude Meca3D (*.meca3d)"
+FILTRE_CSV = "Fichier CSV (*.csv)"
 MENU_SOLIDCRAFT = "&SolidCraft"
 MENU_SIMULATION = "S&imulation"
 MENU_ENSEIGNANT = "&Enseignant"
@@ -83,8 +92,8 @@ INFO_HYPERSTATIQUE = (
     "Le mode dynamique reste refusé."
 )
 INFO_SIMULER = "Lance la simulation dynamique dans un processus séparé."
-INFO_CINEMATIQUE_INDISPONIBLE = (
-    "Mode cinématique non disponible dans cette version (en cours de développement)."
+INFO_SIMULER_CINEMATIQUE = (
+    "Lance la simulation cinématique : une loi d'entrée par mobilité, aucun effort affiché."
 )
 INFO_SIMULER_INACTIF = "Valider d'abord chacune des liaisons du mécanisme."
 TITRE_CONFIRMATION_BLOC = "Valider toutes les propositions"
@@ -164,3 +173,147 @@ def libelle_cycle(numero: int, liaisons: list[str]) -> str:
 
 ONGLET_GRAPHE = "Graphe des liaisons"
 ONGLET_JOURNAL = "Journal"
+ONGLET_COURBES = "Courbes"
+ONGLET_TORSEURS = "Torseurs"
+
+# --- étude, fichiers, bandeau (EX-60, EX-06) -------------------------------------------------
+TITRE_CONFIRMATION_ABANDON = "Abandonner l'étude en cours"
+TEXTE_CONFIRMATION_ABANDON = "L'étude en cours a des modifications non enregistrées. Continuer ?"
+MSG_ETUDE_ENREGISTREE = "Étude enregistrée : "
+MSG_ETUDE_OUVERTE = "Étude ouverte : "
+MSG_PAS_DE_RESULTAT = "Aucun résultat à exporter : lancer d'abord une simulation."
+MSG_CSV_ECRIT = "Résultats exportés : "
+BANDEAU_MODIFIEE = "Maquette modifiée — réimporter pour mettre l'étude à jour."
+BOUTON_REIMPORTER = "Réimporter"
+MSG_VERIFICATION_IMPOSSIBLE = "Vérification de la maquette impossible : "
+
+
+def titre_fenetre(chemin: str | None, modifiee: bool) -> str:
+    nom = "sans titre" if chemin is None else chemin
+    return f"{TITRE_FENETRE} — {nom}{' *' if modifiee else ''}"
+
+
+# --- loi d'entrée : affichage lisible (R8) -------------------------------------------------
+SYMBOLES_GRANDEUR = {"angle": "θ", "position": "x"}
+UNITES_GRANDEUR = {
+    "angle": ("rad", "rad/s", "rad/s²"),
+    "position": ("m", "m/s", "m/s²"),
+}
+
+
+def loi_lisible(texte: str) -> str:
+    """Expression saisie -> écriture mathématique : `2*pi*t**2` devient `2·π·t^2`."""
+    resultat = texte.strip().replace("**", "^").replace("*", "·")
+    resultat = re.sub(r"\bpi\b", "π", resultat)
+    return resultat.replace("sqrt(", "√(")
+
+
+def loi_pilote(texte: str, grandeur: str) -> str:
+    symbole = SYMBOLES_GRANDEUR.get(grandeur, "f")
+    unite = UNITES_GRANDEUR.get(grandeur, ("",))[0]
+    return f"{symbole}(t) = {loi_lisible(texte)}  ({unite})"
+
+
+# --- saisie des entrées -----------------------------------------------------------------------
+GROUPE_PILOTE = "Loi d'entrée (pilote)"
+LOI_ACTUELLE = "Loi actuelle : "
+AUCUNE_LOI = "aucune loi d'entrée sur cette liaison"
+CHAMP_LOI = "f(t) ="
+CHAMP_T_APERCU = "Aperçu à t ="
+BOUTON_APPLIQUER_LOI = "Appliquer la loi"
+BOUTON_RETIRER_LOI = "Retirer la loi"
+GRANDEURS = (("Angle imposé (rad)", "angle"), ("Position imposée (m)", "position"))
+MSG_LOI_A_SAISIR = "Saisir d'abord une loi d'entrée valide."
+MSG_POSE_INCONNUE = "Pilote impossible : la pose initiale de cette liaison est inconnue."
+
+
+def apercu_loi(valeur: float, vitesse: float, acceleration: float, u: tuple[str, str, str]) -> str:
+    return (
+        f"valeur = {valeur:.6g} {u[0]} ; vitesse = {vitesse:.6g} {u[1]} ; "
+        f"accélération = {acceleration:.6g} {u[2]}"
+    )
+
+
+def loi_non_evaluable(t: float, detail: str) -> str:
+    return f"Loi non évaluable à t = {t:g} s ({detail})."
+
+
+TITRE_PESANTEUR = "Pesanteur"
+CASE_PESANTEUR = "Pesanteur active"
+BOUTON_PESANTEUR = "Appliquer la pesanteur"
+GROUPE_PESANTEUR = "Vecteur g (repère monde, m/s²)"
+
+TITRE_ACTION = "Action extérieure"
+CHAMP_NOM = "Nom"
+CHAMP_SOLIDE = "Solide"
+CHAMP_NATURE = "Nature"
+CHAMP_REPERE = "Repère d'expression"
+NATURES = (("Force (N)", "force"), ("Couple (N·m)", "couple"))
+REPERES = (("Repère monde", "monde"), ("Repère du solide", "solide"))
+GROUPE_POINT_PIECE = "Point d'application (coordonnées pièce, mm)"
+GROUPE_COMPOSANTES_FORCE = "Composantes de la force (N), fonctions de t"
+GROUPE_COMPOSANTES_COUPLE = "Composantes du couple (N·m), fonctions de t"
+BOUTON_AJOUTER = "Ajouter"
+BOUTON_APPLIQUER = "Appliquer les modifications"
+BOUTON_SUPPRIMER = "Supprimer"
+
+TITRE_RESSORT = "Ressort-amortisseur"
+GROUPE_POINT_1 = "Point 1 (coordonnées pièce du solide 1, mm)"
+GROUPE_POINT_2 = "Point 2 (coordonnées pièce du solide 2, mm)"
+CHAMP_SOLIDE_1 = "Solide 1"
+CHAMP_SOLIDE_2 = "Solide 2"
+CHAMP_RAIDEUR = "Raideur k"
+CHAMP_LONGUEUR_LIBRE = "Longueur libre l₀"
+CHAMP_AMORTISSEMENT = "Amortissement c"
+
+TITRE_CAPTEUR = "Capteur"
+GENRES_CAPTEUR = (("Capteur de liaison (torseur)", "liaison"), ("Capteur de point", "point"))
+CHAMP_LIAISON = "Liaison"
+CHAMP_SENS = "Sens du torseur"
+SENS = (("i → j (action du solide a sur b)", "i_vers_j"), ("j → i", "j_vers_i"))
+CHAMP_BASE = "Base d'expression"
+BASES_LIAISON = (("Base de liaison", "liaison"), ("Base monde", "monde"))
+BASES_POINT = (("Base du solide de référence", "reference"), ("Base monde", "monde"))
+CHAMP_REFERENCE = "Solide de référence"
+GROUPE_POINT_CAPTEUR = "Point du solide (coordonnées pièce, mm)"
+
+MSG_NOM_EXISTE = "Ce nom existe déjà : en choisir un autre."
+
+
+def libelle_action(nom: str, nature: str, solide: str) -> str:
+    return f"{nom} — {'force' if nature == 'force' else 'couple'} sur {solide}"
+
+
+def libelle_ressort(nom: str, solide_1: str, solide_2: str) -> str:
+    return f"{nom} — {solide_1} / {solide_2}"
+
+
+def libelle_capteur(nom: str, genre: str, detail: str) -> str:
+    return f"{nom} — {'torseur' if genre == 'liaison' else 'point'} {detail}"
+
+
+# --- résultats (EX-50, EX-52) -------------------------------------------------------------------
+COURBE_X = "Abscisse"
+COURBE_Y = "Ordonnée"
+COURBE_VIDE = "Aucun résultat : lancer une simulation."
+CHAMP_TORSEUR = "Torseur"
+TORSEURS = (("Statique {i→j}", "statique"), ("Cinématique {V j/i}", "cinematique"))
+TORSEUR_VIDE = "Aucun résultat : lancer une simulation."
+TORSEUR_STATIQUE_ABSENT = "Aucun effort en mode cinématique : torseur cinématique seul."
+COLONNE_LIAISON = "Liaison"
+
+
+def etiquette_instant(t: float) -> str:
+    return f"t = {t:.6g} s"
+
+
+def etiquette_statistiques(minimum: float, maximum: float, moyenne: float, unite: str) -> str:
+    u = f" {unite}" if unite else ""
+    return f"min = {minimum:.6g}{u} ; max = {maximum:.6g}{u} ; moyenne = {moyenne:.6g}{u}"
+
+
+def unite_de(grandeur: str) -> str:
+    """Unité entre parenthèses à la fin d'un nom de colonne : `C (N·m)` -> `N·m`."""
+    if grandeur.endswith(")") and "(" in grandeur:
+        return grandeur[grandeur.rindex("(") + 1 : -1]
+    return ""

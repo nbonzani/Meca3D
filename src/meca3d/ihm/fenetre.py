@@ -7,23 +7,31 @@ Aucune logique métier ici : `modele/`, `graphe/` et `cao/` décident ; la simul
 
 import sys
 from collections.abc import Callable
+from functools import partial
+from pathlib import Path
 
 from PyQt6.QtCore import QObject, QRunnable, Qt, QThreadPool, QTimer, pyqtSignal
-from PyQt6.QtGui import QAction, QCloseEvent
+from PyQt6.QtGui import QAction, QCloseEvent, QShowEvent
 from PyQt6.QtWidgets import (
     QApplication,
+    QFileDialog,
+    QFrame,
+    QHBoxLayout,
     QLabel,
     QMainWindow,
     QMessageBox,
     QPlainTextEdit,
     QProgressBar,
+    QPushButton,
     QSplitter,
     QTabWidget,
     QToolBar,
+    QVBoxLayout,
+    QWidget,
 )
 
 from meca3d.cao.canal import CanalSolidCraft, ErreurCanal
-from meca3d.cao.solidcraft import importer, reimporter
+from meca3d.cao.solidcraft import importer, reimporter, structure_a_change
 from meca3d.graphe.graphe import depuis_etude
 from meca3d.graphe.mobilite import (
     Mode,
@@ -33,23 +41,36 @@ from meca3d.graphe.mobilite import (
 )
 from meca3d.ihm import textes
 from meca3d.ihm.arbre import (
+    GENRE_ACTION,
+    GENRE_CAPTEUR,
     GENRE_LIAISON,
     GENRE_PILOTE,
+    GENRE_RESSORT,
     GENRE_RUBRIQUE,
     GENRE_SOLIDE,
     ArbreEtude,
 )
 from meca3d.ihm.proprietes import PanneauProprietes
+from meca3d.ihm.vue_courbes import VueCourbes
 from meca3d.ihm.vue_graphe import VueGraphe
-from meca3d.modele.etude import ErreurValidation, Etude, simulation_possible
+from meca3d.ihm.vue_torseurs import VueTorseurs
+from meca3d.modele.etude import (
+    ErreurEtude,
+    ErreurValidation,
+    Etude,
+    ecrire_etude,
+    lire_etude,
+    simulation_possible,
+)
 from meca3d.modele.liaison import Statut
 from meca3d.moteur.base import ErreurMoteur, ResultatsBruts
 from meca3d.moteur.processus import (
     CalculEnCours,
     EtatCalcul,
     ModeSimulation,
-    cinematique_disponible,
+    ProcessusPrechauffe,
 )
+from meca3d.resultats.export import colonnes_resultats, ecrire_csv
 
 PERIODE_SCRUTATION_MS = 50  # minuteur de lecture de la progression du processus de calcul
 RESOLUTION_PROGRESSION = 1000
@@ -91,34 +112,63 @@ class FenetrePrincipale(QMainWindow):
         super().__init__()
         self.setWindowTitle(textes.TITRE_FENETRE)
         self.resize(1200, 750)
-        self.etude: Etude | None = None
+        self._etude: Etude | None = None
         self.mobilite: ResultatMobilite | None = None
         self.resultats: ResultatsBruts | None = None
         self.calcul: CalculEnCours | None = None
         self.canal: CanalSolidCraft | None = None
         self.dernier_message = ""
-        self.hyperstatique_autorise = False  # EX-23 : réglage de session, décoché par défaut
+        self._hyper_session = False  # EX-23 sans étude : décoché par défaut
+        self.chemin_etude: Path | None = None
+        self.modifiee = False  # modifications non enregistrées
+        self.structure_modifiee = False  # EX-06 : la maquette a changé depuis l'import
+        self.verifications = 0  # nombre de vérifications de structure terminées
+        self.prechauffe: ProcessusPrechauffe | None = None
         self.fabrique_canal: Callable[[], CanalSolidCraft] = CanalSolidCraft
         self.confirmer: Callable[[str, str], bool] = self._confirmer_dialogue
+        self.dialogue_ouvrir: Callable[[], Path | None] = self._dialogue_ouvrir
+        self.dialogue_enregistrer: Callable[[str], Path | None] = self._dialogue_enregistrer
+        self.dialogue_csv: Callable[[str], Path | None] = self._dialogue_csv
         self._pool = QThreadPool(self)
         self._taches: list[_Tache] = []
         self._connexion_en_cours = False
         self._import_en_cours = False
+        self._verification_en_cours = False
+        self._simulation_en_attente = False
+        self._etude_avant_import: Etude | None = None
 
         self.arbre = ArbreEtude()
         self.proprietes = PanneauProprietes()
         self.vue_graphe = VueGraphe()
+        self.vue_courbes = VueCourbes()
+        self.vue_torseurs = VueTorseurs()
         self.journal = QPlainTextEdit()
         self.journal.setReadOnly(True)
         self.onglets = QTabWidget()
         self.onglets.addTab(self.vue_graphe, textes.ONGLET_GRAPHE)
+        self.onglets.addTab(self.vue_courbes, textes.ONGLET_COURBES)
+        self.onglets.addTab(self.vue_torseurs, textes.ONGLET_TORSEURS)
         self.onglets.addTab(self.journal, textes.ONGLET_JOURNAL)
-        separateur = QSplitter(Qt.Orientation.Horizontal)
-        separateur.addWidget(self.arbre)
-        separateur.addWidget(self.onglets)
-        separateur.addWidget(self.proprietes)
-        separateur.setSizes([280, 600, 320])
-        self.setCentralWidget(separateur)
+        self.separateur = QSplitter(Qt.Orientation.Horizontal)
+        self.separateur.addWidget(self.arbre)
+        self.separateur.addWidget(self.onglets)
+        self.separateur.addWidget(self.proprietes)
+        self.separateur.setSizes([280, 600, 320])
+        # bandeau « maquette modifiée » (EX-06), au-dessus de la zone de travail
+        self.bandeau = QFrame()
+        self.bandeau.setStyleSheet("background: #fef3c7; border: 1px solid #b45309;")
+        ligne_bandeau = QHBoxLayout(self.bandeau)
+        self.etiquette_bandeau = QLabel(textes.BANDEAU_MODIFIEE)
+        self.bouton_reimporter = QPushButton(textes.BOUTON_REIMPORTER)
+        ligne_bandeau.addWidget(self.etiquette_bandeau, 1)
+        ligne_bandeau.addWidget(self.bouton_reimporter)
+        self.bandeau.hide()
+        centre = QWidget()
+        colonne = QVBoxLayout(centre)
+        colonne.setContentsMargins(0, 0, 0, 0)
+        colonne.addWidget(self.bandeau)
+        colonne.addWidget(self.separateur, 1)
+        self.setCentralWidget(centre)
 
         self._creer_actions()
         self._creer_menus()
@@ -128,7 +178,9 @@ class FenetrePrincipale(QMainWindow):
         self.minuteur.setInterval(PERIODE_SCRUTATION_MS)
         self.minuteur.timeout.connect(self._scruter_calcul)
         self.arbre.selection_changee.connect(self._sur_selection)
-        self.proprietes.modifiee.connect(self._actualiser)
+        self.proprietes.modifiee.connect(self._sur_modification)
+        self.proprietes.capteurs_modifies.connect(self._sur_capteurs_modifies)
+        self.bouton_reimporter.clicked.connect(self.importer)
         self._actualiser()
 
     # --- construction ------------------------------------------------------------------------
@@ -140,11 +192,18 @@ class FenetrePrincipale(QMainWindow):
         return action
 
     def _creer_actions(self) -> None:
+        self.action_nouveau = self._action(textes.ACTION_NOUVEAU)
+        self.action_ouvrir = self._action(textes.ACTION_OUVRIR)
+        self.action_enregistrer = self._action(textes.ACTION_ENREGISTRER)
+        self.action_enregistrer_sous = self._action(textes.ACTION_ENREGISTRER_SOUS)
+        self.action_exporter_csv = self._action(textes.ACTION_EXPORTER_CSV)
         self.action_quitter = self._action(textes.ACTION_QUITTER)
         self.action_connecter = self._action(textes.ACTION_CONNECTER)
         self.action_importer = self._action(textes.ACTION_IMPORTER)
         self.action_simuler = self._action(textes.ACTION_SIMULER, textes.INFO_SIMULER)
-        self.action_simuler_cinematique = self._action(textes.ACTION_SIMULER_CINEMATIQUE)
+        self.action_simuler_cinematique = self._action(
+            textes.ACTION_SIMULER_CINEMATIQUE, textes.INFO_SIMULER_CINEMATIQUE
+        )
         self.action_annuler = self._action(textes.ACTION_ANNULER)
         self.action_valider_toutes = self._action(textes.ACTION_VALIDER_TOUTES)
         self.action_validation_en_bloc = self._action(
@@ -154,6 +213,11 @@ class FenetrePrincipale(QMainWindow):
             textes.ACTION_HYPERSTATIQUE, textes.INFO_HYPERSTATIQUE, cochable=True
         )
         self.action_quitter.triggered.connect(self.close)
+        self.action_nouveau.triggered.connect(self._sur_nouveau)
+        self.action_ouvrir.triggered.connect(self._sur_ouvrir)
+        self.action_enregistrer.triggered.connect(self._sur_enregistrer)
+        self.action_enregistrer_sous.triggered.connect(self._sur_enregistrer_sous)
+        self.action_exporter_csv.triggered.connect(self._sur_exporter_csv)
         self.action_connecter.triggered.connect(self.connecter)
         self.action_importer.triggered.connect(self.importer)
         self.action_simuler.triggered.connect(self._sur_simuler)
@@ -171,6 +235,13 @@ class FenetrePrincipale(QMainWindow):
         simulation = barre.addMenu(textes.MENU_SIMULATION)
         enseignant = barre.addMenu(textes.MENU_ENSEIGNANT)
         assert fichier and solidcraft and simulation and enseignant
+        fichier.addAction(self.action_nouveau)
+        fichier.addAction(self.action_ouvrir)
+        fichier.addAction(self.action_enregistrer)
+        fichier.addAction(self.action_enregistrer_sous)
+        fichier.addSeparator()
+        fichier.addAction(self.action_exporter_csv)
+        fichier.addSeparator()
         fichier.addAction(self.action_quitter)
         solidcraft.addAction(self.action_connecter)
         solidcraft.addAction(self.action_importer)
@@ -182,12 +253,15 @@ class FenetrePrincipale(QMainWindow):
         outils = QToolBar("Commandes", self)
         outils.setMovable(False)
         for action in (
+            self.action_ouvrir,
+            self.action_enregistrer,
             self.action_connecter,
             self.action_importer,
             self.action_valider_toutes,
             self.action_simuler,
             self.action_simuler_cinematique,
             self.action_annuler,
+            self.action_exporter_csv,
         ):
             outils.addAction(action)
         self.addToolBar(outils)
@@ -223,10 +297,66 @@ class FenetrePrincipale(QMainWindow):
         return reponse == QMessageBox.StandardButton.Yes
 
     # --- étude -------------------------------------------------------------------------------
+    @property
+    def etude(self) -> Etude | None:
+        """Étude ouverte (propriété : les tests relisent l'attribut après chaque commande)."""
+        return self._etude
+
+    @property
+    def hyperstatique_autorise(self) -> bool:
+        """EX-23 : champ de l'étude ouverte (réglage de session s'il n'y a pas d'étude)."""
+        if self.etude is not None:
+            return self.etude.hyperstatique_autorise
+        return self._hyper_session
+
+    @hyperstatique_autorise.setter
+    def hyperstatique_autorise(self, valeur: bool) -> None:
+        self._hyper_session = valeur
+        if self.etude is not None:
+            self.etude.hyperstatique_autorise = valeur
+
     def charger_etude(self, etude: Etude) -> None:
-        self.etude = etude
+        self._remplacer_etude(etude)
+
+    def _remplacer_etude(self, etude: Etude | None) -> None:
+        self._etude = etude
         self.resultats = None
+        self.modifiee = False
+        self.structure_modifiee = False
+        self.proprietes.definir_etude(etude)
+        if etude is None:
+            self.proprietes.afficher_texte(textes.TITRE_PROPRIETES, textes.PROPRIETES_VIDE)
+        self._afficher_resultats(basculer=False)
         self._actualiser()
+
+    def _afficher_resultats(self, basculer: bool) -> None:
+        """Alimente les courbes et le tableau des torseurs (vides sans résultat)."""
+        self.vue_courbes.afficher(self.etude, self.resultats)
+        self.vue_torseurs.afficher(self.etude, self.resultats)
+        if basculer and self.resultats is not None:
+            self.onglets.setCurrentWidget(self.vue_courbes)
+
+    def _sur_modification(self) -> None:
+        """Une donnée de l'étude a changé : les résultats ne la reflètent plus."""
+        self.modifiee = True
+        self.annuler()  # un calcul en cours porte sur l'ancien état de l'étude
+        if self.resultats is not None:
+            self.resultats = None
+            self._afficher_resultats(basculer=False)
+        self._actualiser()
+
+    def _sur_capteurs_modifies(self) -> None:
+        """Un capteur est post-traité : les résultats restent valables, les vues sont refaites."""
+        self.modifiee = True
+        self._afficher_resultats(basculer=False)
+        self._actualiser()
+
+    def _maj_titre(self) -> None:
+        nom = None if self.chemin_etude is None else self.chemin_etude.name
+        self.setWindowTitle(textes.titre_fenetre(nom, self.modifiee and self.etude is not None))
+
+    def _maj_bandeau(self) -> None:
+        self.bandeau.setVisible(self.etude is not None and self.structure_modifiee)
 
     def _calculer_mobilite(self) -> ResultatMobilite | None:
         if self.etude is None or not self.etude.liaisons:
@@ -246,22 +376,29 @@ class FenetrePrincipale(QMainWindow):
         self.arbre.mettre_a_jour(etude, self.mobilite)
         self.vue_graphe.afficher(etude, self.mobilite)
         self.proprietes.rafraichir()
+        self._maj_bandeau()
+        self._maj_titre()
         self._maj_actions()
 
     def _maj_actions(self) -> None:
         etude = self.etude
-        libre = self.calcul is None
+        libre = self.calcul is None and not self._simulation_en_attente
         simulable = etude is not None and bool(etude.liaisons) and simulation_possible(etude)
         self.action_simuler.setEnabled(simulable and libre)
         self.action_simuler.setToolTip(
             textes.INFO_SIMULER if simulable else textes.INFO_SIMULER_INACTIF
         )
-        cinematique = cinematique_disponible()
-        self.action_simuler_cinematique.setEnabled(simulable and libre and cinematique)
+        self.action_simuler_cinematique.setEnabled(simulable and libre)
         self.action_simuler_cinematique.setToolTip(
-            textes.INFO_SIMULER_INACTIF if cinematique else textes.INFO_CINEMATIQUE_INDISPONIBLE
+            textes.INFO_SIMULER_CINEMATIQUE if simulable else textes.INFO_SIMULER_INACTIF
         )
-        self.action_annuler.setEnabled(not libre)
+        self.action_annuler.setEnabled(self.calcul is not None)
+        self.action_exporter_csv.setEnabled(self.resultats is not None)
+        self.action_enregistrer.setEnabled(etude is not None)
+        self.action_enregistrer_sous.setEnabled(etude is not None)
+        self.action_hyperstatique.blockSignals(True)
+        self.action_hyperstatique.setChecked(self.hyperstatique_autorise)
+        self.action_hyperstatique.blockSignals(False)
         en_bloc = etude is not None and etude.validation_en_bloc
         self.action_validation_en_bloc.blockSignals(True)
         self.action_validation_en_bloc.setChecked(en_bloc)
@@ -273,15 +410,25 @@ class FenetrePrincipale(QMainWindow):
         self.action_valider_toutes.setEnabled(en_bloc and a_valider)
         self.action_connecter.setEnabled(not self._connexion_en_cours)
         connecte = self.canal is not None and self.canal.connecte
-        self.action_importer.setEnabled(connecte and not self._import_en_cours and libre)
+        peut_importer = (
+            connecte and not self._import_en_cours and not self._verification_en_cours and libre
+        )
+        self.action_importer.setEnabled(peut_importer)
+        self.bouton_reimporter.setEnabled(peut_importer)
 
     # --- sélection ---------------------------------------------------------------------------
     def _sur_selection(self, genre: str, nom: str) -> None:
         etude = self.etude
         if etude is None:
             return
-        if genre == GENRE_LIAISON:
+        if genre in (GENRE_LIAISON, GENRE_PILOTE):
             self.proprietes.afficher_liaison(etude.liaison(nom))
+        elif genre == GENRE_ACTION:
+            self.proprietes.afficher_action(next(a for a in etude.actions if a.nom == nom))
+        elif genre == GENRE_RESSORT:
+            self.proprietes.afficher_ressort(next(r for r in etude.ressorts if r.nom == nom))
+        elif genre == GENRE_CAPTEUR:
+            self.proprietes.afficher_capteur(next(c for c in etude.capteurs if c.nom == nom))
         elif genre == GENRE_SOLIDE:
             s = etude.solide(nom)
             texte = (
@@ -290,11 +437,6 @@ class FenetrePrincipale(QMainWindow):
                 f"Inertie au centre de gravité, en repère monde (kg·m²) :\n{s.inertie}"
             )
             self.proprietes.afficher_texte(nom + (" (bâti)" if s.fixe else ""), texte)
-        elif genre == GENRE_PILOTE:
-            pilote = next(p for p in etude.pilotes if p.liaison == nom)
-            self.proprietes.afficher_texte(
-                f"Loi d'entrée de {nom}", f"f(t) = {pilote.loi.texte}  (t en s ; rad ou m)"
-            )
         elif genre == GENRE_RUBRIQUE:
             self._afficher_rubrique(nom, etude)
 
@@ -303,10 +445,16 @@ class FenetrePrincipale(QMainWindow):
             self.onglets.setCurrentWidget(self.vue_graphe)
             self.proprietes.afficher_texte(nom, self.vue_graphe.resume())
         elif nom == textes.RUBRIQUE_PESANTEUR:
-            g = etude.pesanteur
-            etat = "" if g.actif else " (désactivée)"
-            v = tuple(float(x) for x in g.vecteur)
-            self.proprietes.afficher_texte(nom, f"g = {v} m/s²{etat}")
+            self.proprietes.afficher_pesanteur()
+        elif nom == textes.RUBRIQUE_ACTIONS:
+            self.proprietes.afficher_action(None)
+        elif nom == textes.RUBRIQUE_RESSORTS:
+            self.proprietes.afficher_ressort(None)
+        elif nom == textes.RUBRIQUE_CAPTEURS:
+            self.proprietes.afficher_capteur(None)
+        elif nom == textes.RUBRIQUE_COURBES:
+            self.onglets.setCurrentWidget(self.vue_courbes)
+            self.proprietes.afficher_texte(nom, self.vue_courbes.etiquette_stats.text())
         elif nom == textes.RUBRIQUE_PILOTES and self.mobilite is not None:
             self.proprietes.afficher_texte(
                 nom,
@@ -321,10 +469,14 @@ class FenetrePrincipale(QMainWindow):
             self.action_validation_en_bloc.setChecked(False)
             return
         self.etude.validation_en_bloc = coche
+        self.modifiee = True
         self._actualiser()
 
     def _sur_hyperstatique(self, coche: bool) -> None:
         self.hyperstatique_autorise = coche
+        if self.etude is not None:
+            self.modifiee = True
+            self._maj_titre()
 
     def valider_toutes(self) -> None:
         etude = self.etude
@@ -338,7 +490,7 @@ class FenetrePrincipale(QMainWindow):
             self._message(str(e))
             return
         self._message(textes.MSG_BLOC_FAIT + (", ".join(validees) or textes.AUCUN_ELEMENT))
-        self._actualiser()
+        self._sur_modification()
         self.proprietes.rafraichir()
 
     # --- connexion et import (QThreadPool) ---------------------------------------------------
@@ -376,6 +528,7 @@ class FenetrePrincipale(QMainWindow):
         self.etiquette_connexion.setText(textes.connexion_etablie(canal.port))
         self._message(textes.connexion_etablie(canal.port))
         self._maj_actions()
+        self.verifier_structure()  # EX-06 : la maquette ouverte est-elle celle de l'étude ?
 
     def _connexion_echouee(self, message: str) -> None:
         self._connexion_en_cours = False
@@ -389,6 +542,7 @@ class FenetrePrincipale(QMainWindow):
         if canal is None or self._import_en_cours:
             return
         ancienne = self.etude if self.etude is not None and self.etude.liaisons else None
+        self._etude_avant_import = ancienne
         self._import_en_cours = True
         self._message(textes.MSG_IMPORT_EN_COURS)
         self._maj_actions()
@@ -401,9 +555,13 @@ class FenetrePrincipale(QMainWindow):
     def _import_reussi(self, etude: object) -> None:
         assert isinstance(etude, Etude)
         self._import_en_cours = False
+        ancienne, self._etude_avant_import = self._etude_avant_import, None
+        reportes = [] if ancienne is None else etude.reporter_saisies(ancienne)
         self.charger_etude(etude)
+        self.modifiee = True  # l'étude importée n'est pas encore enregistrée
+        self._actualiser()
         self._message(textes.msg_import_termine(len(etude.solides), len(etude.liaisons)))
-        for avertissement in getattr(etude, "avertissements", []):
+        for avertissement in [*getattr(etude, "avertissements", []), *reportes]:
             self._message(avertissement)
 
     def _import_echoue(self, message: str) -> None:
@@ -413,6 +571,158 @@ class FenetrePrincipale(QMainWindow):
             self.canal = None
             self.etiquette_connexion.setText(textes.CONNEXION_ABSENTE)
         self._maj_actions()
+
+    # --- EX-06, R3 : la structure de la maquette a-t-elle changé ? ---------------------------
+    def verifier_structure(self, suite: Callable[[], None] | None = None) -> None:
+        """Compare la signature mémorisée à celle de la maquette ouverte (réseau : QThreadPool),
+        affiche le bandeau si elle diffère, puis appelle `suite`. Sans canal, sans étude ou si le
+        canal est occupé, `suite` est appelée tout de suite."""
+        etude, canal = self.etude, self.canal
+        libre = not (self._import_en_cours or self._verification_en_cours)
+        if etude is None or not etude.liaisons or canal is None or not canal.connecte or not libre:
+            if suite is not None:
+                suite()
+            return
+        self._verification_en_cours = True
+        self._maj_actions()
+
+        def travail() -> object:
+            return structure_a_change(canal, etude)
+
+        def reussite(changee: object) -> None:
+            self._verification_en_cours = False
+            if etude is self.etude:
+                self.structure_modifiee = bool(changee)
+            self.verifications += 1
+            self._maj_bandeau()
+            self._maj_actions()
+            if suite is not None:
+                suite()
+
+        def echec(message: str) -> None:
+            self._verification_en_cours = False
+            self._message(textes.MSG_VERIFICATION_IMPOSSIBLE + message)
+            self.verifications += 1
+            self._maj_actions()
+            if suite is not None:
+                suite()
+
+        self._lancer(travail, reussite, echec)
+
+    # --- fichiers : étude (EX-60) et CSV (EX-52) ---------------------------------------------
+    def _dialogue_ouvrir(self) -> Path | None:
+        nom, _ = QFileDialog.getOpenFileName(
+            self, textes.ACTION_OUVRIR.replace("&", ""), "", textes.FILTRE_ETUDE
+        )
+        return Path(nom) if nom else None
+
+    def _dialogue_enregistrer(self, suggestion: str) -> Path | None:
+        nom, _ = QFileDialog.getSaveFileName(
+            self, textes.ACTION_ENREGISTRER_SOUS.replace("&", ""), suggestion, textes.FILTRE_ETUDE
+        )
+        return Path(nom) if nom else None
+
+    def _dialogue_csv(self, suggestion: str) -> Path | None:
+        nom, _ = QFileDialog.getSaveFileName(
+            self, textes.ACTION_EXPORTER_CSV, suggestion, textes.FILTRE_CSV
+        )
+        return Path(nom) if nom else None
+
+    def _sur_nouveau(self) -> None:
+        self.nouvelle_etude()
+
+    def _sur_ouvrir(self) -> None:
+        self.ouvrir_etude()
+
+    def _sur_enregistrer(self) -> None:
+        self.enregistrer_etude()
+
+    def _sur_enregistrer_sous(self) -> None:
+        self.enregistrer_sous()
+
+    def _sur_exporter_csv(self) -> None:
+        self.exporter_csv()
+
+    def _abandon_confirme(self) -> bool:
+        if self.etude is None or not self.modifiee:
+            return True
+        return self.confirmer(textes.TITRE_CONFIRMATION_ABANDON, textes.TEXTE_CONFIRMATION_ABANDON)
+
+    def nouvelle_etude(self) -> bool:
+        if self.calcul is not None or not self._abandon_confirme():
+            return False
+        self.chemin_etude = None
+        self._remplacer_etude(None)
+        return True
+
+    def ouvrir_etude(self, chemin: Path | None = None) -> bool:
+        """EX-60 : un fichier illisible ou incohérent donne un message, jamais d'étude partielle."""
+        if self.calcul is not None:
+            return False
+        if chemin is None:
+            chemin = self.dialogue_ouvrir()
+            if chemin is None:
+                return False
+        if not self._abandon_confirme():
+            return False
+        try:
+            etude = lire_etude(chemin)
+        except ErreurEtude as e:
+            self._message(str(e))
+            return False
+        self.chemin_etude = chemin
+        self._remplacer_etude(etude)
+        self._message(textes.MSG_ETUDE_OUVERTE + chemin.name)
+        return True
+
+    def enregistrer_etude(self) -> bool:
+        if self.chemin_etude is None:
+            return self.enregistrer_sous()
+        return self._ecrire_etude(self.chemin_etude)
+
+    def enregistrer_sous(self, chemin: Path | None = None) -> bool:
+        if self.etude is None:
+            self._message(textes.MSG_PAS_D_ETUDE)
+            return False
+        if chemin is None:
+            suggestion = "etude.meca3d" if self.chemin_etude is None else str(self.chemin_etude)
+            chemin = self.dialogue_enregistrer(suggestion)
+            if chemin is None:
+                return False
+        if chemin.suffix != ".meca3d":
+            chemin = chemin.with_suffix(".meca3d")
+        return self._ecrire_etude(chemin)
+
+    def _ecrire_etude(self, chemin: Path) -> bool:
+        if self.etude is None:
+            return False
+        try:
+            ecrire_etude(self.etude, chemin)
+        except OSError as e:
+            self._message(f"Enregistrement impossible : {e}")
+            return False
+        self.chemin_etude = chemin
+        self.modifiee = False
+        self._maj_titre()
+        self._message(textes.MSG_ETUDE_ENREGISTREE + chemin.name)
+        return True
+
+    def exporter_csv(self, chemin: Path | None = None) -> bool:
+        """EX-52 : exporte les grandeurs des courbes (mêmes colonnes que `meca3d simuler`)."""
+        if self.etude is None or self.resultats is None:
+            self._message(textes.MSG_PAS_DE_RESULTAT)
+            return False
+        if chemin is None:
+            chemin = self.dialogue_csv("resultats.csv")
+            if chemin is None:
+                return False
+        try:
+            ecrire_csv(chemin, colonnes_resultats(self.etude, self.resultats))
+        except OSError as e:
+            self._message(f"Export impossible : {e}")
+            return False
+        self._message(textes.MSG_CSV_ECRIT + chemin.name)
+        return True
 
     # --- simulation (processus séparé) -------------------------------------------------------
     def _sur_simuler(self) -> None:
@@ -426,7 +736,7 @@ class FenetrePrincipale(QMainWindow):
         if etude is None:
             self._message(textes.MSG_PAS_D_ETUDE)
             return
-        if self.calcul is not None:
+        if self.calcul is not None or self._simulation_en_attente:
             return
         if self.mobilite is None:
             self._message(textes.MSG_MOBILITE_INDISPONIBLE)
@@ -440,9 +750,21 @@ class FenetrePrincipale(QMainWindow):
             return
         if decision.message:
             self._message(decision.message)
+        # R3 : vérifier la maquette (réseau, hors du fil IHM) avant de lancer le calcul
+        self._simulation_en_attente = True
+        self._maj_actions()
+        self.verifier_structure(partial(self._demarrer_calcul, mode))
+
+    def _demarrer_calcul(self, mode: ModeSimulation) -> None:
+        self._simulation_en_attente = False
+        etude = self.etude
+        if etude is None or self.calcul is not None:
+            self._maj_actions()
+            return
         self.resultats = None
+        self._afficher_resultats(basculer=False)
         self.calcul = CalculEnCours(etude, mode)
-        self.calcul.demarrer()
+        self.calcul.demarrer(self.prechauffe)  # processus préchauffé s'il est prêt (R6)
         self.barre_progression.setValue(0)
         self.barre_progression.show()
         self.minuteur.start()
@@ -464,9 +786,13 @@ class FenetrePrincipale(QMainWindow):
         if calcul.etat is EtatCalcul.TERMINE and calcul.resultats is not None:
             self.resultats = calcul.resultats
             self._message(textes.msg_calcul_termine(len(calcul.resultats.t)))
+            for avertissement in calcul.resultats.avertissements:
+                self._message(avertissement)
+            self._afficher_resultats(basculer=True)
         elif isinstance(calcul.erreur, ErreurMoteur):
             self._message(textes.MSG_CALCUL_ECHEC + str(calcul.erreur))
         self._maj_actions()
+        self._prechauffer()
         self.calcul_termine.emit()
 
     def annuler(self) -> None:
@@ -478,12 +804,34 @@ class FenetrePrincipale(QMainWindow):
         calcul.annuler()
         self.calcul = None
         self.resultats = None
+        self._afficher_resultats(basculer=False)
         self.barre_progression.hide()
         self._message(textes.MSG_CALCUL_ANNULE)
         self._maj_actions()
+        self._prechauffer()
+
+    # --- préchauffage du processus de calcul (R6) --------------------------------------------
+    def prechauffe_pret(self) -> bool:
+        """Le processus préchauffé a fini ses imports : le prochain calcul démarre sans délai."""
+        return self.prechauffe is not None and self.prechauffe.pret
+
+    def _prechauffer(self) -> None:
+        """Prépare le processus du prochain calcul, si la fenêtre est ouverte (visible)."""
+        if not self.isVisible():
+            return
+        if self.prechauffe is not None and self.prechauffe.disponible:
+            return
+        self.prechauffe = ProcessusPrechauffe()
+        self.prechauffe.demarrer()
+
+    def showEvent(self, a0: QShowEvent | None) -> None:  # noqa: N802 - nom imposé par Qt
+        super().showEvent(a0)
+        self._prechauffer()
 
     def closeEvent(self, a0: QCloseEvent | None) -> None:  # noqa: N802 - nom imposé par Qt
         self.annuler()
+        if self.prechauffe is not None:
+            self.prechauffe.arreter()
         self._pool.waitForDone(2000)
         if self.canal is not None:
             self.canal.fermer()
