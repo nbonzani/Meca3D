@@ -38,3 +38,7 @@
 - **R2 (lot 7)** : lecture des couplages SolidCraft (`joint.list.links`) dans `cao/solidcraft.py`, testée sur les réponses réelles enregistrées au lot 1b (`prototypes/levee_risques/reponses/*joint_list*.json`).
 - **R3 (lot 9)** : persister la signature de structure (EX-06) dans `Etude` et dans le `.meca3d`. Aujourd'hui elle ne vit que dans `EtudeImportee`.
 - **R4 (après lot 6)** : ajouter l'étape 1 réseau (faux serveur) à `tests/test_bout_en_bout.py`.
+- **R5 (lot 9)** : `moteur/processus.py` remplace `exudyn_dyn.exu` par une enveloppe dans le processus fils pour poser la fonction post-pas. C'est un couplage caché : remplacer par un paramètre explicite de `MoteurExudynDyn.simuler` (rappel de progression, drapeau d'arrêt).
+- **R6 (lot 9)** : 5 s de démarrage du processus de calcul, dont 4,2 s d'import de sympy. Préchauffer un processus à l'ouverture de la fenêtre, et/ou ne plus importer sympy dans le fils (fonctions de loi déjà compilées).
+- **R7 (après lot 6)** : « Hyperstatique autorisé » est un réglage de session dans l'IHM ; le brancher sur le champ d'`Etude` ajouté au lot 6. Vérifier aussi l'appel au mode cinématique (`MoteurCinematique`), supposé par le lot 8.
+- **R8 (lot 9)** : propriétés de liaison : la liste « Axe x du repère monde » ne reflète pas le vecteur affiché (0, 0, 1) ; la loi d'entrée s'affiche en expression brute.
