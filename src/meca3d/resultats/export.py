@@ -2,6 +2,7 @@
 """Export CSV au format Excel français (EX-52) : `;`, décimale `,`, UTF-8 avec BOM."""
 
 import csv
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -13,8 +14,8 @@ from meca3d.moteur.base import ResultatsBruts
 from meca3d.resultats.capteurs import mesurer_point
 from meca3d.resultats.torseurs import torseur_cinematique, torseur_statique
 
-_COMPOSANTES = ("Fx (N)", "Fy (N)", "Fz (N)", "Mx (N·m)", "My (N·m)", "Mz (N·m)")
-_COMPOSANTES_CINEMATIQUES = (
+COMPOSANTES_STATIQUES = ("Fx (N)", "Fy (N)", "Fz (N)", "Mx (N·m)", "My (N·m)", "Mz (N·m)")
+COMPOSANTES_CINEMATIQUES = (
     "Ωx (rad/s)",
     "Ωy (rad/s)",
     "Ωz (rad/s)",
@@ -42,10 +43,10 @@ def _colonnes_capteurs(etude: Etude, resultats: ResultatsBruts) -> dict[str, np.
             base = "monde" if capteur.base is BaseCapteur.MONDE else "liaison"
             if capteur.liaison in resultats.forces:
                 tors = torseur_statique(etude, resultats, capteur.liaison, de=i, base=base)
-                for k, composante in enumerate(_COMPOSANTES):
+                for k, composante in enumerate(COMPOSANTES_STATIQUES):
                     colonnes[f"{capteur.nom} {composante}"] = tors[:, k]
             cine = torseur_cinematique(etude, resultats, capteur.liaison, i=i, base=base)
-            for k, composante in enumerate(_COMPOSANTES_CINEMATIQUES):
+            for k, composante in enumerate(COMPOSANTES_CINEMATIQUES):
                 colonnes[f"{capteur.nom} {composante}"] = cine[:, k]
     return colonnes
 
@@ -73,11 +74,24 @@ def colonnes_resultats(etude: Etude, resultats: ResultatsBruts) -> dict[str, np.
             colonnes[f"C{suffixe} (N·m)"] = tors[:, 3]  # couple d'axe x local
     for liaison in etude.liaisons:
         tors = torseur_statique(etude, resultats, liaison.nom, de=liaison.solide_a, base="monde")
-        for i, composante in enumerate(_COMPOSANTES):
+        for i, composante in enumerate(COMPOSANTES_STATIQUES):
             nom = f"{liaison.nom} {liaison.solide_a}→{liaison.solide_b} {composante}"
             colonnes[nom] = tors[:, i]
     colonnes.update(_colonnes_capteurs(etude, resultats))
     return colonnes
+
+
+@dataclass(frozen=True)
+class Statistiques:
+    """Valeurs extrêmes et moyenne d'une grandeur (EX-52)."""
+
+    minimum: float
+    maximum: float
+    moyenne: float
+
+
+def statistiques(valeurs: np.ndarray) -> Statistiques:
+    return Statistiques(float(np.min(valeurs)), float(np.max(valeurs)), float(np.mean(valeurs)))
 
 
 def _formater(x: float) -> str:

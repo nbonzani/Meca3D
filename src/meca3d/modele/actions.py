@@ -22,6 +22,23 @@ GRANDEURS = ("angle", "position")
 
 _T = sympy.Symbol("t", real=True)
 
+# Grandeurs imposables par une loi d'entrée selon le type de liaison (EX-30) : pivot : angle ;
+# glissière : position ; pivot glissant : l'un ou l'autre ; hélicoïdale : angle.
+_GRANDEURS_PILOTABLES: dict[str, tuple[str, ...]] = {
+    "pivot": ("angle",),
+    "glissiere": ("position",),
+    "pivot_glissant": ("angle", "position"),
+    "helicoidale": ("angle",),
+}
+
+
+def grandeurs_pilotables(type_liaison: str | None) -> tuple[str, ...]:
+    """Grandeurs qu'une loi d'entrée peut imposer à une liaison de ce type (vide : aucune)."""
+    if type_liaison is None:
+        return ()
+    return _GRANDEURS_PILOTABLES.get(str(type_liaison), ())
+
+
 _FONCTIONS: dict[str, Callable[..., Any]] = {
     "sin": sympy.sin,
     "cos": sympy.cos,

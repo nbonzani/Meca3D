@@ -69,6 +69,12 @@ def _booleen(valeur: object) -> bool:
     return valeur
 
 
+def _texte(valeur: object) -> str:
+    if not isinstance(valeur, str):
+        raise ValueError(f"Texte attendu, reçu {valeur!r}.")
+    return valeur
+
+
 @dataclass(frozen=True)
 class Reglages:
     """Réglages de simulation : durée (s), nombre de pas, période d'écriture des capteurs (s)."""
@@ -108,6 +114,9 @@ class Etude:
     actions: list[ActionExterieure] = field(default_factory=list)
     ressorts: list[RessortAmortisseur] = field(default_factory=list)
     hyperstatique_autorise: bool = False  # EX-23
+    # Signature de structure de la maquette à l'import (EX-06, R3) ; clé optionnelle
+    # `signature_structure` du fichier (ajoutée par `ecrire_etude`, absente de `vers_dict`).
+    signature: str = ""
 
     def solide(self, nom: str) -> Solide:
         for s in self.solides:
@@ -136,6 +145,36 @@ class Etude:
                 liaison.valider()
                 validees.append(liaison.nom)
         return validees
+
+    def reporter_saisies(self, ancienne: "Etude") -> list[str]:
+        """Après un réimport (EX-06) : reporte les saisies de l'élève que l'import ne refait pas
+        (actions, ressorts, capteurs, options) quand leurs solides et liaisons existent encore.
+        Renvoie les messages des éléments abandonnés."""
+        solides = {s.nom for s in self.solides}
+        liaisons = {x.nom for x in self.liaisons}
+        messages: list[str] = []
+        self.hyperstatique_autorise = ancienne.hyperstatique_autorise
+        self.validation_en_bloc = ancienne.validation_en_bloc
+        for action in ancienne.actions:
+            if action.solide in solides:
+                self.actions.append(action)
+            else:
+                messages.append(f"Action « {action.nom} » abandonnée : solide disparu.")
+        for ressort in ancienne.ressorts:
+            if {ressort.solide_1, ressort.solide_2} <= solides:
+                self.ressorts.append(ressort)
+            else:
+                messages.append(f"Ressort « {ressort.nom} » abandonné : solide disparu.")
+        for capteur in ancienne.capteurs:
+            if isinstance(capteur, CapteurLiaison):
+                conserve = capteur.liaison in liaisons
+            else:
+                conserve = {capteur.solide, capteur.solide_reference} <= solides
+            if conserve:
+                self.capteurs.append(capteur)
+            else:
+                messages.append(f"Capteur « {capteur.nom} » abandonné : élément disparu.")
+        return messages
 
     def verifier_coherence(self) -> None:
         """Noms uniques et références valides (solides, liaisons) ; lève ErreurEtude."""
@@ -230,6 +269,7 @@ class Etude:
                 actions=[ActionExterieure.depuis_dict(a) for a in donnees.get("actions", [])],
                 ressorts=[RessortAmortisseur.depuis_dict(r) for r in donnees.get("ressorts", [])],
                 hyperstatique_autorise=_booleen(donnees.get("hyperstatique_autorise", False)),
+                signature=_texte(donnees.get("signature_structure", "")),
             )
         except (KeyError, TypeError, ValueError, AttributeError, ErreurLoi, ErreurAction) as e:
             raise ErreurEtude(f"Fichier d'étude incohérent ({type(e).__name__} : {e}).") from e
@@ -251,7 +291,10 @@ def simulation_possible(etude: Etude) -> bool:
 
 
 def ecrire_etude(etude: Etude, chemin: Path | str) -> None:
-    texte = json.dumps(etude.vers_dict(), indent=2, ensure_ascii=False) + "\n"
+    donnees = etude.vers_dict()
+    if etude.signature:  # R3 : écrite dans le fichier, hors de `vers_dict` (transmis au calcul)
+        donnees["signature_structure"] = etude.signature
+    texte = json.dumps(donnees, indent=2, ensure_ascii=False) + "\n"
     Path(chemin).write_text(texte, encoding="utf-8", newline="\n")
 
 

@@ -62,7 +62,13 @@ def main(argv: list[str] | None = None) -> int:
     args = construire_analyseur().parse_args(argv)
     if args.commande == "simuler":
         return _simuler(args.etude, args.csv, args.mode)
-    return 0
+    # Sans argument : la fenêtre (le processus de calcul démarre en mode spawn : D9)
+    import multiprocessing
+
+    from meca3d.ihm import fenetre
+
+    multiprocessing.freeze_support()
+    return fenetre.lancer()
 
 
 if __name__ == "__main__":

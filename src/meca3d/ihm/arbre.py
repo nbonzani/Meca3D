@@ -7,6 +7,8 @@ from PyQt6.QtWidgets import QTreeWidget, QTreeWidgetItem
 
 from meca3d.graphe.mobilite import ResultatMobilite
 from meca3d.ihm import textes
+from meca3d.modele.actions import grandeurs_pilotables
+from meca3d.modele.capteurs import CapteurLiaison
 from meca3d.modele.etude import Etude
 from meca3d.modele.liaison import Statut
 
@@ -20,6 +22,9 @@ GENRE_RUBRIQUE = "rubrique"
 GENRE_SOLIDE = "solide"
 GENRE_LIAISON = "liaison"
 GENRE_PILOTE = "pilote"
+GENRE_ACTION = "action"
+GENRE_RESSORT = "ressort"
+GENRE_CAPTEUR = "capteur"
 
 STRUCTURE: tuple[tuple[str, tuple[str, ...]], ...] = (
     (
@@ -124,8 +129,25 @@ class ArbreEtude(QTreeWidget):
                     textes.RUBRIQUE_LIAISONS, texte, GENRE_LIAISON, liaison.nom, incomplet
                 )
             for pilote in etude.pilotes:
-                texte = f"{pilote.liaison} : {pilote.loi.texte}"
+                grandeur = (
+                    pilote.grandeur
+                    or ((grandeurs_pilotables(etude.liaison(pilote.liaison).type) or ("angle",))[0])
+                )
+                texte = f"{pilote.liaison} : {textes.loi_pilote(pilote.loi.texte, grandeur)}"
                 self._ajouter(textes.RUBRIQUE_PILOTES, texte, GENRE_PILOTE, pilote.liaison)
+            for action in etude.actions:
+                texte = textes.libelle_action(action.nom, action.nature.value, action.solide)
+                self._ajouter(textes.RUBRIQUE_ACTIONS, texte, GENRE_ACTION, action.nom)
+            for ressort in etude.ressorts:
+                texte = textes.libelle_ressort(ressort.nom, ressort.solide_1, ressort.solide_2)
+                self._ajouter(textes.RUBRIQUE_RESSORTS, texte, GENRE_RESSORT, ressort.nom)
+            for capteur in etude.capteurs:
+                if isinstance(capteur, CapteurLiaison):
+                    texte = textes.libelle_capteur(capteur.nom, "liaison", capteur.liaison)
+                else:
+                    detail = f"{capteur.solide} / {capteur.solide_reference}"
+                    texte = textes.libelle_capteur(capteur.nom, "point", detail)
+                self._ajouter(textes.RUBRIQUE_CAPTEURS, texte, GENRE_CAPTEUR, capteur.nom)
         self._marquer_rubriques(etude, mobilite)
         self.expandAll()
         if selection is not None:
@@ -188,6 +210,25 @@ class ArbreEtude(QTreeWidget):
 
     def selectionner_liaison(self, nom: str) -> None:
         self.setCurrentItem(self.item_liaison(nom))
+
+    def selectionner_rubrique(self, nom: str) -> None:
+        self.setCurrentItem(self._rubriques[nom])
+
+    def _selectionner(self, genre: str, nom: str) -> None:
+        for item in self._tous():
+            if (str(item.data(0, ROLE_GENRE)), str(item.data(0, ROLE_NOM))) == (genre, nom):
+                self.setCurrentItem(item)
+                return
+        raise KeyError(f"Élément absent de l'arbre : {nom}")
+
+    def selectionner_action(self, nom: str) -> None:
+        self._selectionner(GENRE_ACTION, nom)
+
+    def selectionner_ressort(self, nom: str) -> None:
+        self._selectionner(GENRE_RESSORT, nom)
+
+    def selectionner_capteur(self, nom: str) -> None:
+        self._selectionner(GENRE_CAPTEUR, nom)
 
     def _sur_selection(self, courant: QTreeWidgetItem | None, _: QTreeWidgetItem | None) -> None:
         if courant is not None:
