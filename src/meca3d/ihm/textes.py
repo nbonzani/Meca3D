@@ -1,9 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Tous les textes de l'interface, en français (règle IHM). Unités toujours indiquées."""
 
-import re
-
 from meca3d.modele.liaison import Statut, TypeLiaison
+from meca3d.modele.loi_affichage import loi_lisible as _loi_lisible
 
 TITRE_FENETRE = "Meca3D"
 
@@ -202,10 +201,9 @@ UNITES_GRANDEUR = {
 
 
 def loi_lisible(texte: str) -> str:
-    """Expression saisie -> écriture mathématique : `2*pi*t**2` devient `2·π·t^2`."""
-    resultat = texte.strip().replace("**", "^").replace("*", "·")
-    resultat = re.sub(r"\bpi\b", "π", resultat)
-    return resultat.replace("sqrt(", "√(")
+    """Expression saisie -> écriture mathématique : `2*pi*t**2` devient `2·π·t^2`, un Piecewise
+    devient « si … : … ; sinon : … » (logique dans `modele.loi_affichage`)."""
+    return _loi_lisible(texte)
 
 
 def loi_pilote(texte: str, grandeur: str) -> str:
