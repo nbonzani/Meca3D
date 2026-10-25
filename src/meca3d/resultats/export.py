@@ -6,17 +6,61 @@ from pathlib import Path
 
 import numpy as np
 
+from meca3d.modele.capteurs import BaseCapteur, CapteurLiaison, CapteurPoint, SensTorseur
 from meca3d.modele.etude import Etude
 from meca3d.modele.liaison import TypeLiaison
 from meca3d.moteur.base import ResultatsBruts
-from meca3d.resultats.torseurs import torseur_statique
+from meca3d.resultats.capteurs import mesurer_point
+from meca3d.resultats.torseurs import torseur_cinematique, torseur_statique
 
 _COMPOSANTES = ("Fx (N)", "Fy (N)", "Fz (N)", "Mx (N·m)", "My (N·m)", "Mz (N·m)")
+_COMPOSANTES_CINEMATIQUES = (
+    "Ωx (rad/s)",
+    "Ωy (rad/s)",
+    "Ωz (rad/s)",
+    "Vx (m/s)",
+    "Vy (m/s)",
+    "Vz (m/s)",
+)
+
+
+def _colonnes_capteurs(etude: Etude, resultats: ResultatsBruts) -> dict[str, np.ndarray]:
+    """Colonnes des capteurs définis dans l'étude (EX-50, EX-51)."""
+    colonnes: dict[str, np.ndarray] = {}
+    for capteur in etude.capteurs:
+        if isinstance(capteur, CapteurPoint):
+            mesure = mesurer_point(etude, resultats, capteur)
+            for i, axe in enumerate("xyz"):
+                colonnes[f"{capteur.nom} {axe} (m)"] = mesure.position[:, i]
+            for i, axe in enumerate("xyz"):
+                colonnes[f"{capteur.nom} v{axe} (m/s)"] = mesure.vitesse[:, i]
+            for i, axe in enumerate("xyz"):
+                colonnes[f"{capteur.nom} a{axe} (m/s²)"] = mesure.acceleration[:, i]
+        elif isinstance(capteur, CapteurLiaison):
+            liaison = etude.liaison(capteur.liaison)
+            i = liaison.solide_a if capteur.sens is SensTorseur.I_VERS_J else liaison.solide_b
+            base = "monde" if capteur.base is BaseCapteur.MONDE else "liaison"
+            if capteur.liaison in resultats.forces:
+                tors = torseur_statique(etude, resultats, capteur.liaison, de=i, base=base)
+                for k, composante in enumerate(_COMPOSANTES):
+                    colonnes[f"{capteur.nom} {composante}"] = tors[:, k]
+            cine = torseur_cinematique(etude, resultats, capteur.liaison, i=i, base=base)
+            for k, composante in enumerate(_COMPOSANTES_CINEMATIQUES):
+                colonnes[f"{capteur.nom} {composante}"] = cine[:, k]
+    return colonnes
 
 
 def colonnes_resultats(etude: Etude, resultats: ResultatsBruts) -> dict[str, np.ndarray]:
-    """Colonnes du CSV : t, couple/effort moteur des pilotes, torseurs {a→b} en base monde."""
+    """Colonnes du CSV : t, couple/effort moteur des pilotes, torseurs {a→b} en base monde, puis
+    les capteurs de l'étude. En mode cinématique (aucun effort) : positions des centres de
+    gravité à la place des torseurs."""
     colonnes: dict[str, np.ndarray] = {"t (s)": resultats.t}
+    if not resultats.forces:
+        for nom, position in resultats.positions.items():
+            for i, axe in enumerate("xyz"):
+                colonnes[f"{nom} {axe} (m)"] = position[:, i]
+        colonnes.update(_colonnes_capteurs(etude, resultats))
+        return colonnes
     for pilote in etude.pilotes:
         liaison = etude.liaison(pilote.liaison)
         tors = torseur_statique(
@@ -32,6 +76,7 @@ def colonnes_resultats(etude: Etude, resultats: ResultatsBruts) -> dict[str, np.
         for i, composante in enumerate(_COMPOSANTES):
             nom = f"{liaison.nom} {liaison.solide_a}→{liaison.solide_b} {composante}"
             colonnes[nom] = tors[:, i]
+    colonnes.update(_colonnes_capteurs(etude, resultats))
     return colonnes
 
 

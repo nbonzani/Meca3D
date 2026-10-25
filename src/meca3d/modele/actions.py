@@ -1,13 +1,16 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Données d'entrée : lois d'entrée (EX-30, D5), pilotes et pesanteur (EX-31).
+"""Données d'entrée : lois d'entrée (EX-30, D5), pilotes, pesanteur (EX-31), actions extérieures
+(EX-32) et ressorts-amortisseurs (EX-33).
 
 Le texte d'une loi est analysé par `ast` sur liste blanche, puis converti en expression sympy
 par un parcours de l'arbre : ni `eval`, ni `exec`, ni `sympify` ne touchent le texte saisi.
 """
 
 import ast
+import math
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import StrEnum
 from typing import Any
 
 import numpy as np
@@ -219,3 +222,174 @@ class Pesanteur:
     @classmethod
     def depuis_dict(cls, d: dict[str, Any]) -> "Pesanteur":
         return cls(vecteur=tuple(float(x) for x in d["vecteur"]), actif=bool(d["actif"]))
+
+
+class ErreurAction(ValueError):
+    """Définition d'action extérieure ou de ressort invalide ; le message est destiné à l'élève."""
+
+
+class NatureAction(StrEnum):
+    FORCE = "force"
+    COUPLE = "couple"
+
+
+class RepereAction(StrEnum):
+    """Repère d'expression : monde, ou repère du solide (axes du monde à la pose d'import, liés au
+    solide ensuite)."""
+
+    MONDE = "monde"
+    SOLIDE = "solide"
+
+
+def _nom_non_vide(valeur: object, libelle: str) -> str:
+    if not isinstance(valeur, str) or not valeur.strip():
+        raise ErreurAction(f"Nom de {libelle} vide ou invalide : un nom est à saisir.")
+    return valeur
+
+
+def _point(valeur: Sequence[float], libelle: str) -> tuple[float, float, float]:
+    try:
+        coordonnees = tuple(float(x) for x in valeur)
+    except (TypeError, ValueError) as e:
+        raise ErreurAction(f"{libelle} : point invalide ({e}).") from e
+    if len(coordonnees) != 3 or not all(math.isfinite(x) for x in coordonnees):
+        raise ErreurAction(f"{libelle} : le point attendu a trois coordonnées finies (m).")
+    return coordonnees[0], coordonnees[1], coordonnees[2]
+
+
+@dataclass
+class ActionExterieure:
+    """Force (N) ou couple (N·m) appliqué en un point d'un solide (EX-32).
+
+    `composantes` : trois expressions de t (grammaire d'EX-30), une par axe du repère choisi ;
+    un nombre est une loi constante. `point` : point d'application en repère monde à la pose
+    d'import, lié au solide ; sans objet pour un couple (vecteur libre).
+    """
+
+    nom: str
+    solide: str
+    nature: NatureAction
+    composantes: Sequence[str | float]
+    repere: RepereAction = RepereAction.MONDE
+    point: tuple[float, float, float] = (0.0, 0.0, 0.0)
+    constantes: dict[str, float] = field(default_factory=dict)
+    lois: tuple[LoiEntree, LoiEntree, LoiEntree] = field(init=False, repr=False, compare=False)
+
+    def __post_init__(self) -> None:
+        _nom_non_vide(self.nom, "action")
+        _nom_non_vide(self.solide, "solide d'action")
+        try:
+            self.nature = NatureAction(self.nature)
+        except ValueError as e:
+            raise ErreurAction(
+                f"Action {self.nom} : nature « {self.nature} » inconnue (force ou couple)."
+            ) from e
+        try:
+            self.repere = RepereAction(self.repere)
+        except ValueError as e:
+            raise ErreurAction(
+                f"Action {self.nom} : repère « {self.repere} » inconnu (monde ou solide)."
+            ) from e
+        if not isinstance(self.composantes, Sequence) or len(self.composantes) != 3:
+            raise ErreurAction(f"Action {self.nom} : trois composantes sont attendues.")
+        textes = tuple(c if isinstance(c, str) else repr(float(c)) for c in self.composantes)
+        self.composantes = (textes[0], textes[1], textes[2])
+        self.point = _point(self.point, f"Action {self.nom}")
+        self.constantes = {k: float(v) for k, v in self.constantes.items()}
+        self.lois = (
+            LoiEntree(textes[0], self.constantes),
+            LoiEntree(textes[1], self.constantes),
+            LoiEntree(textes[2], self.constantes),
+        )
+
+    def valeur(self, t: float) -> np.ndarray:
+        """Vecteur force ou couple à l'instant t, dans le repère de l'action."""
+        return np.array([loi.valeur(t) for loi in self.lois], dtype=float)
+
+    def vers_dict(self) -> dict[str, Any]:
+        return {
+            "nom": self.nom,
+            "solide": self.solide,
+            "nature": self.nature.value,
+            "composantes": list(self.composantes),
+            "repere": self.repere.value,
+            "point": list(self.point),
+            "constantes": dict(self.constantes),
+        }
+
+    @classmethod
+    def depuis_dict(cls, d: dict[str, Any]) -> "ActionExterieure":
+        return cls(
+            nom=d["nom"],
+            solide=d["solide"],
+            nature=d["nature"],
+            composantes=tuple(d["composantes"]),
+            repere=d["repere"],
+            point=tuple(d["point"]),  # type: ignore[arg-type]
+            constantes=dict(d["constantes"]),
+        )
+
+
+@dataclass
+class RessortAmortisseur:
+    """Ressort-amortisseur linéaire entre deux points de deux solides (EX-33).
+
+    Raideur k (N/m), longueur libre l₀ (m), amortissement c (N·s/m). Les points sont donnés en
+    repère monde à la pose d'import et liés à leur solide. Effort : k (l − l₀) + c·l̇ le long de
+    la droite des deux points.
+    """
+
+    nom: str
+    solide_1: str
+    point_1: tuple[float, float, float]
+    solide_2: str
+    point_2: tuple[float, float, float]
+    raideur: float
+    longueur_libre: float
+    amortissement: float = 0.0
+
+    def __post_init__(self) -> None:
+        _nom_non_vide(self.nom, "ressort")
+        _nom_non_vide(self.solide_1, "solide de ressort")
+        _nom_non_vide(self.solide_2, "solide de ressort")
+        if self.solide_1 == self.solide_2:
+            raise ErreurAction(
+                f"Ressort {self.nom} : il doit relier deux solides distincts "
+                f"(et non {self.solide_1} à lui-même)."
+            )
+        self.point_1 = _point(self.point_1, f"Ressort {self.nom}")
+        self.point_2 = _point(self.point_2, f"Ressort {self.nom}")
+        for libelle, valeur in (
+            ("raideur k", self.raideur),
+            ("longueur libre l₀", self.longueur_libre),
+            ("amortissement c", self.amortissement),
+        ):
+            if not isinstance(valeur, int | float) or not math.isfinite(valeur) or valeur < 0.0:
+                raise ErreurAction(
+                    f"Ressort {self.nom} : {libelle} invalide (nombre fini positif ou nul)."
+                )
+
+    def vers_dict(self) -> dict[str, Any]:
+        return {
+            "nom": self.nom,
+            "solide_1": self.solide_1,
+            "point_1": list(self.point_1),
+            "solide_2": self.solide_2,
+            "point_2": list(self.point_2),
+            "raideur": self.raideur,
+            "longueur_libre": self.longueur_libre,
+            "amortissement": self.amortissement,
+        }
+
+    @classmethod
+    def depuis_dict(cls, d: dict[str, Any]) -> "RessortAmortisseur":
+        return cls(
+            nom=d["nom"],
+            solide_1=d["solide_1"],
+            point_1=tuple(d["point_1"]),  # type: ignore[arg-type]
+            solide_2=d["solide_2"],
+            point_2=tuple(d["point_2"]),  # type: ignore[arg-type]
+            raideur=float(d["raideur"]),
+            longueur_libre=float(d["longueur_libre"]),
+            amortissement=float(d["amortissement"]),
+        )

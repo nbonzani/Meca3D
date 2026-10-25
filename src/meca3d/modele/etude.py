@@ -9,13 +9,23 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from meca3d.modele.actions import ErreurLoi, Pesanteur, Pilote
+from meca3d.modele.actions import (
+    ActionExterieure,
+    ErreurAction,
+    ErreurLoi,
+    Pesanteur,
+    Pilote,
+    RessortAmortisseur,
+)
 from meca3d.modele.capteurs import Capteur, CapteurLiaison, CapteurPoint, capteur_depuis_dict
 from meca3d.modele.couplage import Couplage, couplage_depuis_dict
 from meca3d.modele.liaison import Liaison, Statut
 from meca3d.modele.solide import Solide
 
 # Version 2 (lot 3) : couplages, capteurs, validation_en_bloc et couplage_screw des liaisons.
+# Lot 6 : `actions`, `ressorts` et `hyperstatique_autorise` sont des clés OPTIONNELLES de la
+# version 2, écrites seulement si elles diffèrent de la valeur par défaut (les fichiers v2
+# existants restent identiques et relisibles ; pas de nouvelle version, donc pas de migration).
 VERSION_ETUDE = 2
 
 
@@ -95,6 +105,9 @@ class Etude:
     couplages: list[Couplage] = field(default_factory=list)
     capteurs: list[Capteur] = field(default_factory=list)
     validation_en_bloc: bool = False
+    actions: list[ActionExterieure] = field(default_factory=list)
+    ressorts: list[RessortAmortisseur] = field(default_factory=list)
+    hyperstatique_autorise: bool = False  # EX-23
 
     def solide(self, nom: str) -> Solide:
         for s in self.solides:
@@ -131,6 +144,8 @@ class Etude:
             ("liaison", [x.nom for x in self.liaisons]),
             ("couplage", [c.nom for c in self.couplages]),
             ("capteur", [c.nom for c in self.capteurs]),
+            ("action", [a.nom for a in self.actions]),
+            ("ressort", [r.nom for r in self.ressorts]),
         ):
             if len(set(noms)) != len(noms):
                 raise ErreurEtude(f"Fichier d'étude incohérent : nom de {libelle} en double.")
@@ -140,6 +155,13 @@ class Etude:
             for nom in (liaison.solide_a, liaison.solide_b):
                 if nom not in solides:
                     raise ErreurEtude(f"Liaison {liaison.nom} : solide inconnu « {nom} ».")
+        for action in self.actions:
+            if action.solide not in solides:
+                raise ErreurEtude(f"Action {action.nom} : solide inconnu « {action.solide} ».")
+        for ressort in self.ressorts:
+            for nom in (ressort.solide_1, ressort.solide_2):
+                if nom not in solides:
+                    raise ErreurEtude(f"Ressort {ressort.nom} : solide inconnu « {nom} ».")
         for couplage in self.couplages:
             for nom in (couplage.liaison_1, couplage.liaison_2):
                 if nom not in liaisons:
@@ -156,6 +178,16 @@ class Etude:
                         raise ErreurEtude(f"Capteur {capteur.nom} : solide inconnu « {nom} ».")
 
     def vers_dict(self) -> dict[str, Any]:
+        d = self._vers_dict_base()
+        if self.actions:
+            d["actions"] = [a.vers_dict() for a in self.actions]
+        if self.ressorts:
+            d["ressorts"] = [r.vers_dict() for r in self.ressorts]
+        if self.hyperstatique_autorise:
+            d["hyperstatique_autorise"] = True
+        return d
+
+    def _vers_dict_base(self) -> dict[str, Any]:
         return {
             "version_etude": VERSION_ETUDE,
             "maquette": self.maquette,
@@ -195,8 +227,11 @@ class Etude:
                 couplages=[couplage_depuis_dict(c) for c in donnees["couplages"]],
                 capteurs=[capteur_depuis_dict(c) for c in donnees["capteurs"]],
                 validation_en_bloc=_booleen(donnees["validation_en_bloc"]),
+                actions=[ActionExterieure.depuis_dict(a) for a in donnees.get("actions", [])],
+                ressorts=[RessortAmortisseur.depuis_dict(r) for r in donnees.get("ressorts", [])],
+                hyperstatique_autorise=_booleen(donnees.get("hyperstatique_autorise", False)),
             )
-        except (KeyError, TypeError, ValueError, AttributeError, ErreurLoi) as e:
+        except (KeyError, TypeError, ValueError, AttributeError, ErreurLoi, ErreurAction) as e:
             raise ErreurEtude(f"Fichier d'étude incohérent ({type(e).__name__} : {e}).") from e
         etude.verifier_coherence()
         return etude

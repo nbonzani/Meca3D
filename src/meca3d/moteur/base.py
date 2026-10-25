@@ -10,6 +10,7 @@ from meca3d.modele.etude import Etude
 from meca3d.modele.etude import Reglages as Reglages
 
 __all__ = [
+    "ErreurGardeFou",
     "ErreurLiaisonNonPriseEnCharge",
     "ErreurModele",
     "ErreurMoteur",
@@ -32,6 +33,11 @@ class ErreurLiaisonNonPriseEnCharge(ErreurModele):
     """Liaison dont la traduction n'existe pas encore dans le moteur (hélicoïdale : lot 7)."""
 
 
+class ErreurGardeFou(ErreurMoteur):
+    """Simulation refusée par le garde-fou EX-22 (hyperstatisme, nombre de lois) avant tout appel
+    au moteur ; le message nomme h, les liaisons des cycles concernés et la correction."""
+
+
 class ErreurSolveur(ErreurMoteur):
     """Échec du solveur (Jacobien singulier, non-convergence) ; `t_echec` si connu."""
 
@@ -47,7 +53,14 @@ class ResultatsBruts:
     - `t` : (n,) ; `positions[solide]` : (n, 3) CdG en m ; `rotations[solide]` : (n, 3, 3).
       Le solide fixe n'y figure pas (repère monde).
     - `forces[liaison]`, `moments[liaison]` : (n, 3), action du solide b sur le solide a,
-      réduite au centre, en base de liaison liée au solide a (convention Exudyn brute).
+      réduite au centre, en base de liaison liée au solide a (convention Exudyn brute). Vides en
+      mode cinématique : aucun effort n'est présenté (EX-41).
+    - `vitesses`, `vitesses_angulaires`, `accelerations`, `accelerations_angulaires` : (n, 3) par
+      solide mobile, repère monde, du centre de gravité (vitesse et accélération) et du solide.
+      Dynamique : capteurs d'Exudyn (erreur en O(h) pour les accélérations). Cinématique :
+      dérivation exacte des liaisons à partir des poses (voir `moteur/cinematique.py`).
+    - `ddl_liberes` : (liaison, indice du ddl dans [Tx Ty Tz Rx Ry Rz]) libérés par l'option
+      « Hyperstatique autorisé » (EX-23). `avertissements` : messages à montrer à l'élève.
     """
 
     t: np.ndarray
@@ -55,6 +68,12 @@ class ResultatsBruts:
     rotations: dict[str, np.ndarray] = field(default_factory=dict)
     forces: dict[str, np.ndarray] = field(default_factory=dict)
     moments: dict[str, np.ndarray] = field(default_factory=dict)
+    vitesses: dict[str, np.ndarray] = field(default_factory=dict)
+    vitesses_angulaires: dict[str, np.ndarray] = field(default_factory=dict)
+    accelerations: dict[str, np.ndarray] = field(default_factory=dict)
+    accelerations_angulaires: dict[str, np.ndarray] = field(default_factory=dict)
+    ddl_liberes: list[tuple[str, int]] = field(default_factory=list)
+    avertissements: list[str] = field(default_factory=list)
 
 
 class Moteur(Protocol):

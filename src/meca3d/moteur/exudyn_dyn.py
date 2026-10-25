@@ -1,13 +1,14 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Moteur dynamique Exudyn : corps rigides, GenericJoint, pilotes, pesanteur (D1, EX-40)."""
+"""Moteur dynamique Exudyn : corps rigides, GenericJoint, pilotes, pesanteur, actions extérieures
+et ressorts-amortisseurs (D1, EX-40, EX-32, EX-33)."""
 
 import importlib
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Collection, Mapping, Sequence
 from typing import Any
 
 import numpy as np
 
-from meca3d.modele.actions import Pilote
+from meca3d.modele.actions import ActionExterieure, NatureAction, Pilote, RepereAction
 from meca3d.modele.etude import Etude
 from meca3d.modele.liaison import DDL_BLOQUES, Liaison, Statut, TypeLiaison
 from meca3d.moteur.base import (
@@ -35,6 +36,14 @@ RHO_INFINI = 0.9
 # conditionnement du jacobien (le bras de levier de Ry vaut l'écartement).
 ECART_PONCTUELLES = 0.1  # m, demi-écartement
 _AXES_PONCTUELLE = list(DDL_BLOQUES[TypeLiaison.PONCTUELLE])
+
+# Capteurs cinématiques d'un corps mobile (repère monde) : V, W (vitesses), A, B (accélérations)
+_CAPTEURS_CINEMATIQUES = {
+    "V": "Velocity",
+    "W": "AngularVelocity",
+    "A": "Acceleration",
+    "B": "AngularAcceleration",
+}
 
 # Indices de [Tx Ty Tz Rx Ry Rz] pilotés selon la grandeur imposée (EX-30)
 _INDICE_PILOTE = {"angle": 3, "position": 0}
@@ -75,8 +84,37 @@ def _fonctions_offset(
     return offset, offset_t
 
 
+def _fonction_charge(
+    action: ActionExterieure, rotation_repere: np.ndarray
+) -> Callable[..., list[float]]:
+    """Fonction utilisateur d'Exudyn : vecteur force ou couple de l'action à l'instant t.
+
+    En repère solide, les composantes sont celles du repère du composant CAO : elles sont ramenées
+    au repère monde de la pose d'import (le repère propre d'un corps Exudyn) par `rotation_repere`.
+    """
+    passage = rotation_repere if action.repere is RepereAction.SOLIDE else np.eye(3)
+
+    def charge(mbs: Any, t: float, load: Any) -> list[float]:
+        return [float(x) for x in passage @ action.valeur(t)]
+
+    return charge
+
+
 def _verifier(etude: Etude) -> None:
     noms_solides = {s.nom for s in etude.solides}
+    fixes = {s.nom for s in etude.solides if s.fixe}
+    for action in etude.actions:
+        if action.solide not in noms_solides:
+            raise ErreurModele(f"Action {action.nom} : solide inconnu « {action.solide} ».")
+        if action.solide in fixes:
+            raise ErreurModele(
+                f"Action {action.nom} : le solide {action.solide} est fixe (bâti), une action "
+                "extérieure n'y produit aucun mouvement ; l'appliquer à un solide mobile."
+            )
+    for ressort in etude.ressorts:
+        for nom in (ressort.solide_1, ressort.solide_2):
+            if nom not in noms_solides:
+                raise ErreurModele(f"Ressort {ressort.nom} : solide inconnu « {nom} ».")
     for liaison in etude.liaisons:
         if liaison.statut is not Statut.VALIDEE or liaison.type is None:
             raise ErreurModele(
@@ -113,13 +151,17 @@ class MoteurExudynDyn:
             str, tuple[Sequence[float] | np.ndarray, Sequence[float] | np.ndarray]
         ]
         | None = None,
+        ddl_liberes: Collection[tuple[str, int]] | None = None,
     ) -> ResultatsBruts:
         """`vitesses_initiales` : par solide, (vitesse du CdG, vitesse angulaire), repère monde, SI.
 
         Par défaut, départ au repos. Elles doivent être compatibles avec les liaisons.
+        `ddl_liberes` : (liaison, indice de ddl dans [Tx Ty Tz Rx Ry Rz]) dont le blocage est
+        retiré (EX-23, option « Hyperstatique autorisé »).
         """
         reglages = reglages or etude.reglages
         vitesses_initiales = vitesses_initiales or {}
+        liberes = set(ddl_liberes or ())
         _verifier(etude)
         exu.config.printToConsole = False
         conteneur = exu.SystemContainer()
@@ -147,6 +189,9 @@ class MoteurExudynDyn:
         joints: dict[str, list[tuple[int, float]]] = {}  # (joint, décalage le long de x local)
         for liaison in etude.liaisons:
             axes = liaison.ddl_bloques()
+            for nom_liberee, ddl in liberes:
+                if nom_liberee == liaison.nom:
+                    axes[ddl] = 0
             options: dict[str, Any] = {}
             pilote = pilotes.get(liaison.nom)
             if pilote is not None:
@@ -187,6 +232,42 @@ class MoteurExudynDyn:
                 for decalage in decalages
             ]
 
+        for action in etude.actions:
+            solide = etude.solide(action.solide)
+            creer = mbs.CreateForce if action.nature is NatureAction.FORCE else mbs.CreateTorque
+            creer(
+                itemNumber=corps[action.solide],
+                loadVector=[0.0, 0.0, 0.0],
+                # le repère du solide coïncide avec le monde à la pose d'import (rotation nulle)
+                localPosition=[float(x) for x in np.array(action.point) - solide.cdg],
+                bodyFixed=action.repere is RepereAction.SOLIDE,
+                loadVectorUserFunction=_fonction_charge(action, solide.repere_rotation),
+                show=False,
+            )
+        for ressort in etude.ressorts:
+            locales = []
+            for nom, point in (
+                (ressort.solide_1, ressort.point_1),
+                (ressort.solide_2, ressort.point_2),
+            ):
+                solide = etude.solide(nom)
+                # solide fixe : repère local = repère monde ; solide mobile : relatif au CdG
+                locales.append(
+                    [
+                        float(x)
+                        for x in (np.array(point) if solide.fixe else np.array(point) - solide.cdg)
+                    ]
+                )
+            mbs.CreateSpringDamper(
+                itemNumbers=[corps[ressort.solide_1], corps[ressort.solide_2]],
+                localPosition0=locales[0],
+                localPosition1=locales[1],
+                referenceLength=ressort.longueur_libre,
+                stiffness=ressort.raideur,
+                damping=ressort.amortissement,
+                show=False,
+            )
+
         capteurs: dict[str, int] = {}
         types = exu.OutputVariableType
         for nom, liste in joints.items():
@@ -212,6 +293,14 @@ class MoteurExudynDyn:
                         outputVariableType=types.Position,
                     )
                 )
+                for cle, type_sortie in _CAPTEURS_CINEMATIQUES.items():
+                    capteurs[f"{cle}:{s.nom}"] = mbs.AddSensor(
+                        SensorBody(
+                            bodyNumber=corps[s.nom],
+                            storeInternal=True,
+                            outputVariableType=getattr(types, type_sortie),
+                        )
+                    )
                 capteurs[f"R:{s.nom}"] = mbs.AddSensor(
                     SensorBody(
                         bodyNumber=corps[s.nom],
@@ -258,6 +347,10 @@ class MoteurExudynDyn:
             if not s.fixe:
                 res.positions[s.nom] = donnees[f"P:{s.nom}"][:, 1:4].copy()
                 res.rotations[s.nom] = donnees[f"R:{s.nom}"][:, 1:10].reshape(-1, 3, 3).copy()
+                res.vitesses[s.nom] = donnees[f"V:{s.nom}"][:, 1:4].copy()
+                res.vitesses_angulaires[s.nom] = donnees[f"W:{s.nom}"][:, 1:4].copy()
+                res.accelerations[s.nom] = donnees[f"A:{s.nom}"][:, 1:4].copy()
+                res.accelerations_angulaires[s.nom] = donnees[f"B:{s.nom}"][:, 1:4].copy()
         return res
 
     @staticmethod
