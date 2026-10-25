@@ -4,12 +4,12 @@
 import numpy as np
 import pytest
 import reference_bielle as ref
-from meca3d.moteur.cinematique import MoteurCinematique
 from outils_bielle import etude_bielle
 from outils_cinematique import OMEGA, courbes_piston, etude_bielle_60
 
 from meca3d.modele.etude import Etude
 from meca3d.moteur.base import ResultatsBruts
+from meca3d.moteur.cinematique import MoteurCinematique
 from meca3d.moteur.exudyn_dyn import MoteurExudynDyn
 from meca3d.resultats.torseurs import torseur_cinematique, torseur_statique
 

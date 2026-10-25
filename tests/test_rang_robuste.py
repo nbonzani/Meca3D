@@ -14,7 +14,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from meca3d.graphe.configurations import mobilite_robuste
 from outils_graphe import (
     LINEAIRE_ANNULAIRE,
     PIVOT,
@@ -26,6 +25,7 @@ from outils_graphe import (
     trois_pivots_glissiere,
 )
 
+from meca3d.graphe.configurations import mobilite_robuste
 from meca3d.graphe.graphe import DescriptionMecanisme, SolideGraphe, depuis_etude
 from meca3d.graphe.mobilite import (
     calculer_mobilite,

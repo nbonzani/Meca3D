@@ -6,14 +6,14 @@ Références : formule analytique de la bielle-manivelle, dérivée symbolique (
 
 import numpy as np
 import pytest
-from meca3d.moteur.cinematique import MoteurCinematique
-from meca3d.moteur.simulation import simuler_etude
 from outils_cinematique import OMEGA, courbes_piston, etude_bielle_60
 
 from meca3d.graphe.mobilite import Mode
 from meca3d.modele.actions import ActionExterieure, NatureAction
 from meca3d.moteur.base import ErreurGardeFou, ResultatsBruts
+from meca3d.moteur.cinematique import MoteurCinematique
 from meca3d.moteur.exudyn_dyn import MoteurExudynDyn
+from meca3d.moteur.simulation import simuler_etude
 
 TOLERANCE_POSITION = 1e-6  # m (EX-41)
 TOLERANCE_ACCELERATION = 1e-3  # relative au maximum (EX-41)

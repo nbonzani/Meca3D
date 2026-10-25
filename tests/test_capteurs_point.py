@@ -3,8 +3,6 @@
 
 import numpy as np
 import pytest
-from meca3d.moteur.cinematique import MoteurCinematique
-from meca3d.resultats.capteurs import mesurer_point
 from outils_bielle import etude_bielle
 from outils_cinematique import OMEGA, courbes_piston, courbes_piston_dans_manivelle, etude_bielle_60
 
@@ -16,7 +14,9 @@ from meca3d.modele.capteurs import (
 )
 from meca3d.modele.etude import Etude, Reglages
 from meca3d.moteur.base import ResultatsBruts
+from meca3d.moteur.cinematique import MoteurCinematique
 from meca3d.moteur.exudyn_dyn import MoteurExudynDyn
+from meca3d.resultats.capteurs import mesurer_point
 from meca3d.resultats.export import colonnes_resultats
 
 # Points de la configuration d'import (θ = 60°), repère monde, en m

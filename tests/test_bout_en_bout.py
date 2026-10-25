@@ -12,7 +12,6 @@ simulation (étapes 4 à 6) part de θ = 0, car la référence Newton-Euler d'EX
 import numpy as np
 import pytest
 import reference_bielle as ref
-from meca3d.moteur.simulation import analyser_etude, simuler_etude
 from outils_bielle import LOI_MONTEE, etude_proposee
 
 from meca3d.graphe.graphe import construire_graphe, depuis_etude
@@ -21,6 +20,7 @@ from meca3d.modele.actions import LoiEntree, Pesanteur, Pilote
 from meca3d.modele.etude import Etude, Reglages, ecrire_etude, lire_etude
 from meca3d.modele.liaison import TypeLiaison
 from meca3d.moteur.base import ErreurGardeFou
+from meca3d.moteur.simulation import analyser_etude, simuler_etude
 from meca3d.resultats.export import colonnes_resultats, ecrire_csv
 from meca3d.resultats.torseurs import torseur_statique
 
