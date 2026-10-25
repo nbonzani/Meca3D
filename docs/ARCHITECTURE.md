@@ -150,7 +150,11 @@ Le dépôt a pour racine `D:\CLAUDE\dev\Meca3D` :
   - *Raison* : choix de l'utilisateur et outils déjà maîtrisés. matplotlib est déjà utilisé par le prototype.
 - **D7 — Mode cinématique réalisé par Exudyn, avec m liaisons pilotées.**
   - *Alternative* : un solveur géométrique maison.
-  - *Raison* : un seul jeu de traductions des liaisons. Vitesses et accélérations sont données directement par les capteurs Exudyn. Pour l'option « Hyperstatique autorisé », les ddl redondants désignés par `graphe.mobilite` passent à 0 dans `constrainedAxes`.
+  - *Raison* : un seul jeu de traductions des liaisons. Pour l'option « Hyperstatique autorisé », les ddl redondants désignés par `graphe.mobilite` passent à 0 dans `constrainedAxes`.
+  - *Révision du 25 octobre 2026 (lot 6)* : Exudyn ne fournit que les positions. Vitesses et accélérations sont obtenues par dérivation exacte des équations de liaison. Les capteurs Exudyn (generalized-α, ordre 1 en h) donnaient 3,9·10⁻³ d'écart relatif sur l'accélération et 2,9·10⁻⁷ sur une vitesse relative, hors des critères d'EX-41 et d'EX-51 ; la formulation d'indice 2 est refusée avec `offsetUserFunction_t`. En mode dynamique, les capteurs Exudyn restent utilisés.
+- **D15 — Repère d'un solide = repère de son composant SolidCraft** (rotation et origine de la `transform` de l'occurrence à l'import), puis lié au solide.
+  - *Alternative* : repère monde à l'import.
+  - *Raison* : c'est la convention de la CAO, que Decade suivait avec les repères des pièces CATIA. L'élève lit et saisit les points en coordonnées pièce. Décision du 25 octobre 2026.
 - **D8 — Pas de pint ; conversions centralisées dans `unites.py`.**
   - *Raison* : le calcul est vectorisé avec numpy et il n'y a que quatre conversions frontières, toutes testées. Les unités affichées sont portées par les en-têtes et les étiquettes.
 - **D9 — Calcul dans un processus séparé (`multiprocessing`, démarrage `spawn`).**
