@@ -9,9 +9,9 @@ from collections.abc import Iterator
 import numpy as np
 import pytest
 from faux_serveur import JETON_DE_TEST, FauxServeur
-from meca3d.cao.animation import Animateur
 from outils_cinematique import etude_bielle_60
 
+from meca3d.cao.animation import Animateur
 from meca3d.cao.canal import CanalSolidCraft
 from meca3d.modele.etude import Etude
 from meca3d.moteur.base import ResultatsBruts

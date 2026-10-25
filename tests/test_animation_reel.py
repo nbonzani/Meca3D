@@ -13,9 +13,9 @@ from typing import Any
 
 import numpy as np
 import pytest
-from meca3d.cao.animation import Animateur
 from test_animation import angle_z, ecart_angle_deg, pose_analytique
 
+from meca3d.cao.animation import Animateur
 from meca3d.cao.canal import CanalSolidCraft
 from meca3d.cao.solidcraft import importer
 from meca3d.modele.actions import LoiEntree, Pesanteur, Pilote

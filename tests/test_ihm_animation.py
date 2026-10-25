@@ -21,6 +21,8 @@ from meca3d.ihm.arbre import GENRE_RUBRIQUE  # noqa: E402
 from meca3d.ihm.fenetre import FenetrePrincipale  # noqa: E402
 from meca3d.modele.capteurs import BaseCapteur, CapteurPoint  # noqa: E402
 
+pytestmark = pytest.mark.slow  # une simulation en processus séparé par test (≈ 12 s chacun)
+
 DELAI = 120_000
 DUREE = 0.4
 B_IMPORT = (0.1 * math.cos(math.radians(60.0)) + math.sqrt(0.09 - 0.0075), 0.0, 0.0)
