@@ -36,7 +36,7 @@ def test_ex50_constantes_de_laffichage() -> None:
     ],
 )
 def test_ex50_quatre_chiffres_significatifs_virgule_decimale(x: float, attendu: str) -> None:
-    assert formater_valeur(x, reference=1e5) == attendu
+    assert formater_valeur(x, reference=1.0) == attendu
 
 
 def test_ex50_bruit_numerique_sous_le_seuil_relatif_devient_zero() -> None:
