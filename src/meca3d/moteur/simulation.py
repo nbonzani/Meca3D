@@ -6,6 +6,8 @@ Enchaînement : liaisons validées → mobilité au rang maximal le long du mouv
 « Hyperstatique autorisé ») → moteur dynamique ou cinématique.
 """
 
+from collections.abc import Callable
+
 from meca3d.graphe.configurations import MobiliteRobuste, mobilite_robuste
 from meca3d.graphe.graphe import depuis_etude
 from meca3d.graphe.mobilite import (
@@ -38,9 +40,15 @@ def analyser_etude(etude: Etude) -> MobiliteRobuste:
 
 
 def simuler_etude(
-    etude: Etude, mode: Mode = Mode.DYNAMIQUE, hyperstatique_autorise: bool | None = None
+    etude: Etude,
+    mode: Mode = Mode.DYNAMIQUE,
+    hyperstatique_autorise: bool | None = None,
+    progression: Callable[[float], None] | None = None,
+    arret: Callable[[], bool] | None = None,
 ) -> ResultatsBruts:
     """Simule l'étude après le garde-fou. `hyperstatique_autorise` : None = réglage de l'étude.
+    `progression(fraction)` et `arret()` sont transmis au moteur (R5) ; `arret()` vrai lève
+    `CalculAnnule`.
 
     Lève ErreurGardeFou (refus EX-22 / EX-23, aucun appel au moteur) ou ErreurModele.
     """
@@ -67,8 +75,10 @@ def simuler_etude(
                 + ", ".join(f"{nom} {NOMS_DDL[ddl]}" for nom, ddl in liberes)
                 + "."
             )
-        resultats = MoteurCinematique().simuler(etude, ddl_liberes=liberes)
+        resultats = MoteurCinematique().simuler(
+            etude, ddl_liberes=liberes, progression=progression, arret=arret
+        )
     else:
-        resultats = MoteurExudynDyn().simuler(etude)
+        resultats = MoteurExudynDyn().simuler(etude, progression=progression, arret=arret)
     resultats.avertissements = avertissements
     return resultats
