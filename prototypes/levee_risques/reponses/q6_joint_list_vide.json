@@ -1,0 +1,50 @@
+{
+ "id": 21,
+ "ok": true,
+ "result": {
+  "conflicts": [],
+  "dof": [
+   {
+    "dof": 0,
+    "occurrence": 0
+   },
+   {
+    "dof": 0,
+    "occurrence": 2
+   },
+   {
+    "dof": 6,
+    "occurrence": 5
+   },
+   {
+    "dof": 6,
+    "occurrence": 8
+   },
+   {
+    "dof": 6,
+    "occurrence": 11
+   },
+   {
+    "dof": 6,
+    "occurrence": 12
+   },
+   {
+    "dof": 6,
+    "occurrence": 13
+   },
+   {
+    "dof": 6,
+    "occurrence": 14
+   }
+  ],
+  "errors": [],
+  "fixed": [
+   0,
+   2
+  ],
+  "floating": [],
+  "joints": [],
+  "links": [],
+  "origins": []
+ }
+}

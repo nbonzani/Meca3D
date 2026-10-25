@@ -1,0 +1,110 @@
+{
+ "document": "cremaillere",
+ "etat_initial": {
+  "name": "cremaillere",
+  "dirty": false,
+  "revision": 41,
+  "undo": 25,
+  "marker": 3
+ },
+ "s0": {
+  "L_pignon": [
+   17.0
+  ],
+  "L_cremaillere": [
+   5.934119456780721
+  ]
+ },
+ "1_apres_animation": {
+  "name": "cremaillere",
+  "dirty": true,
+  "revision": 441,
+  "undo": 200,
+  "marker": 3
+ },
+ "1_apres_retour": {
+  "name": "cremaillere",
+  "dirty": false,
+  "revision": 443,
+  "undo": 200,
+  "marker": 3
+ },
+ "1_ecart": {
+  "valeurs_max": 0.0,
+  "poses_max": 0.0,
+  "pending_avant": [],
+  "pending_apres": []
+ },
+ "2_etat_avant": {
+  "name": "cremaillere",
+  "dirty": false,
+  "revision": 443,
+  "undo": 200,
+  "marker": 3
+ },
+ "2_apres_animation": {
+  "name": "cremaillere",
+  "dirty": false,
+  "revision": 643,
+  "undo": 200,
+  "marker": 3
+ },
+ "2_pose_pendant": [
+  5
+ ],
+ "2_apres_revert": {
+  "name": "cremaillere",
+  "dirty": false,
+  "revision": 644,
+  "undo": 200,
+  "marker": 3
+ },
+ "2_ecart": {
+  "valeurs_max": 0.0,
+  "poses_max": 0.0,
+  "pending_avant": [],
+  "pending_apres": []
+ },
+ "3_checkpoint": {
+  "checkpoint": 3
+ },
+ "3_etat_apres_checkpoint": {
+  "name": "cremaillere",
+  "dirty": false,
+  "revision": 644,
+  "undo": 200,
+  "marker": 3
+ },
+ "3_apres_animation": {
+  "name": "cremaillere",
+  "dirty": true,
+  "revision": 1044,
+  "undo": 200,
+  "marker": 3
+ },
+ "3_restore_reponse": {
+  "checkpoint": 3,
+  "restored": true
+ },
+ "3_apres_restore": {
+  "name": "cremaillere",
+  "dirty": false,
+  "revision": 1046,
+  "undo": 200,
+  "marker": 3
+ },
+ "3_ecart": {
+  "valeurs_max": 0.0,
+  "poses_max": 0.0,
+  "pending_avant": [],
+  "pending_apres": []
+ },
+ "3_forget": {
+  "id": 32,
+  "ok": true,
+  "result": {
+   "checkpoint": 3,
+   "restored": false
+  }
+ }
+}

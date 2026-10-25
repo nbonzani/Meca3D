@@ -1,0 +1,310 @@
+[
+ {
+  "L1_demande": 0.0,
+  "reponse_drive": {
+   "conflicts": [],
+   "dof": [
+    {
+     "dof": 0,
+     "occurrence": 0
+    },
+    {
+     "dof": 0,
+     "occurrence": 2
+    },
+    {
+     "dof": 1,
+     "occurrence": 5
+    },
+    {
+     "dof": 1,
+     "occurrence": 8
+    }
+   ],
+   "errors": [],
+   "fixed": [
+    0,
+    2
+   ],
+   "joint": 1,
+   "moved": false,
+   "stopped_by_contact": null,
+   "stopped_by_loop": null,
+   "values": [
+    {
+     "limits": null,
+     "name": "angle",
+     "unit": "deg",
+     "value": 0.0
+    }
+   ]
+  },
+  "L1": 0.0,
+  "L2": 0.0,
+  "rapport": null
+ },
+ {
+  "L1_demande": 7.5,
+  "reponse_drive": {
+   "conflicts": [],
+   "dof": [
+    {
+     "dof": 0,
+     "occurrence": 0
+    },
+    {
+     "dof": 0,
+     "occurrence": 2
+    },
+    {
+     "dof": 1,
+     "occurrence": 5
+    },
+    {
+     "dof": 1,
+     "occurrence": 8
+    }
+   ],
+   "errors": [],
+   "fixed": [
+    0,
+    2
+   ],
+   "joint": 1,
+   "moved": true,
+   "stopped_by_contact": null,
+   "stopped_by_loop": null,
+   "values": [
+    {
+     "limits": null,
+     "name": "angle",
+     "unit": "deg",
+     "value": 7.499999999999999
+    }
+   ]
+  },
+  "L1": 7.499999999999999,
+  "L2": -2.4999999999999996,
+  "rapport": -0.3333333333333333
+ },
+ {
+  "L1_demande": 30.0,
+  "reponse_drive": {
+   "conflicts": [],
+   "dof": [
+    {
+     "dof": 0,
+     "occurrence": 0
+    },
+    {
+     "dof": 0,
+     "occurrence": 2
+    },
+    {
+     "dof": 1,
+     "occurrence": 5
+    },
+    {
+     "dof": 1,
+     "occurrence": 8
+    }
+   ],
+   "errors": [],
+   "fixed": [
+    0,
+    2
+   ],
+   "joint": 1,
+   "moved": true,
+   "stopped_by_contact": null,
+   "stopped_by_loop": null,
+   "values": [
+    {
+     "limits": null,
+     "name": "angle",
+     "unit": "deg",
+     "value": 29.999999999999996
+    }
+   ]
+  },
+  "L1": 29.999999999999996,
+  "L2": -9.999999999999998,
+  "rapport": -0.3333333333333333
+ },
+ {
+  "L1_demande": 90.0,
+  "reponse_drive": {
+   "conflicts": [],
+   "dof": [
+    {
+     "dof": 0,
+     "occurrence": 0
+    },
+    {
+     "dof": 0,
+     "occurrence": 2
+    },
+    {
+     "dof": 1,
+     "occurrence": 5
+    },
+    {
+     "dof": 1,
+     "occurrence": 8
+    }
+   ],
+   "errors": [],
+   "fixed": [
+    0,
+    2
+   ],
+   "joint": 1,
+   "moved": true,
+   "stopped_by_contact": null,
+   "stopped_by_loop": null,
+   "values": [
+    {
+     "limits": null,
+     "name": "angle",
+     "unit": "deg",
+     "value": 90.0
+    }
+   ]
+  },
+  "L1": 90.0,
+  "L2": -29.999999999999996,
+  "rapport": -0.3333333333333333
+ },
+ {
+  "L1_demande": -45.0,
+  "reponse_drive": {
+   "conflicts": [],
+   "dof": [
+    {
+     "dof": 0,
+     "occurrence": 0
+    },
+    {
+     "dof": 0,
+     "occurrence": 2
+    },
+    {
+     "dof": 1,
+     "occurrence": 5
+    },
+    {
+     "dof": 1,
+     "occurrence": 8
+    }
+   ],
+   "errors": [],
+   "fixed": [
+    0,
+    2
+   ],
+   "joint": 1,
+   "moved": true,
+   "stopped_by_contact": null,
+   "stopped_by_loop": null,
+   "values": [
+    {
+     "limits": null,
+     "name": "angle",
+     "unit": "deg",
+     "value": -45.0
+    }
+   ]
+  },
+  "L1": -45.0,
+  "L2": 14.999999999999998,
+  "rapport": -0.3333333333333333
+ },
+ {
+  "L1_demande": 360.0,
+  "reponse_drive": {
+   "conflicts": [],
+   "dof": [
+    {
+     "dof": 0,
+     "occurrence": 0
+    },
+    {
+     "dof": 0,
+     "occurrence": 2
+    },
+    {
+     "dof": 1,
+     "occurrence": 5
+    },
+    {
+     "dof": 1,
+     "occurrence": 8
+    }
+   ],
+   "errors": [],
+   "fixed": [
+    0,
+    2
+   ],
+   "joint": 1,
+   "moved": true,
+   "stopped_by_contact": null,
+   "stopped_by_loop": null,
+   "values": [
+    {
+     "limits": null,
+     "name": "angle",
+     "unit": "deg",
+     "value": 360.0
+    }
+   ]
+  },
+  "L1": 360.0,
+  "L2": -119.99999999999999,
+  "rapport": -0.3333333333333333
+ },
+ {
+  "L1_demande": 0.0,
+  "reponse_drive": {
+   "conflicts": [],
+   "dof": [
+    {
+     "dof": 0,
+     "occurrence": 0
+    },
+    {
+     "dof": 0,
+     "occurrence": 2
+    },
+    {
+     "dof": 1,
+     "occurrence": 5
+    },
+    {
+     "dof": 1,
+     "occurrence": 8
+    }
+   ],
+   "errors": [],
+   "fixed": [
+    0,
+    2
+   ],
+   "joint": 1,
+   "moved": true,
+   "stopped_by_contact": null,
+   "stopped_by_loop": null,
+   "values": [
+    {
+     "limits": null,
+     "name": "angle",
+     "unit": "deg",
+     "value": 0.0
+    }
+   ]
+  },
+  "L1": 0.0,
+  "L2": 0.0,
+  "rapport": null
+ }
+]

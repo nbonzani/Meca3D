@@ -1,0 +1,62 @@
+[
+ {
+  "id": 4,
+  "ok": true,
+  "result": {
+   "conflicts": [],
+   "errors": [],
+   "joint": 1,
+   "moved": true,
+   "stopped_by_contact": null,
+   "stopped_by_loop": null,
+   "values": [
+    {
+     "limits": null,
+     "name": "angle",
+     "unit": "deg",
+     "value": 0.0
+    }
+   ]
+  }
+ },
+ {
+  "id": 5,
+  "ok": true,
+  "result": {
+   "conflicts": [],
+   "errors": [],
+   "joint": 1,
+   "moved": true,
+   "stopped_by_contact": null,
+   "stopped_by_loop": null,
+   "values": [
+    {
+     "limits": null,
+     "name": "angle",
+     "unit": "deg",
+     "value": 1.8
+    }
+   ]
+  }
+ },
+ {
+  "id": 6,
+  "ok": true,
+  "result": {
+   "conflicts": [],
+   "errors": [],
+   "joint": 1,
+   "moved": true,
+   "stopped_by_contact": null,
+   "stopped_by_loop": null,
+   "values": [
+    {
+     "limits": null,
+     "name": "angle",
+     "unit": "deg",
+     "value": 3.6
+    }
+   ]
+  }
+ }
+]

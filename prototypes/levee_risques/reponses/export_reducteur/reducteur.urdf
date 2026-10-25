@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!-- Exported by SolidCraft; units: m, kg, rad -->
+<robot name="reducteur">
+  <link name="base_link">
+  </link>
+  <link name="Bati">
+    <inertial>
+      <origin xyz="0.04 0 -0.005" rpy="0 0 0"/>
+      <mass value="0.3096"/>
+      <inertia ixx="3.7409999999999993e-4" ixy="0" ixz="0" iyy="0.0010345799999999998" iyz="0" izz="0.00140352"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="reducteur-Bati.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="reducteur-Bati.stl"/></geometry>
+    </collision>
+  </link>
+  <link name="Roue1">
+    <inertial>
+      <origin xyz="2.1439208392296456e-18 -2.367890058100986e-19 0.005000000000001113" rpy="0 0 0"/>
+      <mass value="0.01620640787001225"/>
+      <inertia ixx="1.755236703885273e-6" ixy="-1.0203011024899845e-10" ixz="1.1315734127496627e-22" iyy="1.7553099445266127e-6" iyz="3.3022047318804897e-23" izz="3.2404398505782875e-6"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 -1.5707963267948968"/>
+      <geometry><mesh filename="reducteur-Roue1.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 -1.5707963267948968"/>
+      <geometry><mesh filename="reducteur-Roue1.stl"/></geometry>
+    </collision>
+  </link>
+  <link name="Roue2">
+    <inertial>
+      <origin xyz="1.6288450665946913e-18 -4.263256414560601e-17 0.005000000000002818" rpy="0 0 0"/>
+      <mass value="0.14585963904309837"/>
+      <inertia ixx="1.324536590966641e-4" ixy="-8.89696636421036e-9" ixz="-5.993538252368364e-21" iyy="1.324600456381244e-4" iyz="4.805624485015868e-20" izz="2.624827107507371e-4"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0.08 0" rpy="0 0 -1.5707963267948966"/>
+      <geometry><mesh filename="reducteur-Roue2.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0.08 0" rpy="0 0 -1.5707963267948966"/>
+      <geometry><mesh filename="reducteur-Roue2.stl"/></geometry>
+    </collision>
+  </link>
+  <joint name="Bati_fixed" type="fixed">
+    <parent link="base_link"/>
+    <child link="Bati"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <joint name="L1_pivot" type="continuous">
+    <parent link="Bati"/>
+    <child link="Roue1"/>
+    <origin xyz="0 0 0" rpy="0 0 1.5707963267948966"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="1000" velocity="10"/>
+  </joint>
+  <joint name="L2_pivot" type="continuous">
+    <parent link="Bati"/>
+    <child link="Roue2"/>
+    <origin xyz="0.08 0 0" rpy="0 0 1.5707963267948966"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="1000" velocity="10"/>
+  </joint>
+</robot>

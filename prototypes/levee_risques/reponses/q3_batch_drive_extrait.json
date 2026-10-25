@@ -1,0 +1,57 @@
+{
+ "ok": true,
+ "completed": 200,
+ "undone": 0,
+ "total_ms": 527.72,
+ "premiers_resultats": [
+  {
+   "conflicts": [],
+   "errors": [],
+   "joint": 1,
+   "moved": true,
+   "stopped_by_contact": null,
+   "stopped_by_loop": null,
+   "values": [
+    {
+     "limits": null,
+     "name": "angle",
+     "unit": "deg",
+     "value": 0.0
+    }
+   ]
+  },
+  {
+   "conflicts": [],
+   "errors": [],
+   "joint": 1,
+   "moved": true,
+   "stopped_by_contact": null,
+   "stopped_by_loop": null,
+   "values": [
+    {
+     "limits": null,
+     "name": "angle",
+     "unit": "deg",
+     "value": 1.8
+    }
+   ]
+  }
+ ],
+ "premiers_timings": [
+  {
+   "command": "joint.drive",
+   "index": 0,
+   "ms": 10.285
+  },
+  {
+   "command": "joint.drive",
+   "index": 1,
+   "ms": 2.436
+  },
+  {
+   "command": "joint.drive",
+   "index": 2,
+   "ms": 2.358
+  }
+ ]
+}

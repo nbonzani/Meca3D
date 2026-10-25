@@ -1,0 +1,153 @@
+{
+ "id": 20,
+ "ok": true,
+ "result": {
+  "conflicts": [],
+  "dof": [
+   {
+    "dof": 0,
+    "occurrence": 0
+   },
+   {
+    "dof": 0,
+    "occurrence": 2
+   },
+   {
+    "dof": 1,
+    "occurrence": 5
+   },
+   {
+    "dof": 1,
+    "occurrence": 8
+   }
+  ],
+  "errors": [],
+  "fixed": [
+   0,
+   2
+  ],
+  "floating": [],
+  "joints": [
+   {
+    "a": 2,
+    "b": 5,
+    "flip": true,
+    "frame_a": {
+     "origin": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "z": [
+      0.0,
+      0.0,
+      1.0
+     ]
+    },
+    "frame_b": {
+     "origin": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "z": [
+      0.0,
+      0.0,
+      1.0
+     ]
+    },
+    "id": 1,
+    "name": "L1_pivot",
+    "offset": 0.0,
+    "suppressed": false,
+    "type": "revolute",
+    "values": [
+     {
+      "limits": null,
+      "name": "angle",
+      "unit": "deg",
+      "value": 0.0
+     }
+    ],
+    "visible": true
+   },
+   {
+    "a": 2,
+    "b": 8,
+    "flip": true,
+    "frame_a": {
+     "origin": [
+      80.0,
+      0.0,
+      0.0
+     ],
+     "z": [
+      0.0,
+      0.0,
+      1.0
+     ]
+    },
+    "frame_b": {
+     "origin": [
+      80.0,
+      0.0,
+      0.0
+     ],
+     "z": [
+      0.0,
+      0.0,
+      1.0
+     ]
+    },
+    "id": 2,
+    "name": "L2_pivot",
+    "offset": 0.0,
+    "suppressed": false,
+    "type": "revolute",
+    "values": [
+     {
+      "limits": null,
+      "name": "angle",
+      "unit": "deg",
+      "value": 0.0
+     }
+    ],
+    "visible": true
+   }
+  ],
+  "links": [
+   {
+    "a": 1,
+    "b": 2,
+    "coupling": {
+     "ra": 20.0,
+     "rb": 60.0,
+     "type": "gear"
+    },
+    "ia": 0,
+    "ib": 0,
+    "offset": 0.0,
+    "ratio": -0.3333333333333333,
+    "unit": "deg"
+   }
+  ],
+  "origins": [
+   {
+    "name": "L1_pivot_a",
+    "occurrence": 2
+   },
+   {
+    "name": "L1_pivot_b",
+    "occurrence": 5
+   },
+   {
+    "name": "L2_pivot_a",
+    "occurrence": 2
+   },
+   {
+    "name": "L2_pivot_b",
+    "occurrence": 8
+   }
+  ]
+ }
+}

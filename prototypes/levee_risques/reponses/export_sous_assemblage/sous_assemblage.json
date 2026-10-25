@@ -1,0 +1,615 @@
+{
+  "format": "solidcraft/26",
+  "name": "sous_assemblage",
+  "units": "mm",
+  "params": [],
+  "features": [
+    {
+      "id": 3,
+      "name": "Box1",
+      "suppressed": false,
+      "body_names": [
+        "Bati_corps"
+      ],
+      "param_names": [
+        "d1",
+        "d2",
+        "d3"
+      ],
+      "component": 1,
+      "type": "box",
+      "corner": [
+        -100.0,
+        -100.0,
+        -10.0
+      ],
+      "length": "400",
+      "width": "300",
+      "height": "10",
+      "operation": "new_body"
+    },
+    {
+      "id": 6,
+      "name": "Box2",
+      "suppressed": false,
+      "body_names": [
+        "Barre_corps"
+      ],
+      "param_names": [
+        "d4",
+        "d5",
+        "d6"
+      ],
+      "component": 4,
+      "type": "box",
+      "corner": [
+        0.0,
+        -5.0,
+        0.0
+      ],
+      "length": "100",
+      "width": "10",
+      "height": "10",
+      "operation": "new_body"
+    },
+    {
+      "id": 9,
+      "name": "Cylinder1",
+      "suppressed": false,
+      "body_names": [
+        "Axe_corps"
+      ],
+      "param_names": [
+        "d7",
+        "d8"
+      ],
+      "component": 7,
+      "type": "cylinder",
+      "base": [
+        100.0,
+        0.0,
+        -2.0
+      ],
+      "axis": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "radius": "6",
+      "height": "14",
+      "operation": "new_body"
+    }
+  ],
+  "next_id": 15,
+  "components": [
+    {
+      "id": 1,
+      "name": "Bati",
+      "parent": 0
+    },
+    {
+      "id": 4,
+      "name": "Barre",
+      "parent": 0
+    },
+    {
+      "id": 7,
+      "name": "Axe",
+      "parent": 0
+    },
+    {
+      "id": 10,
+      "name": "Groupe",
+      "parent": 0
+    }
+  ],
+  "occurrences": [
+    {
+      "id": 2,
+      "component": 1,
+      "parent": 0,
+      "name": "Bati:1",
+      "transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "grounded": true
+    },
+    {
+      "id": 5,
+      "component": 4,
+      "parent": 0,
+      "name": "Barre:1",
+      "transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          -150.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "grounded": false
+    },
+    {
+      "id": 8,
+      "component": 7,
+      "parent": 0,
+      "name": "Axe:1",
+      "transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          -150.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "grounded": false
+    },
+    {
+      "id": 11,
+      "component": 10,
+      "parent": 0,
+      "name": "Groupe:1",
+      "transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "grounded": false
+    },
+    {
+      "id": 12,
+      "component": 4,
+      "parent": 10,
+      "name": "Barre:2",
+      "transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "grounded": false
+    },
+    {
+      "id": 13,
+      "component": 7,
+      "parent": 10,
+      "name": "Axe:2",
+      "transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "grounded": false
+    },
+    {
+      "id": 14,
+      "component": 10,
+      "parent": 0,
+      "name": "Groupe:2",
+      "transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          150.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "grounded": false
+    }
+  ],
+  "assembly": {
+    "joints": [
+      {
+        "id": 1,
+        "name": "LA_bati_groupe1",
+        "kind": "revolute",
+        "a": {
+          "occurrence": 2,
+          "snap": {
+            "type": "point",
+            "point": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "b": {
+          "occurrence": 11,
+          "snap": {
+            "type": "point",
+            "point": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "values": [
+          0.0
+        ],
+        "limits": [
+          null
+        ],
+        "flip": true,
+        "offset": 0.0,
+        "angle": 0.0
+      },
+      {
+        "id": 2,
+        "name": "LB_bati_barre1",
+        "kind": "revolute",
+        "a": {
+          "occurrence": 2,
+          "snap": {
+            "type": "point",
+            "point": [
+              0.0,
+              -150.0,
+              0.0
+            ]
+          }
+        },
+        "b": {
+          "occurrence": 5,
+          "snap": {
+            "type": "point",
+            "point": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "values": [
+          0.0
+        ],
+        "limits": [
+          null
+        ],
+        "flip": true,
+        "offset": 0.0,
+        "angle": 0.0
+      },
+      {
+        "id": 3,
+        "name": "LC_sous",
+        "kind": "revolute",
+        "a": {
+          "occurrence": 12,
+          "snap": {
+            "type": "point",
+            "point": [
+              100.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "b": {
+          "occurrence": 13,
+          "snap": {
+            "type": "point",
+            "point": [
+              100.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "values": [
+          0.0
+        ],
+        "limits": [
+          null
+        ],
+        "flip": true,
+        "offset": 0.0,
+        "angle": 0.0
+      },
+      {
+        "id": 4,
+        "name": "LD_bati_axe2",
+        "kind": "revolute",
+        "a": {
+          "occurrence": 2,
+          "snap": {
+            "type": "point",
+            "point": [
+              100.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "b": {
+          "occurrence": 13,
+          "snap": {
+            "type": "point",
+            "point": [
+              100.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "values": [
+          0.0
+        ],
+        "limits": [
+          null
+        ],
+        "flip": true,
+        "offset": 0.0,
+        "angle": 0.0
+      }
+    ],
+    "origins": [
+      {
+        "name": "OA_bati",
+        "origin": {
+          "occurrence": 2,
+          "snap": {
+            "type": "point",
+            "point": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      {
+        "name": "OA_g1",
+        "origin": {
+          "occurrence": 11,
+          "snap": {
+            "type": "point",
+            "point": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      {
+        "name": "OB_bati",
+        "origin": {
+          "occurrence": 2,
+          "snap": {
+            "type": "point",
+            "point": [
+              0.0,
+              -150.0,
+              0.0
+            ]
+          }
+        }
+      },
+      {
+        "name": "OB_b1",
+        "origin": {
+          "occurrence": 5,
+          "snap": {
+            "type": "point",
+            "point": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      {
+        "name": "OC_barre",
+        "origin": {
+          "occurrence": 12,
+          "snap": {
+            "type": "point",
+            "point": [
+              100.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      {
+        "name": "OC_barre_p",
+        "origin": {
+          "occurrence": 12,
+          "snap": {
+            "type": "point",
+            "point": [
+              100.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      {
+        "name": "OC_barre_n",
+        "origin": {
+          "occurrence": 12,
+          "snap": {
+            "type": "point",
+            "point": [
+              100.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      {
+        "name": "OC_axe",
+        "origin": {
+          "occurrence": 13,
+          "snap": {
+            "type": "point",
+            "point": [
+              100.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      {
+        "name": "OD_bati",
+        "origin": {
+          "occurrence": 2,
+          "snap": {
+            "type": "point",
+            "point": [
+              100.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

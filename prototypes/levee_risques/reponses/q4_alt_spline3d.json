@@ -1,0 +1,17 @@
+{
+ "ok": true,
+ "cles": [
+  "created",
+  "curves",
+  "sketch"
+ ],
+ "created": {
+  "constraints": [],
+  "curves": [],
+  "dimensions": [],
+  "points": [],
+  "wires": [
+   "w1"
+  ]
+ }
+}

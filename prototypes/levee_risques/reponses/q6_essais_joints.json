@@ -1,0 +1,422 @@
+[
+ {
+  "essai": "origin bati",
+  "commande": "joint.origin",
+  "params": {
+   "name": "OA_bati",
+   "occurrence": 2,
+   "point": [
+    0,
+    0,
+    0
+   ]
+  },
+  "reponse": {
+   "id": 4,
+   "ok": true,
+   "result": {
+    "origin": "OA_bati"
+   }
+  }
+ },
+ {
+  "essai": "origin groupe1",
+  "commande": "joint.origin",
+  "params": {
+   "name": "OA_g1",
+   "occurrence": 11,
+   "point": [
+    0,
+    0,
+    0
+   ]
+  },
+  "reponse": {
+   "id": 5,
+   "ok": true,
+   "result": {
+    "origin": "OA_g1"
+   }
+  }
+ },
+ {
+  "essai": "create A (bati/Groupe:1)",
+  "commande": "joint.create",
+  "params": {
+   "type": "revolute",
+   "a": "OA_bati",
+   "b": "OA_g1",
+   "flip": true,
+   "name": "LA_bati_groupe1"
+  },
+  "reponse": {
+   "id": 6,
+   "ok": true,
+   "result": {
+    "conflicts": [],
+    "dof": [
+     {
+      "dof": 0,
+      "occurrence": 0
+     },
+     {
+      "dof": 0,
+      "occurrence": 2
+     },
+     {
+      "dof": 6,
+      "occurrence": 5
+     },
+     {
+      "dof": 6,
+      "occurrence": 8
+     },
+     {
+      "dof": 1,
+      "occurrence": 11
+     },
+     {
+      "dof": 6,
+      "occurrence": 12
+     },
+     {
+      "dof": 6,
+      "occurrence": 13
+     },
+     {
+      "dof": 6,
+      "occurrence": 14
+     }
+    ],
+    "errors": [],
+    "fixed": [
+     0,
+     2
+    ],
+    "joint": 1,
+    "name": "LA_bati_groupe1"
+   }
+  }
+ },
+ {
+  "essai": "origin bati2",
+  "commande": "joint.origin",
+  "params": {
+   "name": "OB_bati",
+   "occurrence": 2,
+   "point": [
+    0,
+    -150,
+    0
+   ]
+  },
+  "reponse": {
+   "id": 7,
+   "ok": true,
+   "result": {
+    "origin": "OB_bati"
+   }
+  }
+ },
+ {
+  "essai": "origin barre1",
+  "commande": "joint.origin",
+  "params": {
+   "name": "OB_b1",
+   "occurrence": 5,
+   "point": [
+    0,
+    -150,
+    0
+   ]
+  },
+  "reponse": {
+   "id": 8,
+   "ok": true,
+   "result": {
+    "origin": "OB_b1"
+   }
+  }
+ },
+ {
+  "essai": "create B (bati/Barre:1)",
+  "commande": "joint.create",
+  "params": {
+   "type": "revolute",
+   "a": "OB_bati",
+   "b": "OB_b1",
+   "flip": true,
+   "name": "LB_bati_barre1"
+  },
+  "reponse": {
+   "id": 9,
+   "ok": true,
+   "result": {
+    "conflicts": [],
+    "dof": [
+     {
+      "dof": 0,
+      "occurrence": 0
+     },
+     {
+      "dof": 0,
+      "occurrence": 2
+     },
+     {
+      "dof": 1,
+      "occurrence": 5
+     },
+     {
+      "dof": 6,
+      "occurrence": 8
+     },
+     {
+      "dof": 1,
+      "occurrence": 11
+     },
+     {
+      "dof": 6,
+      "occurrence": 12
+     },
+     {
+      "dof": 6,
+      "occurrence": 13
+     },
+     {
+      "dof": 6,
+      "occurrence": 14
+     }
+    ],
+    "errors": [],
+    "fixed": [
+     0,
+     2
+    ],
+    "joint": 2,
+    "name": "LB_bati_barre1"
+   }
+  }
+ },
+ {
+  "essai": "origin barre2 ambigu",
+  "commande": "joint.origin",
+  "params": {
+   "name": "OC_barre",
+   "occurrence": 12,
+   "point": [
+    100,
+    0,
+    0
+   ]
+  },
+  "reponse": {
+   "id": 10,
+   "ok": true,
+   "result": {
+    "origin": "OC_barre"
+   }
+  }
+ },
+ {
+  "essai": "origin barre2 par path",
+  "commande": "joint.origin",
+  "params": {
+   "name": "OC_barre_p",
+   "occurrence": 12,
+   "path": [
+    11,
+    12
+   ],
+   "point": [
+    100,
+    0,
+    0
+   ]
+  },
+  "reponse": {
+   "id": 11,
+   "ok": true,
+   "result": {
+    "origin": "OC_barre_p"
+   }
+  }
+ },
+ {
+  "essai": "origin barre2 par nom",
+  "commande": "joint.origin",
+  "params": {
+   "name": "OC_barre_n",
+   "occurrence": "Barre:2",
+   "point": [
+    100,
+    0,
+    0
+   ]
+  },
+  "reponse": {
+   "id": 12,
+   "ok": true,
+   "result": {
+    "origin": "OC_barre_n"
+   }
+  }
+ },
+ {
+  "essai": "origin axe2",
+  "commande": "joint.origin",
+  "params": {
+   "name": "OC_axe",
+   "occurrence": 13,
+   "point": [
+    100,
+    0,
+    0
+   ]
+  },
+  "reponse": {
+   "id": 13,
+   "ok": true,
+   "result": {
+    "origin": "OC_axe"
+   }
+  }
+ },
+ {
+  "essai": "create C (Barre:2/Axe:2)",
+  "commande": "joint.create",
+  "params": {
+   "type": "revolute",
+   "a": "OC_barre",
+   "b": "OC_axe",
+   "flip": true,
+   "name": "LC_sous"
+  },
+  "reponse": {
+   "id": 14,
+   "ok": true,
+   "result": {
+    "conflicts": [],
+    "dof": [
+     {
+      "dof": 0,
+      "occurrence": 0
+     },
+     {
+      "dof": 0,
+      "occurrence": 2
+     },
+     {
+      "dof": 1,
+      "occurrence": 5
+     },
+     {
+      "dof": 6,
+      "occurrence": 8
+     },
+     {
+      "dof": 1,
+      "occurrence": 11
+     },
+     {
+      "dof": 6,
+      "occurrence": 12
+     },
+     {
+      "dof": 6,
+      "occurrence": 13
+     },
+     {
+      "dof": 6,
+      "occurrence": 14
+     }
+    ],
+    "errors": [],
+    "fixed": [
+     0,
+     2
+    ],
+    "joint": 3,
+    "name": "LC_sous"
+   }
+  }
+ },
+ {
+  "essai": "origin bati3",
+  "commande": "joint.origin",
+  "params": {
+   "name": "OD_bati",
+   "occurrence": 2,
+   "point": [
+    100,
+    0,
+    0
+   ]
+  },
+  "reponse": {
+   "id": 15,
+   "ok": true,
+   "result": {
+    "origin": "OD_bati"
+   }
+  }
+ },
+ {
+  "essai": "create D (bati/Axe:2)",
+  "commande": "joint.create",
+  "params": {
+   "type": "revolute",
+   "a": "OD_bati",
+   "b": "OC_axe",
+   "flip": true,
+   "name": "LD_bati_axe2"
+  },
+  "reponse": {
+   "id": 16,
+   "ok": true,
+   "result": {
+    "conflicts": [],
+    "dof": [
+     {
+      "dof": 0,
+      "occurrence": 0
+     },
+     {
+      "dof": 0,
+      "occurrence": 2
+     },
+     {
+      "dof": 1,
+      "occurrence": 5
+     },
+     {
+      "dof": 6,
+      "occurrence": 8
+     },
+     {
+      "dof": 1,
+      "occurrence": 11
+     },
+     {
+      "dof": 2,
+      "occurrence": 12
+     },
+     {
+      "dof": 1,
+      "occurrence": 13
+     },
+     {
+      "dof": 6,
+      "occurrence": 14
+     }
+    ],
+    "errors": [],
+    "fixed": [
+     0,
+     2
+    ],
+    "joint": 4,
+    "name": "LD_bati_axe2"
+   }
+  }
+ }
+]

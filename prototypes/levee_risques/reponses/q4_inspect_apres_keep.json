@@ -1,0 +1,124 @@
+{
+ "id": 19,
+ "ok": true,
+ "result": {
+  "active_sketch": null,
+  "bodies": [
+   {
+    "feature": 3,
+    "name": "Bati_corps",
+    "visible": true
+   },
+   {
+    "feature": 6,
+    "name": "Manivelle_corps",
+    "visible": true
+   },
+   {
+    "feature": 9,
+    "name": "Bielle_corps",
+    "visible": true
+   },
+   {
+    "feature": 12,
+    "name": "Piston_corps",
+    "visible": true
+   }
+  ],
+  "dirty": true,
+  "hidden_origin": [],
+  "marker": 5,
+  "metadata": {},
+  "name": "bielle_manivelle",
+  "params": [],
+  "path": "D:\\CLAUDE\\dev\\Meca3D\\.claude\\worktrees\\agent-ae2c4776cedb6c136\\prototypes\\levee_risques\\maquettes\\bielle_trace.solidcraft",
+  "redo": 0,
+  "revision": 45,
+  "selection": [],
+  "sketches": [
+   {
+    "curves": 0,
+    "dof": 0,
+    "id": 13,
+    "name": "Trace_P",
+    "profiles": 0,
+    "status": "solved",
+    "visible": true
+   }
+  ],
+  "timeline": [
+   {
+    "boolean_diagnostics": {
+     "events": [],
+     "truncated": false
+    },
+    "error": null,
+    "id": 3,
+    "ms": 4.0032000000000005,
+    "name": "Box1",
+    "rolled_back": false,
+    "suppressed": false,
+    "type": "BoxFeature",
+    "warning": null
+   },
+   {
+    "boolean_diagnostics": {
+     "events": [],
+     "truncated": false
+    },
+    "error": null,
+    "id": 6,
+    "ms": 3.0987,
+    "name": "Box2",
+    "rolled_back": false,
+    "suppressed": false,
+    "type": "BoxFeature",
+    "warning": null
+   },
+   {
+    "boolean_diagnostics": {
+     "events": [],
+     "truncated": false
+    },
+    "error": null,
+    "id": 9,
+    "ms": 2.9960999999999998,
+    "name": "Box3",
+    "rolled_back": false,
+    "suppressed": false,
+    "type": "BoxFeature",
+    "warning": null
+   },
+   {
+    "boolean_diagnostics": {
+     "events": [],
+     "truncated": false
+    },
+    "error": null,
+    "id": 12,
+    "ms": 2.4396999999999998,
+    "name": "Box4",
+    "rolled_back": false,
+    "suppressed": false,
+    "type": "BoxFeature",
+    "warning": null
+   },
+   {
+    "boolean_diagnostics": {
+     "events": [],
+     "truncated": false
+    },
+    "error": null,
+    "id": 13,
+    "ms": 0.2783,
+    "name": "Trace_P",
+    "rolled_back": false,
+    "suppressed": false,
+    "type": "Sketch",
+    "warning": null
+   }
+  ],
+  "undo": 3,
+  "units": "mm"
+ }
+}

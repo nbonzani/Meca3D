@@ -1,0 +1,17 @@
+{
+ "id": 15,
+ "ok": true,
+ "result": {
+  "curves": [
+   "w1"
+  ],
+  "name": "Trace_P",
+  "occurrence": "Bielle:1",
+  "points": 200,
+  "samples": 200,
+  "sketch": 13,
+  "stopped_at": null,
+  "stopped_by_contact": null,
+  "stopped_by_loop": null
+ }
+}

@@ -1,0 +1,218 @@
+{
+ "exterieur": {
+  "params": {
+   "a": "L1_pivot",
+   "b": "L2_pivot",
+   "ra": 20,
+   "rb": 60,
+   "link": 0
+  },
+  "reponse": {
+   "conflicts": [],
+   "dof": [
+    {
+     "dof": 0,
+     "occurrence": 0
+    },
+    {
+     "dof": 0,
+     "occurrence": 2
+    },
+    {
+     "dof": 1,
+     "occurrence": 5
+    },
+    {
+     "dof": 1,
+     "occurrence": 8
+    }
+   ],
+   "errors": [],
+   "fixed": [
+    0,
+    2
+   ],
+   "link": 0,
+   "ratio": -0.3333333333333333
+  },
+  "links": [
+   {
+    "a": 1,
+    "b": 2,
+    "coupling": {
+     "ra": 20.0,
+     "rb": 60.0,
+     "type": "gear"
+    },
+    "ia": 0,
+    "ib": 0,
+    "offset": 0.0,
+    "ratio": -0.3333333333333333,
+    "unit": "deg"
+   }
+  ]
+ },
+ "interieur": {
+  "params": {
+   "a": "L1_pivot",
+   "b": "L2_pivot",
+   "ra": 20,
+   "rb": 60,
+   "link": 0,
+   "internal": true
+  },
+  "reponse": {
+   "conflicts": [],
+   "dof": [
+    {
+     "dof": 0,
+     "occurrence": 0
+    },
+    {
+     "dof": 0,
+     "occurrence": 2
+    },
+    {
+     "dof": 1,
+     "occurrence": 5
+    },
+    {
+     "dof": 1,
+     "occurrence": 8
+    }
+   ],
+   "errors": [],
+   "fixed": [
+    0,
+    2
+   ],
+   "link": 0,
+   "ratio": 0.3333333333333333
+  },
+  "links": [
+   {
+    "a": 1,
+    "b": 2,
+    "coupling": {
+     "internal": true,
+     "ra": 20.0,
+     "rb": 60.0,
+     "type": "gear"
+    },
+    "ia": 0,
+    "ib": 0,
+    "offset": 0.0,
+    "ratio": 0.3333333333333333,
+    "unit": "deg"
+   }
+  ]
+ },
+ "exterieur_reverse": {
+  "params": {
+   "a": "L1_pivot",
+   "b": "L2_pivot",
+   "ra": 20,
+   "rb": 60,
+   "link": 0,
+   "reverse": true
+  },
+  "reponse": {
+   "conflicts": [],
+   "dof": [
+    {
+     "dof": 0,
+     "occurrence": 0
+    },
+    {
+     "dof": 0,
+     "occurrence": 2
+    },
+    {
+     "dof": 1,
+     "occurrence": 5
+    },
+    {
+     "dof": 1,
+     "occurrence": 8
+    }
+   ],
+   "errors": [],
+   "fixed": [
+    0,
+    2
+   ],
+   "link": 0,
+   "ratio": 0.3333333333333333
+  },
+  "links": [
+   {
+    "a": 1,
+    "b": 2,
+    "coupling": {
+     "ra": 20.0,
+     "rb": 60.0,
+     "reverse": true,
+     "type": "gear"
+    },
+    "ia": 0,
+    "ib": 0,
+    "offset": 0.0,
+    "ratio": 0.3333333333333333,
+    "unit": "deg"
+   }
+  ]
+ },
+ "depuis_dents_texte": {
+  "params": {
+   "a": "L1_pivot",
+   "b": "L2_pivot",
+   "ra": "20",
+   "rb": "60",
+   "link": 0
+  },
+  "reponse": {
+   "conflicts": [],
+   "dof": [
+    {
+     "dof": 0,
+     "occurrence": 0
+    },
+    {
+     "dof": 0,
+     "occurrence": 2
+    },
+    {
+     "dof": 1,
+     "occurrence": 5
+    },
+    {
+     "dof": 1,
+     "occurrence": 8
+    }
+   ],
+   "errors": [],
+   "fixed": [
+    0,
+    2
+   ],
+   "link": 0,
+   "ratio": -0.3333333333333333
+  },
+  "links": [
+   {
+    "a": 1,
+    "b": 2,
+    "coupling": {
+     "ra": "20",
+     "rb": "60",
+     "type": "gear"
+    },
+    "ia": 0,
+    "ib": 0,
+    "offset": 0.0,
+    "ratio": -0.3333333333333333,
+    "unit": "deg"
+   }
+  ]
+ }
+}

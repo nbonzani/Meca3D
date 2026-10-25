@@ -1,0 +1,158 @@
+{
+ "total_commandes_registre": 392,
+ "absentes_du_registre": [],
+ "commandes": {
+  "component.create": {
+   "label": "New Component",
+   "params": "name?, parent?: component id or name (default: the active one); parent_path?: exact parent placement; activate?: bool (default true)"
+  },
+  "component.list": {
+   "label": "List Components",
+   "params": "compact?: bool (counts of bodies, features, sketches and construction planes instead of their names; occurrences leave out identity transforms; children as occurrence ids); bodies?: bool (with compact: body names, not their count)"
+  },
+  "component.properties": {
+   "label": "Component Physical Properties",
+   "params": "component?: id or name (default active); descendants?: bool (default true). Measures the first placement, or all placements for root, including pending moves; material-aware mass and center of mass in world coordinates"
+  },
+  "occurrence.properties": {
+   "label": "Occurrence Physical Properties",
+   "params": "occurrence: id or name; path?: [occurrence ids] (required if nested under multiple instances); descendants?: bool (default true). Physical properties of this placement in world coordinates, including pending moves"
+  },
+  "occurrence.copy": {
+   "label": "Paste (Instance)",
+   "params": "component (or occurrence): what to place again; path?: validates selected occurrence; parent?: component (default: the same parent); translate?: [x,y,z]. Copies the selected effective transform, including pending moves"
+  },
+  "occurrence.move": {
+   "label": "Move Occurrence",
+   "params": "occurrence; path?: exact placement; space?: local|world (default local); translate?: [x,y,z]; axis?: [x,y,z], angle?: radians or \"30 deg\", origin?: [x,y,z]; capture?: bool (default true; false keeps it pending until Capture Position). Nested occurrence definitions remain shared"
+  },
+  "occurrence.ground": {
+   "label": "Ground",
+   "params": "occurrence; grounded?: bool (default toggles)"
+  },
+  "component.revert_position": {
+   "label": "Revert Position",
+   "params": "occurrences?: [ids] (default all); drops selected pending occurrence moves"
+  },
+  "component.capture_position": {
+   "label": "Capture Position",
+   "params": "keeps pending occurrence moves"
+  },
+  "joint.origin": {
+   "label": "Joint Origin",
+   "params": "name?, occurrence?: id|name (default: from the pick), face: [x,y,z] (centre of a planar face) | circle: [x,y,z] (centre of a round end) | point: [x,y,z], z?: [x,y,z]"
+  },
+  "joint.create": {
+   "label": "Joint",
+   "params": "type: rigid|revolute|slider|cylindrical|pin_slot|planar|ball; a, b: joint origins ({occurrence, face|circle|point: [x,y,z] in world} | origin name); values?: [angles in deg or expressions, distances]; limits?: [[min, max] | null…]; flip?: bool (default false: the origins are mated, b's z against a's as two faces meet; true: b's z along a's, so two origins given at one point with the same z stay as they are); offset?; angle?; name?; quiet?: bool (leave out dof and fixed)"
+  },
+  "joint.drive": {
+   "label": "Drive Joints",
+   "params": "joint: id|name; value | values: [angles in deg or expressions, distances] (values not given keep theirs; clamped to the limits; the other joints of a closed loop follow, and the motion stops where the loop can no longer close → stopped_by_loop); quiet?: bool (leave out dof and fixed) → values: [{name, value, unit: deg|mm, limits}] as joint.list gives them; moved: whether any occurrence moved; reason: why the joint can move nothing (suppressed, its origins lost, or its chain joined to nothing grounded → unconnected: the occurrence named)"
+  },
+  "joint.list": {
+   "label": "List Joints",
+   "params": "→ joints (type, occurrences, values, limits), origins, links, degrees of freedom, conflicts, floating: [{occurrences, joints}] (joint chains joined to nothing grounded: the solver places none of them, so driving them moves nothing)"
+  },
+  "joint.motion_link": {
+   "label": "Motion Link",
+   "params": "a, b: joints; ratio (b = ratio · a + offset): b's units per a's (mm per deg for an angle driving a distance); offset?: in b's units (deg for an angle, mm for a distance, or an expression); ia?, ib?: value indices (default 0)"
+  },
+  "joint.gear": {
+   "label": "Gear",
+   "params": "a, b: joints that turn (revolute), b driven by a; ra, rb: the gears' pitch radii (or tooth counts): mm, an expression, or {circle: [x,y,z], occurrence?}: the round face there, its radius (read again whenever the design changes, so the ratio follows edits); internal?: bool (one is a ring gear: both turn the same way; by default b turns the other way); reverse?: bool; link?: index (replace that motion link) → link, ratio (b's degrees per a's); b keeps where it is"
+  },
+  "joint.rack_pinion": {
+   "label": "Rack and Pinion",
+   "params": "a, b: a joint that turns (revolute: the pinion) and one that slides (slider: the rack), in either order, b driven by a; radius: the pinion's pitch radius (mm, an expression, or {circle: [x,y,z], occurrence?}): the rack travels radius × the turn in radians; reverse?: bool; link?: index (replace that motion link) → link, ratio (mm per degree, or degrees per mm); b keeps where it is"
+  },
+  "joint.screw": {
+   "label": "Screw",
+   "params": "joint: a cylindrical joint (its turn drives its travel) | a, b: a joint that turns and one that slides, b driven by a; pitch: travel per turn (mm or an expression); reverse?: bool (a left-hand thread); link?: index (replace that motion link) → link, ratio (mm per degree, or degrees per mm); b keeps where it is"
+  },
+  "joint.edit": {
+   "label": "Edit Joint",
+   "params": "joint; type?, flip?, offset?, angle?, suppressed?, name?"
+  },
+  "motion.study": {
+   "label": "Motion Study",
+   "params": "name?; study? (edit an existing one); steps? (timeline length, default 100); keys: [{joint, index?, points: [[step, value], …]}] (values: degrees for angles, mm for distances, or expressions)"
+  },
+  "motion.trace": {
+   "label": "Motion Trace",
+   "params": "occurrence: id|name, or an occurrence path [ids] (an instance inside sub-assemblies); point: [x,y,z] world point on it, where it is placed now; study: id|name, or joint: id|name with from and to (degrees for angles, mm for distances, or expressions) and index? (which value, default 0); samples? (2…500, default the study's steps + 1, or 100) - the point's path as the study plays or the joint is driven, closed loops following → points: [[x,y,z]…] world positions, samples (taken), stopped_at (the sample where the motion stopped short; the trace ends there), stopped_by_loop, stopped_by_contact (the design is not changed)"
+  },
+  "motion.trace.keep": {
+   "label": "Keep Motion Trace",
+   "params": "occurrence: id|name, or an occurrence path [ids] (an instance inside sub-assemblies); point: [x,y,z] world point on it, where it is placed now; study: id|name, or joint: id|name with from and to (degrees for angles, mm for distances, or expressions) and index? (which value, default 0); samples? (2…500, default the study's steps + 1, or 100) - the point's path as the study plays or the joint is driven, closed loops following; name? (default Motion TraceN) - keeps the trace as a 3D sketch spline through its points (a new sketch with 3D Sketch on, in the root component, where no joint moves it; a fixed curve, it does not follow later changes) → sketch, name, curves, points"
+  },
+  "motion.plot": {
+   "label": "Plot Motion Study",
+   "params": "study: id|name; joints?: [id|name] (default: every joint that moves); occurrence? and point? (a point of a part to follow, as motion.trace takes them); samples? (3…1000, default the study's steps + 1); duration?: seconds the whole study takes, 0.001 or more (velocities and accelerations then per second, else per step) → step: [the study step of each sample], time?: [s], joints: [{joint, name, index, dof, unit, value, velocity, acceleration, velocity_unit, acceleration_unit}] (degrees for angles, mm for distances; angles unwrapped), point?: {occurrence, position: [[x,y,z]…], velocity, acceleration (vectors), speed, acceleration_norm, unit, velocity_unit, acceleration_unit}, samples (taken), stopped_at, stopped_by_loop, stopped_by_contact. The study plays as motion.play plays it, each sample driven from the one before, on a copy (the design is not changed); velocities and accelerations are finite differences between samples (central, one-sided at the ends)"
+  },
+  "motion.list": {
+   "label": "List Motion Studies",
+   "params": ""
+  },
+  "motion.delete": {
+   "label": "Delete Motion Study",
+   "params": "study"
+  },
+  "sketch.create": {
+   "label": "Create Sketch",
+   "params": "plane: XY|XZ|YZ | construction plane name or id | {origin, x_dir, y_dir} | {face: [world x,y,z], body?: exact world body, index?: face index, path?: complete occurrence ids, fixed?: bool}; new face attachments require a unique certified source (a flat face of a sheet metal body attaches to its panel instead, in the flat pattern's coordinates), fixed:true explicitly freezes the selected plane; offset?: expr, flip?: bool | \"x\" | \"y\" (not on a face: sketch the plane from its other side, so the normal and the default extrude direction are reversed; a half turn about the plane's own x or y axis, true picks the one keeping the sketch's y axis upward; offset still moves along the unflipped normal), project_edges?: bool, name?"
+  },
+  "sketch.options": {
+   "label": "Sketch Palette Options",
+   "params": "sketch?: id|name (default active); any of show_profile, show_points, show_dimensions, show_constraints, show_projected, show_construction, grid, snap, slice, sketch_3d: bool. Returns them all"
+  },
+  "sketch.spline3d": {
+   "label": "3D Spline",
+   "params": "points: [[x,y,z]…] world fit points (2 or more): a smooth 3D curve through them (needs 3D Sketch on). Returns created: {points, curves, constraints, dimensions}: the ids of what it added (stable and never reused: usable right away in sketch.dimension, sketch.constraint.*, sketch.delete…)"
+  },
+  "sketch.line3d": {
+   "label": "3D Line",
+   "params": "points: [[x,y,z]…] world points (2 or more): one 3D line per segment, joined end to end (needs 3D Sketch on). Returns created: {points, curves, constraints, dimensions}: the ids of what it added (stable and never reused: usable right away in sketch.dimension, sketch.constraint.*, sketch.delete…)"
+  },
+  "sketch.finish": {
+   "label": "Finish Sketch",
+   "params": ""
+  },
+  "timeline.delete": {
+   "label": "Delete",
+   "params": "features: [id or name] (a sketch takes its dependent features with it) → deleted: [ids]; failing?: [{feature, error}] (later features that worked and now fail)"
+  },
+  "edit.checkpoint": {
+   "label": "Checkpoint",
+   "params": "→ {checkpoint: id}: remember the design, active sketch and undo history (restore with edit.restore_checkpoint)"
+  },
+  "edit.restore_checkpoint": {
+   "label": "Restore Checkpoint",
+   "params": "checkpoint: id; forget?: bool (true = drop it without going back). Goes back to it, undo history included"
+  },
+  "edit.undo": {
+   "label": "Undo",
+   "params": ""
+  },
+  "file.export": {
+   "label": "Export",
+   "params": "path; format?: stl|stla|obj|step|3mf|3mf-tagged|urdf|json (default from extension; 3mf-tagged: 3MF whose triangles carry their B-rep face, at full precision, for meshing and analysis tools; docs/formats/3mf-face-tags.md; urdf: the whole assembly as a robot, with STL meshes written next to it; docs/urdf.md); bodies?: [names] (JSON and URDF export the complete design); urdf only: mesh_prefix? (before each mesh file name, e.g. package://robot/meshes/), effort? (default 1000), velocity? (default 10)"
+  },
+  "file.new": {
+   "label": "New Design",
+   "params": "name?"
+  },
+  "doc.open": {
+   "label": "Open",
+   "params": "path: .solidcraft design, or a .step/.stp/.igs/.fcstd/.3dm/.3mf/.stl/.obj/.glb/.gltf file (STEP, IGES, FreeCAD, Rhino, 3MF, STL, OBJ or glTF; opens as a new design holding the file as a component named after it, as file.insert_step and file.insert_mesh make); up?: z|y for a STEP, IGES, FreeCAD, Rhino or glTF file (see file.insert_step and file.insert_mesh); names?: solid|product|instance for a STEP, IGES, FreeCAD or Rhino file (see file.insert_step)"
+  },
+  "file.save_as": {
+   "label": "Save As",
+   "params": "path; format?: container|json (default: json for .json, otherwise container); compression?: fast|compact (default: fast); cache?: bool (warm native geometry, default: false); preview?: bool (saved display meshes, default: false)"
+  },
+  "document.inspect": {
+   "label": "Inspect Design",
+   "params": "measure?: bool (include body measurements)"
+  }
+ }
+}

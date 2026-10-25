@@ -1,0 +1,44 @@
+{
+ "reponse": {
+  "conflicts": [],
+  "dof": [
+   {
+    "dof": 0,
+    "occurrence": 0
+   },
+   {
+    "dof": 0,
+    "occurrence": 2
+   },
+   {
+    "dof": 1,
+    "occurrence": 5
+   },
+   {
+    "dof": 1,
+    "occurrence": 8
+   }
+  ],
+  "errors": [],
+  "fixed": [
+   0,
+   2
+  ],
+  "joint": 2,
+  "moved": false,
+  "stopped_by_contact": null,
+  "stopped_by_loop": null,
+  "values": [
+   {
+    "limits": null,
+    "name": "angle",
+    "unit": "deg",
+    "value": 0.0
+   }
+  ]
+ },
+ "valeurs": {
+  "L1_pivot": 0.0,
+  "L2_pivot": 0.0
+ }
+}
