@@ -1,0 +1,640 @@
+{
+  "format": "solidcraft/26",
+  "name": "bielle_manivelle",
+  "units": "mm",
+  "params": [],
+  "features": [
+    {
+      "id": 3,
+      "name": "Box1",
+      "suppressed": false,
+      "body_names": [
+        "Bati_corps"
+      ],
+      "param_names": [
+        "d1",
+        "d2",
+        "d3"
+      ],
+      "component": 1,
+      "type": "box",
+      "corner": [
+        -20.0,
+        -20.0,
+        -35.0
+      ],
+      "length": "40",
+      "width": "40",
+      "height": "10",
+      "operation": "new_body"
+    },
+    {
+      "id": 6,
+      "name": "Box2",
+      "suppressed": false,
+      "body_names": [
+        "Manivelle_corps"
+      ],
+      "param_names": [
+        "d4",
+        "d5",
+        "d6"
+      ],
+      "component": 4,
+      "type": "box",
+      "corner": [
+        0.0,
+        -10.0,
+        -10.0
+      ],
+      "length": "100",
+      "width": "20",
+      "height": "20",
+      "operation": "new_body"
+    },
+    {
+      "id": 9,
+      "name": "Box3",
+      "suppressed": false,
+      "body_names": [
+        "Bielle_corps"
+      ],
+      "param_names": [
+        "d7",
+        "d8",
+        "d9"
+      ],
+      "component": 7,
+      "type": "box",
+      "corner": [
+        100.0,
+        -10.0,
+        -10.0
+      ],
+      "length": "300",
+      "width": "20",
+      "height": "20",
+      "operation": "new_body"
+    },
+    {
+      "id": 12,
+      "name": "Box4",
+      "suppressed": false,
+      "body_names": [
+        "Piston_corps"
+      ],
+      "param_names": [
+        "d10",
+        "d11",
+        "d12"
+      ],
+      "component": 10,
+      "type": "box",
+      "corner": [
+        385.0,
+        -15.0,
+        -15.0
+      ],
+      "length": "30",
+      "width": "30",
+      "height": "30",
+      "operation": "new_body"
+    }
+  ],
+  "next_id": 13,
+  "components": [
+    {
+      "id": 1,
+      "name": "Bati",
+      "parent": 0
+    },
+    {
+      "id": 4,
+      "name": "Manivelle",
+      "parent": 0
+    },
+    {
+      "id": 7,
+      "name": "Bielle",
+      "parent": 0
+    },
+    {
+      "id": 10,
+      "name": "Piston",
+      "parent": 0
+    }
+  ],
+  "occurrences": [
+    {
+      "id": 2,
+      "component": 1,
+      "parent": 0,
+      "name": "Bati:1",
+      "transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "grounded": true
+    },
+    {
+      "id": 5,
+      "component": 4,
+      "parent": 0,
+      "name": "Manivelle:1",
+      "transform": [
+        [
+          0.5000000000000001,
+          0.8660254037844386,
+          0.0,
+          0.0
+        ],
+        [
+          -0.8660254037844386,
+          0.5000000000000001,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "grounded": false
+    },
+    {
+      "id": 8,
+      "component": 7,
+      "parent": 0,
+      "name": "Bielle:1",
+      "transform": [
+        [
+          0.9574271077563363,
+          -0.2886751345948189,
+          0.0,
+          0.0
+        ],
+        [
+          0.2886751345948189,
+          0.9574271077563363,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          -45.742710775633626,
+          115.47005383792576,
+          0.0,
+          1.0
+        ]
+      ],
+      "grounded": false
+    },
+    {
+      "id": 11,
+      "component": 10,
+      "parent": 0,
+      "name": "Piston:1",
+      "transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          -62.771867673094334,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "grounded": false
+    }
+  ],
+  "assembly": {
+    "joints": [
+      {
+        "id": 1,
+        "name": "L01_pivot",
+        "kind": "revolute",
+        "a": {
+          "occurrence": 2,
+          "snap": {
+            "type": "point",
+            "point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "z": [
+              0.0,
+              0.0,
+              1.0
+            ]
+          }
+        },
+        "b": {
+          "occurrence": 5,
+          "snap": {
+            "type": "point",
+            "point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "z": [
+              0.0,
+              0.0,
+              1.0
+            ]
+          }
+        },
+        "values": [
+          1.0471975511965976
+        ],
+        "limits": [
+          null
+        ],
+        "flip": true,
+        "offset": 0.0,
+        "angle": 0.0
+      },
+      {
+        "id": 2,
+        "name": "L12_pivot",
+        "kind": "revolute",
+        "a": {
+          "occurrence": 5,
+          "snap": {
+            "type": "point",
+            "point": [
+              100.0,
+              0.0,
+              0.0
+            ],
+            "z": [
+              0.0,
+              0.0,
+              1.0
+            ]
+          }
+        },
+        "b": {
+          "occurrence": 8,
+          "snap": {
+            "type": "point",
+            "point": [
+              100.0,
+              0.0,
+              0.0
+            ],
+            "z": [
+              0.0,
+              0.0,
+              1.0
+            ]
+          }
+        },
+        "values": [
+          -1.3400403229251794
+        ],
+        "limits": [
+          null
+        ],
+        "flip": true,
+        "offset": 0.0,
+        "angle": 0.0
+      },
+      {
+        "id": 3,
+        "name": "L23_rotule",
+        "kind": "ball",
+        "a": {
+          "occurrence": 8,
+          "snap": {
+            "type": "point",
+            "point": [
+              400.0,
+              0.0,
+              0.0
+            ],
+            "z": [
+              0.0,
+              0.0,
+              1.0
+            ]
+          }
+        },
+        "b": {
+          "occurrence": 11,
+          "snap": {
+            "type": "point",
+            "point": [
+              400.0,
+              0.0,
+              0.0
+            ],
+            "z": [
+              0.0,
+              0.0,
+              1.0
+            ]
+          }
+        },
+        "values": [
+          0.1464213859052428,
+          0.0,
+          0.1464213858233327
+        ],
+        "limits": [
+          null,
+          null,
+          null
+        ],
+        "flip": true,
+        "offset": 0.0,
+        "angle": 0.0
+      },
+      {
+        "id": 4,
+        "name": "L30_glissiere",
+        "kind": "slider",
+        "a": {
+          "occurrence": 2,
+          "snap": {
+            "type": "point",
+            "point": [
+              400.0,
+              0.0,
+              0.0
+            ],
+            "z": [
+              1.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "b": {
+          "occurrence": 11,
+          "snap": {
+            "type": "point",
+            "point": [
+              400.0,
+              0.0,
+              0.0
+            ],
+            "z": [
+              1.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "values": [
+          -62.77186767309432
+        ],
+        "limits": [
+          null
+        ],
+        "flip": true,
+        "offset": 0.0,
+        "angle": 0.0
+      }
+    ],
+    "origins": [
+      {
+        "name": "O_bati",
+        "origin": {
+          "occurrence": 2,
+          "snap": {
+            "type": "point",
+            "point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "z": [
+              0.0,
+              0.0,
+              1.0
+            ]
+          }
+        }
+      },
+      {
+        "name": "O_man",
+        "origin": {
+          "occurrence": 5,
+          "snap": {
+            "type": "point",
+            "point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "z": [
+              0.0,
+              0.0,
+              1.0
+            ]
+          }
+        }
+      },
+      {
+        "name": "A_man",
+        "origin": {
+          "occurrence": 5,
+          "snap": {
+            "type": "point",
+            "point": [
+              100.0,
+              0.0,
+              0.0
+            ],
+            "z": [
+              0.0,
+              0.0,
+              1.0
+            ]
+          }
+        }
+      },
+      {
+        "name": "A_biel",
+        "origin": {
+          "occurrence": 8,
+          "snap": {
+            "type": "point",
+            "point": [
+              100.0,
+              0.0,
+              0.0
+            ],
+            "z": [
+              0.0,
+              0.0,
+              1.0
+            ]
+          }
+        }
+      },
+      {
+        "name": "B_biel",
+        "origin": {
+          "occurrence": 8,
+          "snap": {
+            "type": "point",
+            "point": [
+              400.0,
+              0.0,
+              0.0
+            ],
+            "z": [
+              0.0,
+              0.0,
+              1.0
+            ]
+          }
+        }
+      },
+      {
+        "name": "B_pist",
+        "origin": {
+          "occurrence": 11,
+          "snap": {
+            "type": "point",
+            "point": [
+              400.0,
+              0.0,
+              0.0
+            ],
+            "z": [
+              0.0,
+              0.0,
+              1.0
+            ]
+          }
+        }
+      },
+      {
+        "name": "B_pist_x",
+        "origin": {
+          "occurrence": 11,
+          "snap": {
+            "type": "point",
+            "point": [
+              400.0,
+              0.0,
+              0.0
+            ],
+            "z": [
+              1.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      {
+        "name": "B_bati_x",
+        "origin": {
+          "occurrence": 2,
+          "snap": {
+            "type": "point",
+            "point": [
+              400.0,
+              0.0,
+              0.0
+            ],
+            "z": [
+              1.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "materials": {
+    "Bielle_corps": "Acier7800",
+    "Manivelle_corps": "Acier7800",
+    "Piston_corps": "PistonDense"
+  },
+  "user_materials": [
+    {
+      "name": "Acier7800",
+      "density": 7.8,
+      "appearance": {
+        "name": "Acier7800",
+        "color": [
+          138,
+          143,
+          153
+        ],
+        "opacity": 1.0
+      }
+    },
+    {
+      "name": "PistonDense",
+      "density": 18.51851851851852,
+      "appearance": {
+        "name": "PistonDense",
+        "color": [
+          192,
+          57,
+          43
+        ],
+        "opacity": 1.0
+      }
+    }
+  ]
+}

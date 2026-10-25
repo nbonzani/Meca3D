@@ -1,0 +1,252 @@
+{
+ "conflicts": [],
+ "dof": [
+  {
+   "dof": 0,
+   "occurrence": 0
+  },
+  {
+   "dof": 0,
+   "occurrence": 2
+  },
+  {
+   "dof": 1,
+   "occurrence": 5
+  },
+  {
+   "dof": 1,
+   "occurrence": 8
+  },
+  {
+   "dof": 1,
+   "occurrence": 11
+  }
+ ],
+ "errors": [],
+ "fixed": [
+  0,
+  2
+ ],
+ "floating": [],
+ "joints": [
+  {
+   "a": 2,
+   "b": 5,
+   "flip": true,
+   "frame_a": {
+    "origin": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "z": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   "frame_b": {
+    "origin": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "z": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   "id": 1,
+   "name": "L01_pivot",
+   "offset": 0.0,
+   "suppressed": false,
+   "type": "revolute",
+   "values": [
+    {
+     "limits": null,
+     "name": "angle",
+     "unit": "deg",
+     "value": 59.99999999999999
+    }
+   ],
+   "visible": true
+  },
+  {
+   "a": 5,
+   "b": 8,
+   "flip": true,
+   "frame_a": {
+    "origin": [
+     50.000000000000014,
+     86.60254037844386,
+     0.0
+    ],
+    "z": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   "frame_b": {
+    "origin": [
+     50.000000000000014,
+     86.60254037844388,
+     0.0
+    ],
+    "z": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   "id": 2,
+   "name": "L12_pivot",
+   "offset": 0.0,
+   "suppressed": false,
+   "type": "revolute",
+   "values": [
+    {
+     "limits": null,
+     "name": "angle",
+     "unit": "deg",
+     "value": -76.77865488096072
+    }
+   ],
+   "visible": true
+  },
+  {
+   "a": 8,
+   "b": 11,
+   "flip": true,
+   "frame_a": {
+    "origin": [
+     337.22813232690095,
+     -1.8047785488306545e-12,
+     0.0
+    ],
+    "z": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   "frame_b": {
+    "origin": [
+     337.22813232690567,
+     0.0,
+     0.0
+    ],
+    "z": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   "id": 3,
+   "name": "L23_rotule",
+   "offset": 0.0,
+   "suppressed": false,
+   "type": "ball",
+   "values": [
+    {
+     "limits": null,
+     "name": "yaw",
+     "unit": "deg",
+     "value": 8.389327442826731
+    },
+    {
+     "limits": null,
+     "name": "pitch",
+     "unit": "deg",
+     "value": 0.0
+    },
+    {
+     "limits": null,
+     "name": "roll",
+     "unit": "deg",
+     "value": 8.389327438133629
+    }
+   ],
+   "visible": true
+  },
+  {
+   "a": 2,
+   "b": 11,
+   "flip": true,
+   "frame_a": {
+    "origin": [
+     400.0,
+     0.0,
+     0.0
+    ],
+    "z": [
+     1.0,
+     0.0,
+     0.0
+    ]
+   },
+   "frame_b": {
+    "origin": [
+     337.22813232690567,
+     0.0,
+     0.0
+    ],
+    "z": [
+     1.0,
+     0.0,
+     0.0
+    ]
+   },
+   "id": 4,
+   "name": "L30_glissiere",
+   "offset": 0.0,
+   "suppressed": false,
+   "type": "slider",
+   "values": [
+    {
+     "limits": null,
+     "name": "distance",
+     "unit": "mm",
+     "value": -62.77186767309432
+    }
+   ],
+   "visible": true
+  }
+ ],
+ "links": [],
+ "origins": [
+  {
+   "name": "O_bati",
+   "occurrence": 2
+  },
+  {
+   "name": "O_man",
+   "occurrence": 5
+  },
+  {
+   "name": "A_man",
+   "occurrence": 5
+  },
+  {
+   "name": "A_biel",
+   "occurrence": 8
+  },
+  {
+   "name": "B_biel",
+   "occurrence": 8
+  },
+  {
+   "name": "B_pist",
+   "occurrence": 11
+  },
+  {
+   "name": "B_pist_x",
+   "occurrence": 11
+  },
+  {
+   "name": "B_bati_x",
+   "occurrence": 2
+  }
+ ]
+}

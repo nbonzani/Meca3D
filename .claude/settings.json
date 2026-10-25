@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Bash(uv sync*)",
+      "Bash(uv run pytest*)",
+      "Bash(uv run ruff*)",
+      "Bash(uv run pyright*)",
+      "Bash(uv run python -m *)",
+      "Bash(uv run meca3d*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add*)",
+      "Bash(git commit*)",
+      "Bash(git switch*)",
+      "Bash(git branch*)",
+      "Bash(rm .claude/tests.lock)",
+      "Bash(rm -f .claude/tests.lock)"
+    ],
+    "ask": [
+      "Bash(uv add*)",
+      "Bash(uv remove*)",
+      "Bash(git push*)",
+      "Bash(git reset*)",
+      "Bash(git rebase*)",
+      "Bash(gh repo create*)",
+      "Bash(gh release*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Edit(./.env)",
+      "Bash(rm -rf*)",
+      "Edit(./decade_archive/**)",
+      "Edit(./tests/fixtures/**/*.urdf)"
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+# Méthode
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/tests.lock
+.claude/stop.count
+.claude/worktrees/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+
+# Tiers, local uniquement (sources et binaires Decade)
+decade_archive/
+
+# Sorties
+*.csv
+!tests/fixtures/**/*.csv
+
+# Sorties Exudyn
+solution/
