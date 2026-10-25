@@ -18,6 +18,7 @@ Plan et état : docs/PLAN.md, docs/PROGRESS.md. Décisions : docs/ARCHITECTURE.m
 ## Méthode
 - Travail par lots de docs/PLAN.md, via /methode-dev:lot N. Tests d'abord, commités avant le code.
 - IMPORTANT : ne jamais modifier un test commité sans l'accord explicite de l'utilisateur.
+- Exception accordée le 25/10/2026 : retouches purement formelles d'un test commité (ordre des imports, typage pour pyright, marqueurs comme slow, mise en forme) autorisées sans accord, si aucune assertion, valeur ou tolérance ne change ; commit `style:` séparé et signalé dans le compte rendu.
 - Aucune affirmation de réussite sans preuve (sortie de commande).
 - Aucune nouvelle dépendance sans accord (liste autorisée : SPEC § 6). Ambiguïté de la spec : demander, ne pas trancher.
 - Toute valeur de référence d'un test vient de SPEC.md ou d'un calcul analytique indépendant, jamais du code testé.
