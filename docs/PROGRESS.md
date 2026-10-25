@@ -1,5 +1,30 @@
 # Journal de progression
 
+## 2026-10-25 — Lot 11, cas de référence construits dans SolidCraft (fait)
+- Fait : quatre maquettes construites dans le vrai SolidCraft (`tests/fixtures/maquettes/*.solidcraft`, script `construire_maquettes.py`), réponses réelles du canal enregistrées sous `tests/fixtures/{pendule_simple,pendule_double,reducteur,vis_ecrou}/solidcraft/` (format de la bielle, sans maillages, chemins anonymisés), `tests/test_cas_reference.py` (18 tests, depuis les réponses enregistrées), `tests/test_cas_reference_reel.py` (4 tests `solidcraft`, ouverture par `doc.open`), `tests/outils_cas_reference.py` (références indépendantes : période par moyenne arithmético-géométrique, énergie, Lagrange RK4). Aucun code de production modifié, aucun commit `fix:`.
+- Résultats (référence / obtenu / tolérance) :
+
+| Cas | Référence | Obtenu | Tolérance |
+|---|---|---|---|
+| Pendule simple T₀ (lâcher à 1°) | 1,03625 s | 1,036275 s | 1e-3 rel. (écart 2,2e-5) |
+| Pendule simple T(30°) | 1,05429 s | 1,054296 s | 1e-3 (4e-6) |
+| Pendule simple ω au point bas | 3,13863 rad/s | 3,138628 rad/s | 1e-3 (2e-6) |
+| EX-31, g désactivé | immobile | écart < 1e-9 | 1e-9 |
+| Pendule double μ, m, h, Ic, rc | 0, 2, 0, 2, 0 | identiques | exact |
+| Pendule double, énergie sur 2 s | dérive relative < 1e-3 | 1,9e-4 | 1e-3 de E₀ − E_repos |
+| Pendule double, φ₂(1 s) vs RK4 de Lagrange | 1,943180 rad | 1,943088 rad | 5e-4 rad (écart 9,2e-5) |
+| Réducteur 20/60, ω_e = 30 | \|ω_s\| = 10 rad/s, \|ω_s + k·ω_e\| < 1e-6 | 10,00019 rad/s, 7,7e-13 | 1e-3 ; 1e-6 |
+| Réducteur, Ce = 1 N·m, η = 1 | Cs = 3 N·m | 3 N·m, vitesses constantes à 1e-4 | 1e-3 |
+| Réducteur, η = 0,95 | Cs = 2,85 N·m | 2,85 N·m | 1e-3 |
+| Vis-écrou p = 5 mm, ω = 10 | 7,9577 mm/s | 7,95776 mm/s | 1e-4 |
+| Vis-écrou, couple 2 N·m | 2 513,27 N | 2 513,27 N, écrou immobile à 1e-4 m | 1e-3 |
+| EX-44, bielle 1 s / 4 000 pas | < 10 s | 1,2 s (direct, `simuler_etude`) | 10 s |
+
+- Choix : barre 400 × 20 × 20 mm d'acier créé par `material.create` (7,8 g/cm³, masse 1 248 g exacte) ; axe des pivots des pendules selon y, vis-écrou et réducteur d'axe z ; poses enregistrées par `joint.drive` (θ = 0°, 1° et 30° pour le pendule simple, 60° et 60° relatifs pour le double) ; la maquette du pendule simple est enregistrée à 30°. Les angles initiaux du pendule double sont déduits des CdG importés, la référence RK4 n'utilise que ces angles. Ouverture de maquette : la commande SolidCraft est `doc.open` (pas `file.open`) ; les tests réels rouvrent à la fin le document qui était ouvert (chemin lu dans `document.inspect`), jamais d'enregistrement.
+- Ambiguïtés : tolérance de 1e-3 relatif prise pour les périodes, vitesses et efforts (la SPEC n'en donne pas pour le pendule) ; dérive d'énergie rapportée à E₀ − E_repos (barres pendantes) ; marqueur `perf` absent de la branche : le test EX-44 est marqué `slow` en attendant le lot de finitions (à changer en `perf`) ; la SPEC donne 2 513,27 N arrondi : le chargement du test est 2π·C/p = 2 513,2741 N.
+- Sorties : `pytest -m solidcraft` 8 passés ; `pytest -q` 571 passés ; ruff check, ruff format --check, pyright : sans erreur.
+- État de SolidCraft : bielle rouverte depuis son fichier, non modifiée (dirty faux ; pile d'annulation à 0 après réouverture).
+
 ## 2026-10-25 — Lot 10, animation dans SolidCraft et trajectoires (fait)
 - Fait : `cao/animation.py` (`Animateur(canal, etude, resultats, horloge, attente)` : `lire`/`pause`/`avancer`/`aller_a`/`jouer`/`terminer`/`reinitialiser`, vitesse ×0,1 à ×2, curseur ; `tracer_trajectoire`, `effacer_trajectoires`), `ihm/vue_animation.py` (onglet Animation : lecture/pause, arrêt, vitesse, curseur, capteur de point, tracer/effacer), branchement dans `ihm/fenetre.py` (rubrique Animation, tracé et effacement par QThreadPool, restauration à la fermeture), `tests/faux_serveur.py` étendu (`occurrence.move` en attente, `engine.batch`, `component.revert_position`, `sketch.*`, `timeline.delete`, `sequences_batch`, `commandes_recues()`, `pose()`). Capture : `docs/captures/lot10_animation.png` (`tests/outils_capture.py animation`).
 - Mesures sur le vrai SolidCraft (fenêtre visible) : lecture temps réel ×1 de 1 s : 51 images en 1,00 s soit 50,8 images/s ; débit brut (100 `engine.batch` d'`occurrence.move`) 58,5 images/s. Poses à t = 0,5 s relues : angle à 0,1° et position à 1e-3 mm de la cinématique analytique ; centre de gravité du piston relu par `occurrence.properties` à 1e-3 mm. Restauration : `component.list` identique à 1e-9, `joint.list` identique à 1e-9, `dirty` faux, pile d'annulation et marqueur inchangés. Trajectoire réelle (esquisse 3D `sketch.spline3d`, effacée par `timeline.delete`) encadrée par `edit.checkpoint` / `edit.restore_checkpoint` : état du document rendu identique.
