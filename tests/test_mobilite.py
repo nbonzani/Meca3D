@@ -6,6 +6,17 @@ import sys
 from pathlib import Path
 
 import pytest
+from outils_graphe import (
+    LINEAIRE_ANNULAIRE,
+    PIVOT,
+    X,
+    Z,
+    bielle,
+    liaison,
+    pendule_double,
+    trois_pivots_glissiere,
+)
+
 from meca3d.graphe.graphe import (
     CouplageGraphe,
     DescriptionMecanisme,
@@ -20,17 +31,6 @@ from meca3d.graphe.mobilite import (
     liberer,
     verifier_avant_simulation,
 )
-from outils_graphe import (
-    LINEAIRE_ANNULAIRE,
-    PIVOT,
-    X,
-    Z,
-    bielle,
-    liaison,
-    pendule_double,
-    trois_pivots_glissiere,
-)
-
 from meca3d.modele.etude import lire_etude
 
 # Tableau d'EX-21 : (description, Ic, rc, m, h), valeurs de la SPEC

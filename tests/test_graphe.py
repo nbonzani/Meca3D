@@ -2,9 +2,9 @@
 """Graphe des liaisons, μ, cycles indépendants, isolés, bâti (EX-20)."""
 
 import pytest
-from meca3d.graphe.graphe import DescriptionMecanisme, SolideGraphe, construire_graphe
 from outils_graphe import PIVOT, bielle, liaison, pendule_double
 
+from meca3d.graphe.graphe import DescriptionMecanisme, SolideGraphe, construire_graphe
 from meca3d.modele.etude import lire_etude
 
 

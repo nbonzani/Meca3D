@@ -4,9 +4,9 @@
 import math
 
 import numpy as np
-from meca3d.graphe.graphe import DescriptionMecanisme, LiaisonGraphe, SolideGraphe
 
 from meca3d import unites
+from meca3d.graphe.graphe import DescriptionMecanisme, LiaisonGraphe, SolideGraphe
 
 R = 0.10  # m, manivelle
 LONGUEUR = 0.30  # m, bielle
