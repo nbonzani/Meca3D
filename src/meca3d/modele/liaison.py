@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Liaisons normalisées (EX-10), propositions (EX-11), base (EX-12), réorientation (EX-13)."""
 
+import math
 from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum
@@ -26,8 +27,8 @@ class TypeLiaison(StrEnum):
 
 
 # ddl bloqués [Tx Ty Tz Rx Ry Rz] dans la base de liaison (SPEC EX-10). Hélicoïdale : le couplage
-# Tx = p·Rx / 2π est ajouté par moteur/couplages.py (lot 7). Linéaire rectiligne : le moteur la
-# réalise par deux ponctuelles (moteur/exudyn_dyn.py).
+# Tx = p·Rx / 2π est ajouté par moteur/couplages.py (pas `Liaison.pas`). Linéaire rectiligne : le
+# moteur la réalise par deux ponctuelles (moteur/exudyn_dyn.py).
 DDL_BLOQUES: dict[TypeLiaison, tuple[int, ...]] = {
     TypeLiaison.ENCASTREMENT: (1, 1, 1, 1, 1, 1),
     TypeLiaison.PIVOT: (1, 1, 1, 0, 1, 1),
@@ -95,6 +96,10 @@ def _vecteur(v: Sequence[float] | np.ndarray) -> np.ndarray:
     return np.array(v, dtype=float)
 
 
+def _optionnel(valeur: object) -> float | None:
+    return None if valeur is None else float(valeur)  # type: ignore[arg-type]
+
+
 def _booleen(valeur: object) -> bool:
     if not isinstance(valeur, bool):
         raise ValueError(f"Booléen attendu, reçu {valeur!r}.")
@@ -109,6 +114,11 @@ class Liaison:
     `valeur_pose` : coordonnée articulaire à l'import (rad ou m), None si sans objet.
     `direction` : seconde direction (vecteur monde) de la rotule à doigt et de la linéaire
     rectiligne. `couplage_screw` : la liaison SolidCraft est couplée par `joint.screw`.
+
+    Données optionnelles du lot 7 (écrites dans le `.meca3d` seulement si renseignées) :
+    `frottement` : coefficient de Coulomb f (EX-15, 0 = liaison parfaite) ; `rayon_axe` : rayon r
+    de l'axe d'un pivot frottant (m) ; `epsilon` : vitesse de régularisation v_ε (m/s) ou ω_ε
+    (rad/s), None = défaut de la SPEC ; `pas` : pas p de l'hélicoïdale (m par tour).
     """
 
     nom: str
@@ -123,6 +133,10 @@ class Liaison:
     direction: np.ndarray | None = None
     statut: Statut = Statut.PROPOSEE
     couplage_screw: bool = False
+    frottement: float = 0.0
+    rayon_axe: float | None = None
+    epsilon: float | None = None
+    pas: float | None = None
     _initialisee: bool = False
 
     def __post_init__(self) -> None:
@@ -138,9 +152,26 @@ class Liaison:
             self.direction = _vecteur(self.direction)
             if self.type in DIRECTION_REQUISE:
                 unites.verifier_direction(self.axe, self.direction)
+        self._verifier_frottement()
         if self.type is None and not self._initialisee:
             self.type = self.proposition
         self._initialisee = True
+
+    def _verifier_frottement(self) -> None:
+        """Valeurs de frottement et de pas : finies, f ≥ 0, les autres strictement positives."""
+        if not (math.isfinite(self.frottement) and self.frottement >= 0.0):
+            raise ValueError(
+                f"Liaison {self.nom} : le coefficient de frottement doit être un nombre fini ≥ 0."
+            )
+        for valeur, libelle in (
+            (self.rayon_axe, "le rayon de l'axe"),
+            (self.epsilon, "la vitesse de régularisation"),
+            (self.pas, "le pas"),
+        ):
+            if valeur is not None and not (math.isfinite(valeur) and valeur > 0.0):
+                raise ValueError(
+                    f"Liaison {self.nom} : {libelle} doit être un nombre fini strictement positif."
+                )
 
     @property
     def proposition(self) -> TypeLiaison | None:
@@ -204,9 +235,22 @@ class Liaison:
         if self.type is None:
             raise ValueError(f"Liaison {self.nom} : un choix de type est imposé avant validation.")
         self._exiger_direction()
+        self._verifier_frottement()
         self.statut = Statut.VALIDEE
 
     def vers_dict(self) -> dict[str, Any]:
+        d = self._vers_dict_base()
+        if self.frottement != 0.0:
+            d["frottement"] = self.frottement
+        if self.rayon_axe is not None:
+            d["rayon_axe"] = self.rayon_axe
+        if self.epsilon is not None:
+            d["epsilon"] = self.epsilon
+        if self.pas is not None:
+            d["pas"] = self.pas
+        return d
+
+    def _vers_dict_base(self) -> dict[str, Any]:
         assert self.axe is not None
         return {
             "nom": self.nom,
@@ -239,5 +283,9 @@ class Liaison:
             axe=_vecteur(d["axe"]),
             direction=None if d["direction"] is None else _vecteur(d["direction"]),
             statut=Statut(d["statut"]),
+            frottement=float(d.get("frottement", 0.0)),
+            rayon_axe=_optionnel(d.get("rayon_axe")),
+            epsilon=_optionnel(d.get("epsilon")),
+            pas=_optionnel(d.get("pas")),
             _initialisee=True,
         )

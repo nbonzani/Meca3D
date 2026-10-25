@@ -11,6 +11,7 @@ de la boucle serait perdu.
 
 from __future__ import annotations
 
+import math
 from collections import deque
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
@@ -18,14 +19,16 @@ from typing import TYPE_CHECKING
 import networkx as nx
 import numpy as np
 
+from meca3d.modele.couplage import Couplage, Engrenage, PignonCremaillere
+
 if TYPE_CHECKING:
     from meca3d.modele.etude import Etude
 
 NB_DDL = 6  # [Tx Ty Tz Rx Ry Rz] dans la base de liaison (EX-10)
 INDICE_TX = 0
 INDICE_RX = 3
-# Rapport nominal du couplage interne d'une hélicoïdale : le pas ne change pas le rang tant
-# qu'il est non nul (SPEC EX-10 : Tx = p·Rx / 2π).
+# Rapport nominal du couplage interne d'une hélicoïdale dont le pas n'est pas renseigné : le pas ne
+# change pas le rang tant qu'il est non nul (SPEC EX-10 : Tx = p·Rx / 2π).
 RAPPORT_HELICE_NOMINAL = 1.0
 
 
@@ -212,12 +215,24 @@ def _cycle_fondamental(
     return Cycle(liaisons=tuple(liaisons), solides=(na, *chemin))
 
 
+def _couplage_graphe(c: Couplage) -> CouplageGraphe:
+    """Équation q̇(liaison_2) = rapport·q̇(liaison_1) d'un couplage de l'étude (EX-14) : rotation
+    (Rx, indice 3) pour une roue ou une vis, translation (Tx, indice 0) pour une crémaillère ou un
+    écrou."""
+    if isinstance(c, Engrenage):
+        return CouplageGraphe(c.liaison_1, c.liaison_2, INDICE_RX, INDICE_RX, c.signe * c.k)
+    if isinstance(c, PignonCremaillere):
+        return CouplageGraphe(c.liaison_1, c.liaison_2, INDICE_RX, INDICE_TX, c.r)
+    return CouplageGraphe(c.liaison_1, c.liaison_2, INDICE_RX, INDICE_TX, c.p / (2.0 * math.pi))
+
+
 def depuis_etude(etude: Etude, couplages: tuple[CouplageGraphe, ...] = ()) -> DescriptionMecanisme:
     """Adapte une `Etude` (attributs publics actuels de `modele/`) à la description minimale.
 
-    `couplages` : couplages EX-14 fournis par l'appelant (l'étude n'en porte pas encore). Une
-    hélicoïdale reçoit son couplage interne Tx = p·Rx / 2π (rapport nominal). Une liaison sans
-    type choisi lève la ValueError de `modele`.
+    Les couplages de l'étude (`etude.couplages`, R1) deviennent des équations de couplage ; le
+    paramètre `couplages` en ajoute d'autres. Une hélicoïdale reçoit son couplage interne
+    Tx = p·Rx / 2π (pas de la liaison, rapport nominal si le pas n'est pas renseigné). Une liaison
+    sans type choisi lève la ValueError de `modele`.
     """
     solides = tuple(SolideGraphe(s.nom, s.nom, s.fixe) for s in etude.solides)
     liaisons = tuple(
@@ -232,10 +247,17 @@ def depuis_etude(etude: Etude, couplages: tuple[CouplageGraphe, ...] = ()) -> De
         for x in etude.liaisons
     )
     helices = tuple(
-        CouplageGraphe(x.nom, x.nom, INDICE_RX, INDICE_TX, RAPPORT_HELICE_NOMINAL)
+        CouplageGraphe(
+            x.nom,
+            x.nom,
+            INDICE_RX,
+            INDICE_TX,
+            RAPPORT_HELICE_NOMINAL if x.pas is None else x.pas / (2.0 * math.pi),
+        )
         for x in etude.liaisons
         if x.type is not None and x.type.value == "helicoidale"
     )
+    depuis_modele = tuple(_couplage_graphe(c) for c in etude.couplages)
     return DescriptionMecanisme(
-        solides=solides, liaisons=liaisons, couplages=(*helices, *couplages)
+        solides=solides, liaisons=liaisons, couplages=(*helices, *depuis_modele, *couplages)
     )

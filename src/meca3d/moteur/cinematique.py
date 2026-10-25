@@ -19,7 +19,7 @@ exacte pour toutes les liaisons du catalogue ; la rotule à doigt a son équatio
 qu'Exudyn contraint : (x local de a)·(y local de b) = 0.
 """
 
-from collections.abc import Collection, Mapping, Sequence
+from collections.abc import Callable, Collection, Mapping, Sequence
 from dataclasses import dataclass, replace
 
 import numpy as np
@@ -27,7 +27,8 @@ import numpy as np
 from meca3d.modele.actions import Pesanteur, Pilote
 from meca3d.modele.etude import Etude, Reglages
 from meca3d.modele.liaison import Liaison, TypeLiaison
-from meca3d.moteur.base import ErreurModele, ResultatsBruts
+from meca3d.moteur import couplages as couplages_exudyn
+from meca3d.moteur.base import CalculAnnule, ErreurModele, ResultatsBruts
 from meca3d.moteur.exudyn_dyn import (
     _INDICE_PILOTE,
     ECART_PONCTUELLES,
@@ -92,6 +93,11 @@ class _Cinematique:
     def __init__(self, etude: Etude, liberes: Collection[tuple[str, int]]) -> None:
         self.etude = etude
         self.contraintes = _contraintes(etude, liberes)
+        # couplages et hélicoïdales (lot 7) : une équation de plus par relation, ligne exacte au
+        # niveau vitesse et accélération (`couplages.ligne_cinematique`)
+        self.termes_relations = [
+            couplages_exudyn.termes_relation(etude, r) for r in couplages_exudyn.relations(etude)
+        ]
         self.mobiles = [s.nom for s in etude.solides if not s.fixe]
         self.colonne = {nom: 6 * k for k, nom in enumerate(self.mobiles)}
         self.cdg0 = {s.nom: s.cdg for s in etude.solides}
@@ -107,8 +113,9 @@ class _Cinematique:
         """Matrice et second membre ; `vitesses` None : niveau vitesse, sinon niveau accélération
         (torseurs (v, ω) des solides mobiles, connus)."""
         n = 6 * len(self.mobiles)
-        matrice = np.zeros((len(self.contraintes), n))
-        membre = np.zeros(len(self.contraintes))
+        nb_lignes = len(self.contraintes) + len(self.termes_relations)
+        matrice = np.zeros((nb_lignes, n))
+        membre = np.zeros(nb_lignes)
 
         def torseur(nom: str) -> tuple[np.ndarray, np.ndarray]:
             if vitesses is None or nom not in self.colonne:
@@ -171,6 +178,25 @@ class _Cinematique:
                     col = self.colonne[nom]
                     matrice[i, col : col + 3] += coeff_v
                     matrice[i, col + 3 : col + 6] += coeff_w
+        torseurs = (
+            None
+            if vitesses is None
+            else {
+                nom: (vitesses[c : c + 3], vitesses[c + 3 : c + 6])
+                for nom, c in self.colonne.items()
+            }
+        )
+        for j, termes in enumerate(self.termes_relations):
+            i = len(self.contraintes) + j
+            coefficients, reste = couplages_exudyn.ligne_cinematique(
+                self.etude, termes, x, r, torseurs
+            )
+            for nom, (coeff_v, coeff_w) in coefficients.items():
+                if nom in self.colonne:
+                    col = self.colonne[nom]
+                    matrice[i, col : col + 3] += coeff_v
+                    matrice[i, col + 3 : col + 6] += coeff_w
+            membre[i] = -reste
         return matrice, membre
 
     def resoudre(
@@ -237,9 +263,14 @@ def residu_vitesses(
 
 
 def calculer_cinematique(
-    etude: Etude, resultats: ResultatsBruts, liberes: Collection[tuple[str, int]] = ()
+    etude: Etude,
+    resultats: ResultatsBruts,
+    liberes: Collection[tuple[str, int]] = (),
+    arret: Callable[[], bool] | None = None,
 ) -> None:
-    """Remplit vitesses et accélérations exactes (en place) à partir des poses d'Exudyn."""
+    """Remplit vitesses et accélérations exactes (en place) à partir des poses d'Exudyn.
+
+    `arret()` vrai interrompt par `CalculAnnule`."""
     cinematique = _Cinematique(etude, liberes)
     n = len(resultats.t)
     for nom in cinematique.mobiles:
@@ -248,6 +279,8 @@ def calculer_cinematique(
         resultats.accelerations[nom] = np.zeros((n, 3))
         resultats.accelerations_angulaires[nom] = np.zeros((n, 3))
     for i in range(n):
+        if arret is not None and arret():
+            raise CalculAnnule("Calcul annulé à la demande.")
         x = {nom: cinematique.cdg0[nom] for nom in cinematique.cdg0}
         r = {nom: np.eye(3) for nom in cinematique.cdg0}
         for nom in cinematique.mobiles:
@@ -269,6 +302,8 @@ class MoteurCinematique:
         etude: Etude,
         reglages: Reglages | None = None,
         ddl_liberes: Sequence[tuple[str, int]] | None = None,
+        progression: Callable[[float], None] | None = None,
+        arret: Callable[[], bool] | None = None,
     ) -> ResultatsBruts:
         liberes = sorted(set(ddl_liberes or ()))
         etude_cinematique = replace(
@@ -279,9 +314,12 @@ class MoteurCinematique:
             reglages,
             vitesses_initiales=vitesses_initiales(etude_cinematique, liberes),
             ddl_liberes=liberes,
+            progression=progression,
+            arret=arret,
         )
-        calculer_cinematique(etude_cinematique, resultats, liberes)
+        calculer_cinematique(etude_cinematique, resultats, liberes, arret)
         resultats.forces = {}
         resultats.moments = {}
+        resultats.efforts_couplages = {}
         resultats.ddl_liberes = [(nom, int(ddl)) for nom, ddl in liberes]
         return resultats

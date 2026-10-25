@@ -154,12 +154,11 @@ def test_ex10_lineaire_rectiligne_transmet_un_torseur() -> None:
     assert np.abs(efforts[:, bloques]).max() > 1e-3  # le torseur de liaison est bien transmis
 
 
-def test_ex10_helicoidale_non_prise_en_charge_par_le_moteur() -> None:
+def test_ex10_helicoidale_sans_pas_erreur_explicite() -> None:
+    """Le couplage interne Tx = p·Rx / 2π exige le pas : sans lui, erreur de modèle explicite
+    (l'essai positif de l'hélicoïdale est dans test_vis_ecrou.py)."""
     etude = _etude(TypeLiaison.HELICOIDALE)
-    with pytest.raises(
-        ErreurLiaisonNonPriseEnCharge,
-        match="liaison hélicoïdale non encore prise en charge par le moteur",
-    ):
+    with pytest.raises(ErreurModele, match="pas de la liaison hélicoïdale n'est pas renseigné"):
         MoteurExudynDyn().simuler(etude)
 
 
