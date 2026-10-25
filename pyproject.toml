@@ -44,7 +44,8 @@ pythonVersion = "3.12"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
-    "slow: test long (plus de 10 s)",
+    "slow: test long (plus de 5 s sur machine calme) ; exclu par défaut, lancé par la CI",
+    "perf: test qui assert une durée murale (EX-42, R6...) ; exclu par défaut, à lancer sur machine calme",
     "solidcraft: test contre le vrai SolidCraft lancé avec --control 7878 (manuel)",
 ]
-addopts = "-m 'not solidcraft'"
+addopts = "-m 'not solidcraft and not slow and not perf'"

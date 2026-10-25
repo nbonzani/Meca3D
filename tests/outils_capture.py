@@ -85,6 +85,7 @@ def capture_lot9_resultats(application: QApplication) -> None:
     fenetre.charger_etude(etude)
     fenetre.resultats = simuler_etude(etude)
     fenetre._afficher_resultats(basculer=True)  # noqa: SLF001
+    fenetre._maj_actions()  # noqa: SLF001 - sinon « Exporter en CSV » reste grisé
     fenetre.vue_courbes.choix_y.setCurrentIndex(fenetre.vue_courbes.choix_y.findText("C (N·m)"))
     fenetre.vue_torseurs.curseur.setValue(250)
     fenetre.vue_torseurs.choix_base.setCurrentIndex(

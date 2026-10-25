@@ -19,4 +19,4 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run pyright
-      - run: uv run pytest -q -m "not solidcraft"
+      - run: uv run pytest -q -m "not solidcraft and not perf"
