@@ -26,6 +26,24 @@ def _indice_pilote(etude: Etude, liaison: Liaison) -> int | None:
     return None
 
 
+def masque_nul_par_construction(etude: Etude, liaison: str, statique: bool) -> np.ndarray:
+    """Six booléens : composantes nulles par construction en base de liaison (EX-50).
+
+    Statique [Fx Fy Fz Mx My Mz] : ddl libres de la liaison, hors pilote. Cinématique
+    [Ωx Ωy Ωz Vx Vy Vz] : ddl bloqués. Valable en base de liaison seulement : une fois tourné en
+    base monde, un torseur n'est plus nul par construction.
+    """
+    lia = etude.liaison(liaison)
+    pilote = _indice_pilote(etude, lia)
+    masque = np.zeros(6, dtype=bool)
+    for ddl, bloque in enumerate(lia.ddl_bloques()):  # ddl : [Tx Ty Tz Rx Ry Rz]
+        if statique:
+            masque[ddl] = bloque == 0 and ddl != pilote
+        elif bloque:
+            masque[(ddl + 3) % 6] = True  # Tx -> Vx (3), Rx -> Ωx (0)
+    return masque
+
+
 def _base_liaison_a_chaque_instant(
     etude: Etude, resultats: ResultatsBruts, lia: Liaison
 ) -> np.ndarray:
