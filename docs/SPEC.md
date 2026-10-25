@@ -196,6 +196,7 @@ Conventions de toutes les exigences : unités SI en interne (m, kg, s, rad, N, N
 
 - **EX-60 Fichier d'étude.** Une étude `.meca3d` (JSON, UTF-8) contient :
   - le chemin de la maquette et la révision importée ;
+  - le mécanisme importé, en SI : solides (masse, CdG, inertie) et liaisons SolidCraft (type, occurrences, centre, axe). C'est ce qui permet de simuler sans SolidCraft (EX-62) ;
   - les choix de liaisons, les couplages ;
   - les lois, les actions et les ressorts ;
   - les capteurs et les réglages de simulation.
