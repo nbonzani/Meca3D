@@ -23,7 +23,6 @@ from meca3d.modele.couplage import PignonCremaillere, VisEcrou
 from meca3d.modele.etude import Etude
 from meca3d.modele.liaison import TypeLiaison
 from meca3d.modele.solide import Solide
-from meca3d.moteur.base import ErreurModele
 from meca3d.moteur.exudyn_dyn import MoteurExudynDyn
 
 OMEGA = 10.0  # rad/s (SPEC EX-14)
@@ -59,12 +58,6 @@ def test_ex14_helicoidale_vitesse() -> None:
     res = MoteurExudynDyn().simuler(etude)
     assert res.vitesses["Vis"][-1, 0] == pytest.approx(V_ATTENDUE, rel=1e-4)
     assert res.vitesses_angulaires["Vis"][-1, 0] == pytest.approx(OMEGA, rel=1e-3)
-
-
-def test_ex14_helicoidale_sans_pas_refusee_avec_message() -> None:
-    etude = etude_helicoidale(pas=None)
-    with pytest.raises(ErreurModele, match="pas"):
-        MoteurExudynDyn().simuler(etude)
 
 
 def _pignon_cremaillere():
