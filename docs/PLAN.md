@@ -10,7 +10,7 @@
 | 2 | EX-04 (fixtures), EX-05, EX-30, EX-31, EX-40, EX-62 (partiel), EX-52 (CSV) | `unites.py`, `modele/solide.py`, `modele/liaison.py` (pivot, glissière, linéaire annulaire), `modele/actions.py`, `moteur/base.py`, `moteur/exudyn_dyn.py`, `cao/urdf.py`, `cli.py` | `test_unites.py`, `test_lois.py`, `test_bielle_dyn.py` (référence Newton-Euler) | **tranche verticale** : `meca3d simuler` sur la fixture bielle → CSV, écart ≤ 5·10⁻³ | fait |
 | 3 | EX-10, EX-11 (modèle), EX-12, EX-13, EX-60 | `modele/liaison.py`, `modele/couplage.py` (données), `modele/capteurs.py`, `modele/etude.py`, `moteur/exudyn_dyn.py` | `test_catalogue_liaisons.py` (invariants des 11 liaisons), `test_base_liaison.py`, `test_etude_fichier.py` | 11 liaisons conformes (hélicoïdale selon le lot 1a) ; aller-retour `.meca3d` identique | fait (2 tests renforcés avec accord) |
 | 4 | EX-20, EX-21, EX-22, EX-23 (calcul) | `graphe/graphe.py`, `graphe/mobilite.py` | `test_graphe.py`, `test_mobilite.py` (5 cas du tableau EX-21) | Ic, rc, m et h exacts ; ddl redondants désignés pour h = 3 | fait |
-| 5 | EX-01 à EX-06 | `cao/canal.py`, `cao/solidcraft.py`, `tests/faux_serveur.py`, fixtures de réponses | `test_canal.py`, `test_import_solidcraft.py` ; test `@solidcraft` réel | import depuis le faux serveur conforme ; messages d'erreur d'EX-01 et EX-02 ; test réel passé à la main | fait, sauf test réel à lancer par le superviseur |
+| 5 | EX-01 à EX-06 | `cao/canal.py`, `cao/solidcraft.py`, `tests/faux_serveur.py`, fixtures de réponses | `test_canal.py`, `test_import_solidcraft.py` ; test `@solidcraft` réel | import depuis le faux serveur conforme ; messages d'erreur d'EX-01 et EX-02 ; test réel passé à la main | fait (test réel passé le 25/10 par le superviseur) |
 | 6 | EX-32, EX-33, EX-41, EX-23 (simulation), EX-50, EX-51 | `moteur/exudyn_dyn.py`, `moteur/cinematique.py`, `resultats/torseurs.py`, `resultats/capteurs.py` | `test_ressort.py`, `test_cinematique.py`, `test_torseurs.py`, `test_capteurs_point.py` | critères chiffrés d'EX-32, EX-33, EX-41, EX-50 et EX-51 ; `test_bout_en_bout.py` vert | à faire |
 | 7 | EX-14, EX-15, EX-16, hélicoïdale | `moteur/couplages.py`, `moteur/exudyn_dyn.py`, `modele/couplage.py`, `cao/solidcraft.py` (lecture des couplages) | `test_reducteur.py`, `test_vis_ecrou.py`, `test_coulomb.py`, `test_rendement.py` | critères chiffrés d'EX-14 à EX-16 (ou report en V2, décidé au lot 1a) | à faire |
 | 8 | EX-11 (IHM), EX-42, EX-43, EX-61 | `ihm/fenetre.py`, `ihm/arbre.py`, `ihm/proprietes.py`, `ihm/vue_graphe.py`, `moteur/processus.py`, `__main__.py` | `test_ihm_arbre.py` (pytest-qt), `test_processus.py` (annulation < 1 s, erreur remontée) | import → validation → graphe → simulation lancée depuis l'IHM, annulable | à faire |
@@ -31,3 +31,10 @@
 - **Fin du lot 1a** : maintien ou report en V2 d'EX-14, EX-15 et EX-16, selon les essais.
 - **Fin du lot 1b** : mode d'animation (Q3) et traitement des sous-assemblages (Q6).
 - **Lot 12** : publication de la première release.
+
+## Raccords à faire (relevés par le superviseur)
+
+- **R1 (lot 7)** : `graphe.depuis_etude` doit lire les couplages de l'étude (`modele/couplage.py`, lot 3). L'hélicoïdale y est déjà traitée comme un couplage interne.
+- **R2 (lot 7)** : lecture des couplages SolidCraft (`joint.list.links`) dans `cao/solidcraft.py`, testée sur les réponses réelles enregistrées au lot 1b (`prototypes/levee_risques/reponses/*joint_list*.json`).
+- **R3 (lot 9)** : persister la signature de structure (EX-06) dans `Etude` et dans le `.meca3d`. Aujourd'hui elle ne vit que dans `EtudeImportee`.
+- **R4 (après lot 6)** : ajouter l'étape 1 réseau (faux serveur) à `tests/test_bout_en_bout.py`.
