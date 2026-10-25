@@ -36,6 +36,10 @@ def fenetre(qtbot: QtBot) -> Iterator[FenetrePrincipale]:
     f.annuler()
 
 
+def _etude_courante(fenetre: FenetrePrincipale) -> Etude | None:
+    return fenetre.etude
+
+
 def _simuler(fenetre: FenetrePrincipale, qtbot: QtBot, cinematique: bool = False) -> None:
     fenetre.resultats = None
     (fenetre.action_simuler_cinematique if cinematique else fenetre.action_simuler).trigger()
@@ -111,7 +115,7 @@ def test_ex60_menu_fichier_nouveau_ouvrir_enregistrer(
     assert fenetre.chemin_etude is None
     fenetre.dialogue_ouvrir = lambda: chemin
     fenetre.action_ouvrir.trigger()
-    rouverte = fenetre.etude  # nouvelle lecture : pyright garde sinon le rétrécissement « None »
+    rouverte = _etude_courante(fenetre)  # relue par une fonction : pyright garderait « None »
     assert rouverte is not None
     assert [x.nom for x in rouverte.liaisons] == [
         "L01_pivot",
