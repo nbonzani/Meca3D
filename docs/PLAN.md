@@ -4,7 +4,7 @@
 
 | Lot | Exigences | Fichiers | Tests d'abord | Critère de sortie | Statut |
 |---|---|---|---|---|---|
-| 0 | — | squelette `src/meca3d/`, pyproject, CI, kit dépôt | `test_fumee.py` | `uv run pytest`, `ruff check`, `pyright` verts ; CI GitHub verte | à faire |
+| 0 | — | squelette `src/meca3d/`, pyproject, CI, kit dépôt | `test_fumee.py` | `uv run pytest`, `ruff check`, `pyright` verts ; CI GitHub verte | fait (CI à vérifier après le premier push) |
 | 1a | Q1, D9 | `prototypes/levee_risques/moteur_*.py`, RESULTATS.md | essais chiffrés de EX-14, EX-15, EX-16 (valeurs de la SPEC) | engrenage, vis-écrou, hélicoïdale, Coulomb (glissière et pivot) et rendement : chacun conforme à son critère ou déclaré en échec ; annulation d'un `SolveDynamic` dans un processus en < 1 s ; décision écrite dans ARCHITECTURE.md | à faire |
 | 1b | Q2 à Q6 | `prototypes/levee_risques/solidcraft_*.py`, `exe_*`, RESULTATS.md | réponses `joint.list` enregistrées (couplages, sous-assemblages) ; exécutable de test | forme des couplages et des sous-occurrences connue ; animation `joint.drive` / `occurrence.move` comparée (cadence, fidélité) ; `motion.trace.keep` éprouvé ; exécutable PyInstaller avec Exudyn, PyQt6 et un processus `spawn` lancé sur le runner windows-latest | à faire |
 | 2 | EX-04 (fixtures), EX-05, EX-30, EX-31, EX-40, EX-62 (partiel), EX-52 (CSV) | `unites.py`, `modele/solide.py`, `modele/liaison.py` (pivot, glissière, linéaire annulaire), `modele/actions.py`, `moteur/base.py`, `moteur/exudyn_dyn.py`, `cao/urdf.py`, `cli.py` | `test_unites.py`, `test_lois.py`, `test_bielle_dyn.py` (référence Newton-Euler) | **tranche verticale** : `meca3d simuler` sur la fixture bielle → CSV, écart ≤ 5·10⁻³ | fait |
