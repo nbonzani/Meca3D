@@ -4,19 +4,15 @@
 import numpy as np
 import pytest
 from outils_couplages import (
-    PAS,
     Z1,
     Z2,
-    action,
     couple,
     etude_reducteur,
-    etude_vis_ecrou,
     pilote,
     reglages,
 )
 
-from meca3d.modele.actions import NatureAction
-from meca3d.modele.couplage import Engrenage, VisEcrou
+from meca3d.modele.couplage import Engrenage
 from meca3d.moteur.exudyn_dyn import MoteurExudynDyn
 
 ETA = 0.95

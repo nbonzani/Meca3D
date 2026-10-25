@@ -7,7 +7,6 @@ import pytest
 from outils_couplages import (
     Z1,
     Z2,
-    couple,
     etude_epicycloidal,
     etude_reducteur,
     pilote,
