@@ -106,12 +106,13 @@ Conventions de toutes les exigences : unités SI en interne (m, kg, s, rad, N, N
   - vis-écrou : v = p·ω / 2π.
 
   Ils sont lus dans SolidCraft quand ils y sont définis, ou saisis dans Meca3D.
-  - *Acceptation (réducteur)* : Z₁ = 20, Z₂ = 60, ω_e = 30 rad/s → ω_s = 10 rad/s à 10⁻⁶ près ; en régime établi sans perte, Ce = 1 N·m → Cs = 3 N·m à 10⁻³ près.
+  - *Limite V1 (lot 1a)* : un couplage relie deux solides dont les axes sont fixes par rapport à un même troisième solide, en général le bâti. Les trains épicycloïdaux, dont les axes sont portés par un porte-satellites mobile, sont signalés comme non pris en charge (question Q7).
+  - *Acceptation (réducteur)* : Z₁ = 20, Z₂ = 60, ω_e = 30 rad/s → |ω_s| = 10 rad/s, avec |ω_s + k·ω_e| < 10⁻⁶ rad/s (le pilotage en position introduit un écart en h² sur ω_e lui-même) ; en régime établi sans perte, Ce = 1 N·m → Cs = 3 N·m à 10⁻³ près.
   - *Acceptation (vis-écrou)* : p = 5 mm, ω = 10 rad/s → v = 7,9577 mm/s ; couple moteur 2 N·m en équilibre → effort axial 2 513,27 N à 10⁻³ près.
 - **EX-15 Frottement de Coulomb.** Coefficient f réglable par liaison (0 par défaut, liaison parfaite).
   - Pour une glissière ou un appui plan, l'effort tangent vaut f·|N| et s'oppose à la vitesse de glissement.
   - Pour un pivot, le couple résistant vaut f·r·|R_radiale|, avec r le rayon de l'axe saisi par l'élève.
-  - Une loi régularisée près de la vitesse nulle (vitesse de régularisation v_ε réglable) est admise ; l'écart qu'elle introduit est signalé dans les résultats.
+  - Une loi régularisée près de la vitesse nulle est admise : F = f·|N|·tanh(v/v_ε). Les valeurs par défaut sont v_ε = 10⁻⁴ m/s en translation et ω_ε = 10⁻² rad/s en rotation, établies au lot 1a ; pour une valeur de v_ε supérieure à 10⁻³ m/s, l'adhérence n'est plus tenue. L'écart introduit (fluage) est signalé dans les résultats.
   - *Acceptation (glissement)* : bloc de 1 kg sur glissière inclinée de 30°, f = 0,2, départ au repos → accélération 3,20586 m/s² à 10⁻² près en relatif, soit x(1 s) = 1,60293 m.
   - *Acceptation (adhérence)* : même cas avec f = 0,7 > tan 30° = 0,577 → déplacement sur 1 s inférieur à 10⁻³ m.
   - *Acceptation (pivot)* : disque d'acier R = 0,1 m, e = 0,02 m, à axe horizontal (CdG sur l'axe), r = 5 mm, f = 0,1, ω₀ = 10 rad/s → arrêt à t = ω₀·R² / (2·f·r·g) = 10,194 s à 2 % près.
@@ -288,4 +289,5 @@ Un test du même scénario contre le vrai SolidCraft est marqué `@pytest.mark.s
 - **Q3 Animation.** Il faut choisir entre `joint.drive` sur les m liaisons pilotes (SolidCraft résout les boucles) et `occurrence.move` avec les poses Exudyn, en fonction de la cadence et de la fidélité (lot 1).
 - **Q4 Trajectoires.** Il reste à préciser les paramètres de `motion.trace.keep`, qui suppose peut-être une étude de mouvement SolidCraft, ou à trouver une alternative (esquisse 3D) (lot 1).
 - **Q5 Exécutable.** L'embarquement d'Exudyn et de PyQt6 par PyInstaller n'est pas vérifié (lot 1).
+- **Q7 Trains épicycloïdaux.** Il faudrait une contrainte de couplage sur trois corps, en vitesses relatives par rapport au porte-satellites, alors que le connecteur Exudyn n'a que deux marqueurs. Une piste est à étudier au lot 7, sinon le cas passe en V2.
 - **Q6 Sous-assemblages.** Il reste à vérifier ce que renvoient `component.list` et `joint.list` pour une maquette à sous-assemblages imbriqués et à occurrences multiples d'un même composant (lot 1).

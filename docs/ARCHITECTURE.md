@@ -163,6 +163,12 @@ Le dépôt a pour racine `D:\CLAUDE\dev\Meca3D` :
 - **D12 — Dépôt public `nbonzani/Meca3D` dès le départ.**
   - *Raison* : choix de l'utilisateur. Conséquences : aucun jeton ni chemin personnel dans les fixtures, et `decade_archive/` ignoré.
 
+- **D13 — Couplages, frottement et rendement : formulations du lot 1a** ([RESULTATS_1a.md](../prototypes/levee_risques/RESULTATS_1a.md)).
+  - *Couplages et hélicoïdale* : contrainte au niveau vitesse, par `ObjectConnectorCoordinateVector` avec `constraintUserFunction` et `jacobianUserFunction`, sur les paramètres d'Euler. Le couple ou l'effort transmis se lit dans le multiplicateur de Lagrange.
+  - *Coulomb* : `ObjectConnectorRigidBodySpringDamper` à fonction utilisateur F = f·|N|·tanh(v/v_ε), avec N lu dans la configuration courante (point fixe de Newton).
+  - *Rendement* : deux couples de perte (`LoadTorqueVector`), pondérés par le sens de la puissance.
+  - *Résultats* : tous les critères sont tenus. EX-14, EX-15 et EX-16 restent en V1 (décision du 25 octobre 2026). D9 est confirmé : sans fonction Python, le solveur ne libère pas le GIL, et l'annulation par `terminate()` prend 7 ms.
+
 Décisions coûteuses à défaire :
 - D1 (moteur) ;
 - D4 (modèle neutre) ;
