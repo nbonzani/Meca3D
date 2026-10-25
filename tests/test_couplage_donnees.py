@@ -4,6 +4,7 @@
 import math
 
 import pytest
+
 from meca3d.modele.couplage import (
     Couplage,
     Engrenage,

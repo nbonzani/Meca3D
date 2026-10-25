@@ -9,8 +9,9 @@ import numpy as np
 
 from meca3d.modele.actions import Pilote
 from meca3d.modele.etude import Etude
-from meca3d.modele.liaison import Liaison, Statut, TypeLiaison
+from meca3d.modele.liaison import DDL_BLOQUES, Liaison, Statut, TypeLiaison
 from meca3d.moteur.base import (
+    ErreurLiaisonNonPriseEnCharge,
     ErreurModele,
     ErreurSolveur,
     Reglages,
@@ -27,6 +28,13 @@ SensorObject = _utilitaires.SensorObject
 
 # ARCHITECTURE § 5, CLAUDE.md : sans amortissement numérique (ρ∞ < 1), les réactions divergent.
 RHO_INFINI = 0.9
+
+# Linéaire rectiligne = deux ponctuelles de même normale, placées à ±ECART_PONCTUELLES le long de
+# la ligne de contact (x local). La cinématique est exacte quel que soit l'écartement (z des deux
+# points nul <=> Tz = 0 et Ry = 0) ; 0,1 m (valeur du prototype) évite seulement un mauvais
+# conditionnement du jacobien (le bras de levier de Ry vaut l'écartement).
+ECART_PONCTUELLES = 0.1  # m, demi-écartement
+_AXES_PONCTUELLE = list(DDL_BLOQUES[TypeLiaison.PONCTUELLE])
 
 # Indices de [Tx Ty Tz Rx Ry Rz] pilotés selon la grandeur imposée (EX-30)
 _INDICE_PILOTE = {"angle": 3, "position": 0}
@@ -86,6 +94,12 @@ def _verifier(etude: Etude) -> None:
             raise ErreurModele(f"Pilote : liaison inconnue « {pilote.liaison} ».")
         if etude.liaison(pilote.liaison).valeur_pose is None:
             raise ErreurModele(f"Pilote {pilote.liaison} : pose initiale inconnue.")
+    for liaison in etude.liaisons:
+        if liaison.type is TypeLiaison.HELICOIDALE:
+            raise ErreurLiaisonNonPriseEnCharge(
+                f"Liaison {liaison.nom} : liaison hélicoïdale non encore prise en charge par le "
+                "moteur (le couplage Tx = p·Rx / 2π est prévu au lot 7)."
+            )
 
 
 class MoteurExudynDyn:
@@ -114,40 +128,65 @@ class MoteurExudynDyn:
             )
 
         pilotes = {p.liaison: p for p in etude.pilotes}
-        joints: dict[str, int] = {}
+        joints: dict[str, list[tuple[int, float]]] = {}  # (joint, décalage le long de x local)
         for liaison in etude.liaisons:
             axes = liaison.ddl_bloques()
             options: dict[str, Any] = {}
             pilote = pilotes.get(liaison.nom)
             if pilote is not None:
+                if liaison.type is TypeLiaison.LINEAIRE_RECTILIGNE:
+                    raise ErreurModele(
+                        f"Liaison pilote {liaison.nom} : une linéaire rectiligne ne peut pas "
+                        "être pilotée."
+                    )
                 indice = _INDICE_PILOTE[_grandeur_pilote(pilote, liaison)]
+                if axes[indice] == 1:
+                    raise ErreurModele(
+                        f"Liaison pilote {liaison.nom} : la grandeur imposée correspond à un "
+                        "ddl bloqué par la liaison."
+                    )
                 axes[indice] = 1
                 assert liaison.valeur_pose is not None
                 options["offsetUserFunction"], options["offsetUserFunction_t"] = _fonctions_offset(
                     pilote, indice, liaison.valeur_pose
                 )
-            joints[liaison.nom] = mbs.CreateGenericJoint(
-                itemNumbers=[corps[liaison.solide_a], corps[liaison.solide_b]],
-                position=[float(x) for x in liaison.centre],
-                rotationMatrixAxes=liaison.base(),
-                constrainedAxes=axes,
-                show=False,
-                **options,
-            )
+            base = liaison.base()
+            if liaison.type is TypeLiaison.LINEAIRE_RECTILIGNE:
+                decalages = [-ECART_PONCTUELLES, ECART_PONCTUELLES]
+                axes = _AXES_PONCTUELLE
+            else:
+                decalages = [0.0]
+            joints[liaison.nom] = [
+                (
+                    mbs.CreateGenericJoint(
+                        itemNumbers=[corps[liaison.solide_a], corps[liaison.solide_b]],
+                        position=[float(x) for x in liaison.centre + decalage * base[:, 0]],
+                        rotationMatrixAxes=base,
+                        constrainedAxes=axes,
+                        show=False,
+                        **options,
+                    ),
+                    decalage,
+                )
+                for decalage in decalages
+            ]
 
         capteurs: dict[str, int] = {}
         types = exu.OutputVariableType
-        for nom, joint in joints.items():
-            capteurs[f"F:{nom}"] = mbs.AddSensor(
-                SensorObject(
-                    objectNumber=joint, storeInternal=True, outputVariableType=types.ForceLocal
+        for nom, liste in joints.items():
+            for k, (joint, _) in enumerate(liste):
+                capteurs[f"F:{nom}:{k}"] = mbs.AddSensor(
+                    SensorObject(
+                        objectNumber=joint, storeInternal=True, outputVariableType=types.ForceLocal
+                    )
                 )
-            )
-            capteurs[f"M:{nom}"] = mbs.AddSensor(
-                SensorObject(
-                    objectNumber=joint, storeInternal=True, outputVariableType=types.TorqueLocal
+                capteurs[f"M:{nom}:{k}"] = mbs.AddSensor(
+                    SensorObject(
+                        objectNumber=joint,
+                        storeInternal=True,
+                        outputVariableType=types.TorqueLocal,
+                    )
                 )
-            )
         for s in etude.solides:
             if not s.fixe:
                 capteurs[f"P:{s.nom}"] = mbs.AddSensor(
@@ -188,9 +227,17 @@ class MoteurExudynDyn:
         }
         t = donnees[next(iter(donnees))][:, 0].copy()
         res = ResultatsBruts(t=t)
-        for nom in joints:
-            res.forces[nom] = donnees[f"F:{nom}"][:, 1:4].copy()
-            res.moments[nom] = donnees[f"M:{nom}"][:, 1:4].copy()
+        for nom, liste in joints.items():
+            # Torseur résultant au centre de la liaison, en base de liaison (les ponctuelles de la
+            # linéaire rectiligne partagent la même base : M_c = Σ M_i + (p_i − c) × F_i).
+            force = np.zeros((len(t), 3))
+            moment = np.zeros((len(t), 3))
+            for k, (_, decalage) in enumerate(liste):
+                f_k = donnees[f"F:{nom}:{k}"][:, 1:4]
+                force += f_k
+                moment += donnees[f"M:{nom}:{k}"][:, 1:4] + np.cross([decalage, 0.0, 0.0], f_k)
+            res.forces[nom] = force
+            res.moments[nom] = moment
         for s in etude.solides:
             if not s.fixe:
                 res.positions[s.nom] = donnees[f"P:{s.nom}"][:, 1:4].copy()

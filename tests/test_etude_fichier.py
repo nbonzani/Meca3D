@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from outils_bielle import etude_bielle
+
 from meca3d.modele.capteurs import (
     BaseCapteur,
     CapteurLiaison,
@@ -17,8 +19,6 @@ from meca3d.modele.capteurs import (
     capteur_depuis_dict,
 )
 from meca3d.modele.couplage import Engrenage, PignonCremaillere, SensEngrenage, VisEcrou
-from outils_bielle import etude_bielle
-
 from meca3d.modele.etude import (
     VERSION_ETUDE,
     ErreurEtude,

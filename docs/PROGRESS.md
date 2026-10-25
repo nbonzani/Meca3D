@@ -1,5 +1,12 @@
 # Journal de progression
 
+## 2026-10-25 — Lot 3, catalogue des liaisons et fichier d'étude (fait, 2 tests à corriger)
+- Fait : 11 liaisons traduites dans `moteur/exudyn_dyn.py` (linéaire rectiligne = 2 ponctuelles à ±0,1 m le long de x local, torseur recomposé au centre ; hélicoïdale : `ErreurLiaisonNonPriseEnCharge`) ; `Liaison` complète (choisir, definir_direction, reorienter_axe x/y/z/vecteur, deplacer_centre, couplage_screw) ; `modele/couplage.py`, `modele/capteurs.py` (données seules) ; `Etude` : validation_en_bloc, valider_toutes, `simulation_possible` ; `.meca3d` version 2 avec migration 1→2.
+- Résultats (essais Exudyn, 0,6 s, rotations jusqu'à 3,1 rad) : invariant max 7,0e-12 (rotule), 7,7e-12 (linéaire annulaire), 4,4e-12 (rectiligne) ; efforts nuls sur les ddl libres (0 exact).
+- Décisions : k = Z1/Z2 ; k, r, p strictement positifs ; changer de type repasse la liaison en « proposée » ; « valider toutes » ne valide pas les liaisons sans type ; point d'un capteur en repère monde de la pose d'import ; fixture bielle.meca3d régénérée en v2, ancienne copie en `bielle_v1.meca3d` ; pilote refusé sur ddl bloqué et sur linéaire rectiligne.
+- Vigilance : 2 tests commités défectueux, non modifiés (règle) : `test_ex10_grands_deplacements[encastrement]` (réduction sur tableau vide, garde `if (~bloques).any()` manquante) et `[appui_plan]` (la pesanteur n'excite jamais Rz : exclure Rz ou imposer une vitesse initiale). Le code est correct pour les deux (invariants 3e-16 et 2e-16).
+- Prochaine action : corriger ces 2 tests avec l'accord de l'utilisateur ; puis lots 4 ∥ 5.
+
 ## 2026-10-25 — Lot 2, tranche verticale (fait)
 - Fait : `unites`, `modele/{solide,liaison,actions,etude}`, `cao/{urdf,solidcraft}` (fonction pure `etude_depuis_reponses`), `moteur/{base,exudyn_dyn}`, `resultats/{torseurs,export}`, `cli simuler`. Fixture `tests/fixtures/bielle/bielle.meca3d` (générée par `generer_etude.py`).
 - Résultats : écarts relatifs vs Newton-Euler : O 2,8e-3, A 2,8e-3, B 2,4e-3, couple 4,8e-3, normale 2,4e-3 (seuil 5e-3) ; simulation 1,1 s ; x_B(0) à 60° = 0,3372281 m.
