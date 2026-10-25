@@ -9,7 +9,8 @@ Toutes les conversions mm / g / deg passent par `unites`, à cette seule porte d
 import hashlib
 import json
 import tempfile
-from dataclasses import dataclass, field
+from collections.abc import Mapping
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +19,14 @@ import numpy as np
 from meca3d import unites
 from meca3d.cao.canal import CanalSolidCraft
 from meca3d.cao.urdf import lire_urdf
+from meca3d.modele.couplage import (
+    Couplage,
+    Engrenage,
+    ErreurCouplage,
+    PignonCremaillere,
+    SensEngrenage,
+    VisEcrou,
+)
 from meca3d.modele.etude import Etude
 from meca3d.modele.liaison import Liaison
 from meca3d.modele.solide import Solide
@@ -65,6 +74,87 @@ def _noms_occurrences(component_list: dict[str, Any]) -> dict[int, str]:
     return noms
 
 
+class _LienNonPris(Exception):
+    """Lien de couplage SolidCraft non pris en charge (message destiné à l'élève)."""
+
+
+@dataclass
+class LectureCouplages:
+    """Couplages lus dans `joint.list.links` (R2, EX-14) : couplages entre deux liaisons, pas des
+    liaisons cylindriques couplées par `joint.screw` (hélicoïdales, EX-11) par nom de liaison, et
+    messages des liens non importés."""
+
+    couplages: list[Couplage] = field(default_factory=list)
+    pas_helicoidales: dict[str, float] = field(default_factory=dict)
+    avertissements: list[str] = field(default_factory=list)
+
+
+def lire_couplages(joint_list: dict[str, Any], noms: Mapping[int, str]) -> LectureCouplages:
+    """Traduit `joint.list.links` en couplages de l'étude (Q2, D14, RESULTATS_1b § Q2).
+
+    `noms` : nom des liaisons importées par identifiant SolidCraft. Le `ratio` par degré et les
+    `values` ne sont pas lus : seuls `ra`, `rb` (rayons ou nombres de dents, seul leur rapport
+    compte, parfois saisis comme texte), `pitch` et `radius` (mm, convertis par `unites`) servent.
+    Le signe d'un engrenage est celui du `ratio` (négatif : extérieur ; positif : intérieur ou
+    `reverse`). Un lien non pris en charge (type inconnu, `reverse` d'une vis ou d'une crémaillère,
+    liaison non importée) est signalé et ignoré.
+    """
+    lecture = LectureCouplages()
+    vus: dict[str, int] = {}
+
+    def nom_unique(base: str) -> str:
+        vus[base] = vus.get(base, 0) + 1
+        return base if vus[base] == 1 else f"{base} ({vus[base]})"
+
+    for lien in joint_list.get("links", []):
+        coupling = lien.get("coupling", {})
+        genre = str(coupling.get("type"))
+        noms_lien = [noms.get(lien.get("a", -1)), noms.get(lien.get("b", -1))]
+        if None in noms_lien:
+            lecture.avertissements.append(
+                f"Couplage « {genre} » non importé : il vise une liaison non importée "
+                f"(identifiants {lien.get('a')} et {lien.get('b')})."
+            )
+            continue
+        n1, n2 = str(noms_lien[0]), str(noms_lien[1])
+        try:
+            if genre == "gear":
+                k = float(coupling["ra"]) / float(coupling["rb"])
+                interieur = float(lien["ratio"]) > 0.0
+                sens = SensEngrenage.INTERIEUR if interieur else SensEngrenage.EXTERIEUR
+                lecture.couplages.append(
+                    Engrenage(nom_unique(f"Engrenage {n1}-{n2}"), n1, n2, k, sens)
+                )
+            elif genre == "rack_pinion":
+                if coupling.get("reverse"):
+                    raise _LienNonPris("reverse (sens inverse) non pris en charge")
+                if lien.get("unit") == "deg":  # a = crémaillère, b = pignon
+                    n1, n2 = n2, n1
+                r = unites.mm_vers_m(float(coupling["radius"]))
+                lecture.couplages.append(
+                    PignonCremaillere(nom_unique(f"Pignon-crémaillère {n1}-{n2}"), n1, n2, r)
+                )
+            elif genre == "screw":
+                if coupling.get("reverse"):
+                    raise _LienNonPris("reverse (pas à gauche) non pris en charge")
+                p = unites.mm_vers_m(float(coupling["pitch"]))
+                if lien["a"] == lien["b"]:  # liaison cylindrique : angle (ia) et distance (ib)
+                    lecture.pas_helicoidales[n1] = p
+                else:
+                    lecture.couplages.append(
+                        VisEcrou(nom_unique(f"Vis-écrou {n1}-{n2}"), n1, n2, p)
+                    )
+            else:
+                raise _LienNonPris(f"type de couplage « {genre} » inconnu")
+        except _LienNonPris as e:
+            lecture.avertissements.append(f"Couplage « {genre} » non importé : {e}.")
+        except (KeyError, TypeError, ValueError, ZeroDivisionError, ErreurCouplage) as e:
+            lecture.avertissements.append(
+                f"Couplage « {genre} » non importé : lien illisible ({type(e).__name__} : {e})."
+            )
+    return lecture
+
+
 def etude_depuis_reponses(
     joint_list: dict[str, Any],
     component_list: dict[str, Any],
@@ -81,8 +171,9 @@ def _construire(
     component_properties: dict[str, Any],
     urdf_texte: str,
     revision: int,
-) -> tuple[Etude, list[tuple[str, str]]]:
-    """Etude et (nom, message) des liaisons non importées (sous-occurrences, EX-04)."""
+) -> tuple[Etude, list[tuple[str, str]], list[str]]:
+    """Etude, (nom, message) des liaisons non importées (sous-occurrences, EX-04) et messages
+    des couplages non importés (R2)."""
     occurrences = _premier_niveau(component_list)
     noms_occ = [o["name"] for o in occurrences]
     inerties = lire_urdf(urdf_texte)
@@ -118,6 +209,12 @@ def _construire(
     liaisons: list[Liaison] = []
     ignorees: list[tuple[str, str]] = []
     noms_connus = _noms_occurrences(component_list)
+    importables = {
+        j["id"]: j["name"]
+        for j in joint_list["joints"]
+        if not j.get("suppressed") and all(j[c] in nom_par_occurrence for c in ("a", "b"))
+    }
+    lecture = lire_couplages(joint_list, importables)
     for joint in joint_list["joints"]:
         if joint.get("suppressed"):
             continue
@@ -142,9 +239,17 @@ def _construire(
                 centre=unites.mm_vers_m(np.array(joint["frame_a"]["origin"], dtype=float)),
                 axe_sc=np.array(joint["frame_a"]["z"], dtype=float),
                 valeur_pose=_valeur_articulaire(joint),
+                couplage_screw=joint["name"] in lecture.pas_helicoidales,
+                pas=lecture.pas_helicoidales.get(joint["name"]),
             )
         )
-    return Etude(solides=solides, liaisons=liaisons, revision=int(revision)), ignorees
+    etude = Etude(
+        solides=solides,
+        liaisons=liaisons,
+        revision=int(revision),
+        couplages=lecture.couplages,
+    )
+    return etude, ignorees, lecture.avertissements
 
 
 @dataclass
@@ -228,7 +333,9 @@ def importer(canal: CanalSolidCraft, dossier_temporaire: Path | None = None) -> 
         canal.executer("file.export", {"path": str(base.with_suffix(".json")), "format": "json"})
         urdf = base.with_suffix(".urdf").read_text(encoding="utf-8")
         export = json.loads(base.with_suffix(".json").read_text(encoding="utf-8"))
-    etude, ignorees = _construire(joint_list, component_list, proprietes, urdf, revision)
+    etude, ignorees, avertissements_couplages = _construire(
+        joint_list, component_list, proprietes, urdf, revision
+    )
     avertissements: list[str] = []
     recu = export.get("format") if isinstance(export, dict) else None
     if recu != FORMAT_SUPPORTE:
@@ -238,9 +345,11 @@ def importer(canal: CanalSolidCraft, dossier_temporaire: Path | None = None) -> 
             "mais les résultats sont à vérifier."
         )
     avertissements.extend(message for _, message in ignorees)
+    avertissements.extend(avertissements_couplages)
     return EtudeImportee(
         solides=etude.solides,
         liaisons=etude.liaisons,
+        couplages=etude.couplages,
         maquette=str(inspection.get("name", "")),
         revision=etude.revision,
         avertissements=avertissements,
@@ -289,7 +398,22 @@ def reimporter(
             liaison.reorienter_axe(ancienne.axe)
         if ancienne.direction is not None:
             liaison.direction = ancienne.direction.copy()
+        liaison.frottement = ancienne.frottement
+        liaison.rayon_axe = ancienne.rayon_axe
+        liaison.epsilon = ancienne.epsilon
+        if liaison.pas is None:
+            liaison.pas = ancienne.pas
     noms = {x.nom for x in nouvelle.liaisons}
+    deja = {c.nom for c in nouvelle.couplages}
+    for i, couplage in enumerate(nouvelle.couplages):  # le rendement choisi est conservé
+        ancien = next((c for c in etude_ancienne.couplages if c.nom == couplage.nom), None)
+        if ancien is not None:
+            nouvelle.couplages[i] = replace(couplage, rendement=ancien.rendement)
+    nouvelle.couplages.extend(  # couplages saisis dans Meca3D dont les liaisons existent encore
+        c
+        for c in etude_ancienne.couplages
+        if c.nom not in deja and c.liaison_1 in noms and c.liaison_2 in noms
+    )
     for pilote in etude_ancienne.pilotes:
         if pilote.liaison in noms:
             nouvelle.pilotes.append(pilote)
