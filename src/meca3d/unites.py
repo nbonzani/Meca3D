@@ -52,10 +52,25 @@ def rotation_translation(
 
 def unitaire(v: Sequence[float] | np.ndarray) -> np.ndarray:
     v = np.asarray(v, dtype=float)
+    if v.shape != (3,) or not np.all(np.isfinite(v)):
+        raise ValueError("Vecteur invalide : trois composantes finies sont attendues.")
     n = float(np.linalg.norm(v))
     if n == 0.0:
         raise ValueError("Vecteur nul : une direction est attendue.")
     return v / n
+
+
+def verifier_direction(
+    axe_z: Sequence[float] | np.ndarray, direction: Sequence[float] | np.ndarray
+) -> None:
+    """EX-12 : refuse une seconde direction colinéaire à z (angle < 1°, dans les deux sens)."""
+    z, d = unitaire(axe_z), unitaire(direction)
+    sinus = float(np.linalg.norm(np.cross(z, d)))
+    if math.degrees(math.asin(min(1.0, sinus))) < ANGLE_COLINEAIRE_MIN_DEG:
+        raise ErreurDirection(
+            "La seconde direction est colinéaire à l'axe de la liaison "
+            f"(angle inférieur à {ANGLE_COLINEAIRE_MIN_DEG:g}°) : choisir une autre direction."
+        )
 
 
 def base_liaison(
@@ -74,13 +89,8 @@ def base_liaison(
         aux = np.array([1.0, 0.0, 0.0]) if abs(z[0]) < 0.9 else np.array([0.0, 1.0, 0.0])
         u = unitaire(np.cross(z, aux))
     else:
+        verifier_direction(z, direction)
         d = unitaire(direction)
-        sinus = float(np.linalg.norm(np.cross(z, d)))
-        if math.degrees(math.asin(min(1.0, sinus))) < ANGLE_COLINEAIRE_MIN_DEG:
-            raise ErreurDirection(
-                "La seconde direction est colinéaire à l'axe de la liaison "
-                f"(angle inférieur à {ANGLE_COLINEAIRE_MIN_DEG:g}°) : choisir une autre direction."
-            )
         u = unitaire(d - float(np.dot(d, z)) * z)
     v = np.cross(z, u)
     if axe_en_x:

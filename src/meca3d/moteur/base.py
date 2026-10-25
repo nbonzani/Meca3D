@@ -10,6 +10,7 @@ from meca3d.modele.etude import Etude
 from meca3d.modele.etude import Reglages as Reglages
 
 __all__ = [
+    "ErreurLiaisonNonPriseEnCharge",
     "ErreurModele",
     "ErreurMoteur",
     "ErreurSolveur",
@@ -25,6 +26,10 @@ class ErreurMoteur(Exception):
 
 class ErreurModele(ErreurMoteur):
     """Le modèle transmis ne peut pas être simulé (liaison non validée, solide inconnu...)."""
+
+
+class ErreurLiaisonNonPriseEnCharge(ErreurModele):
+    """Liaison dont la traduction n'existe pas encore dans le moteur (hélicoïdale : lot 7)."""
 
 
 class ErreurSolveur(ErreurMoteur):
