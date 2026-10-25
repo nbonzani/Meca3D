@@ -43,3 +43,4 @@
 - **R7 (lot 9, fait)** : « Hyperstatique autorisé » est un réglage de session dans l'IHM ; le brancher sur le champ d'`Etude` ajouté au lot 6. Vérifier aussi l'appel au mode cinématique (`MoteurCinematique`), supposé par le lot 8.
 - **R8 (lot 9, fait)** : propriétés de liaison : la liste « Axe x du repère monde » ne reflète pas le vecteur affiché (0, 0, 1) ; la loi d'entrée s'affiche en expression brute.
 - **R9 (lot 9, fait)** : les points des capteurs et des actions sont stockés en repère monde à la pose d'import. La saisie dans l'IHM doit se faire en coordonnées pièce (D15) et être convertie par `Solide.vers_monde`.
+- **R10 (après 9b)** : avant d'animer, Meca3D ramène la fenêtre SolidCraft au premier plan si elle est réduite (méthode de connexion `ui.window`, pas une commande `engine.execute`). Fenêtre non maximisée : 6,9 images/s mesurées au lot 10, contre 47 à 58 maximisée. Traiter aussi le bouton d'export CSV inactif relevé sur la capture du lot 9.

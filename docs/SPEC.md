@@ -190,7 +190,7 @@ Conventions de toutes les exigences : unités SI en interne (m, kg, s, rad, N, N
   - *Acceptation* : le CSV de la bielle relu par Excel en français montre les colonnes `t (s)` et `C (N·m)`, avec 501 lignes pour une période d'échantillonnage de 2 ms sur 1 s.
 - **EX-53 Animation dans SolidCraft.** Le mouvement simulé est rejoué dans la maquette (lecture, pause, vitesse ×0,1 à ×2, curseur temporel), à 20 images/s au moins.
   - *Moyen (lot 1b)* : poses calculées par Exudyn, appliquées par `occurrence.move` (`capture: false`), un `engine.batch` par image. La pose initiale est restaurée par `component.revert_position`, et le document n'est pas marqué modifié. La fenêtre SolidCraft doit être visible : réduite, elle ne traite qu'une requête par image, soit environ 115 ms par requête au lieu de 16,6 ms.
-  - *Acceptation* : bielle-manivelle → la pose SolidCraft à t = 0,5 s correspond à la pose simulée à 0,1° près (relue par `component.list`).
+  - *Acceptation* : bielle-manivelle → la pose SolidCraft à t = 0,5 s correspond à la pose simulée à 0,1° près. La pose animée se relit par `occurrence.properties` (`component.list` ne montre pas les déplacements en attente et sert à prouver la restauration).
   - *Acceptation* : cadence mesurée ≥ 20 images/s.
   - *Acceptation* : en fin d'animation ou à l'interruption, la pose initiale de la maquette est restaurée (valeurs de `joint.list` identiques à 10⁻⁹ près), et Meca3D n'enregistre jamais la maquette.
 
