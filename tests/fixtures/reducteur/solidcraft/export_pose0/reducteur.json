@@ -1,0 +1,365 @@
+{
+  "format": "solidcraft/26",
+  "name": "reducteur",
+  "units": "mm",
+  "params": [],
+  "features": [
+    {
+      "id": 3,
+      "name": "Box1",
+      "suppressed": false,
+      "body_names": [
+        "Bati_corps"
+      ],
+      "param_names": [
+        "d1",
+        "d2",
+        "d3"
+      ],
+      "component": 1,
+      "type": "box",
+      "corner": [
+        -60.0,
+        -60.0,
+        -10.0
+      ],
+      "length": "200",
+      "width": "120",
+      "height": "10",
+      "operation": "new_body"
+    },
+    {
+      "id": 6,
+      "name": "Cylinder1",
+      "suppressed": false,
+      "body_names": [
+        "Roue1_corps"
+      ],
+      "param_names": [
+        "d4",
+        "d5"
+      ],
+      "component": 4,
+      "type": "cylinder",
+      "base": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "axis": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "radius": "20",
+      "height": "10",
+      "operation": "new_body"
+    },
+    {
+      "id": 9,
+      "name": "Cylinder2",
+      "suppressed": false,
+      "body_names": [
+        "Roue2_corps"
+      ],
+      "param_names": [
+        "d6",
+        "d7"
+      ],
+      "component": 7,
+      "type": "cylinder",
+      "base": [
+        80.0,
+        0.0,
+        0.0
+      ],
+      "axis": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "radius": "60",
+      "height": "10",
+      "operation": "new_body"
+    }
+  ],
+  "next_id": 10,
+  "components": [
+    {
+      "id": 1,
+      "name": "Bati",
+      "parent": 0
+    },
+    {
+      "id": 4,
+      "name": "Roue1",
+      "parent": 0
+    },
+    {
+      "id": 7,
+      "name": "Roue2",
+      "parent": 0
+    }
+  ],
+  "occurrences": [
+    {
+      "id": 2,
+      "component": 1,
+      "parent": 0,
+      "name": "Bati:1",
+      "transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "grounded": true
+    },
+    {
+      "id": 5,
+      "component": 4,
+      "parent": 0,
+      "name": "Roue1:1",
+      "transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "grounded": false
+    },
+    {
+      "id": 8,
+      "component": 7,
+      "parent": 0,
+      "name": "Roue2:1",
+      "transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "grounded": false
+    }
+  ],
+  "assembly": {
+    "joints": [
+      {
+        "id": 1,
+        "name": "L1_pivot",
+        "kind": "revolute",
+        "a": {
+          "occurrence": 2,
+          "snap": {
+            "type": "point",
+            "point": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "b": {
+          "occurrence": 5,
+          "snap": {
+            "type": "point",
+            "point": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "values": [
+          0.0
+        ],
+        "limits": [
+          null
+        ],
+        "flip": true,
+        "offset": 0.0,
+        "angle": 0.0
+      },
+      {
+        "id": 2,
+        "name": "L2_pivot",
+        "kind": "revolute",
+        "a": {
+          "occurrence": 2,
+          "snap": {
+            "type": "point",
+            "point": [
+              80.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "b": {
+          "occurrence": 8,
+          "snap": {
+            "type": "point",
+            "point": [
+              80.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "values": [
+          0.0
+        ],
+        "limits": [
+          null
+        ],
+        "flip": true,
+        "offset": 0.0,
+        "angle": 0.0
+      }
+    ],
+    "origins": [
+      {
+        "name": "L1_pivot_a",
+        "origin": {
+          "occurrence": 2,
+          "snap": {
+            "type": "point",
+            "point": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      {
+        "name": "L1_pivot_b",
+        "origin": {
+          "occurrence": 5,
+          "snap": {
+            "type": "point",
+            "point": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      {
+        "name": "L2_pivot_a",
+        "origin": {
+          "occurrence": 2,
+          "snap": {
+            "type": "point",
+            "point": [
+              80.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      {
+        "name": "L2_pivot_b",
+        "origin": {
+          "occurrence": 8,
+          "snap": {
+            "type": "point",
+            "point": [
+              80.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    ],
+    "links": [
+      {
+        "a": 1,
+        "ia": 0,
+        "b": 2,
+        "ib": 0,
+        "ratio": -0.3333333333333333,
+        "offset": 0.0,
+        "coupling": {
+          "type": "gear",
+          "ra": 20.0,
+          "rb": 60.0
+        }
+      }
+    ]
+  },
+  "materials": {
+    "Bati_corps": "Acier",
+    "Roue1_corps": "Acier",
+    "Roue2_corps": "Acier"
+  },
+  "user_materials": [
+    {
+      "name": "Acier",
+      "density": 7.8
+    }
+  ]
+}

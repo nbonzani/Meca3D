@@ -1,5 +1,6 @@
 # Journal de progression
 
+<<<<<<< HEAD
 ## 2026-10-25 — Lot 9b, finitions : durée de la suite, instabilité, R5, torseurs et lois lisibles (fait)
 - Durées (PC portable Polytech, machine calme) : suite complète avant 304 s (519 tests, 15 min sous charge selon le superviseur) ; après, `uv run pytest -q` (hors slow, perf, solidcraft) 108 s ; commande du hook 105 s ; slow 24 tests 204 s ; perf 7 tests 24 s ; CI (slow inclus, perf exclu) 303 et 318 s, 553 tests verts deux fois. Seuil `slow` ramené de 10 s à 5 s : avec 10 s (3 tests) la suite par défaut restait à environ 240 s ; les 20 tests entre 5 et 10 s sont presque tous des démarrages à froid du processus de calcul (~5 s d'import de sympy dans le fils). Perf hors du hook (113 + 32 s dépasserait 2 min) : `uv run pytest -m perf` sur machine calme ; slow : `uv run pytest -m slow` ; tout : `uv run pytest -m "not solidcraft"`.
 - Instabilité de `test_processus.py` : NON reproduite. Instrumentation (0 processus enfant survivant après chacun des 519 tests), suite complète avec 12 puis 56 boucles actives pour 28 processeurs logiques : tout passe (470 s ; R6 < 3 s tenu). Hypothèses écartées : processus préchauffés laissés vivants, fichiers partagés d'Exudyn (aucun), threads d'Exudyn (aucun réglage). Pistes restantes, non prouvées : mémoire saturée par les processus de plusieurs lots en parallèle (message « processus arrêté de façon inattendue »), charge mono-thread soutenue sur le cœur du fils. Garde-fous ajoutés : `arreter_tous_les_prechauffes()` (registre faible + `atexit`) ; fixture autouse de `tests/conftest.py` qui arrête tout préchauffé, termine les enfants et FAIT ÉCHOUER un test qui laisse un processus vivant (preuve permanente de l'absence de fuite). Les tests de durée murale sont en `perf`, hors de la suite par défaut.
@@ -9,6 +10,32 @@
 - Bouton « Exporter les résultats en CSV » : l'inactivité sur la capture du lot 9 vient du script de capture (`tests/outils_capture.py` posait `fenetre.resultats` sans appeler `_maj_actions()`), pas de `ihm/fenetre.py` (`_scruter_calcul` rafraîchit les actions). Script corrigé, nouvelle capture `docs/captures/lot9b_resultats.png`, test slow `test_ihm_csv_actif.py` (bouton actif après une simulation lancée depuis l'IHM). Rien à traiter dans fenetre.py.
 - Retouches formelles de tests : marqueurs `slow` (23 tests) et `perf` (7 tests), commit `style:` unique, listés dans le compte rendu. Un test à moi corrigé (référence 1e5 -> 1,0 du cas 1,5e-5 : erreur d'arithmétique, code inchangé).
 - Prochaine action : fusion, puis lots 10 ∥ 11.
+=======
+## 2026-10-25 — Lot 11, cas de référence construits dans SolidCraft (fait)
+- Fait : quatre maquettes construites dans le vrai SolidCraft (`tests/fixtures/maquettes/*.solidcraft`, script `construire_maquettes.py`), réponses réelles du canal enregistrées sous `tests/fixtures/{pendule_simple,pendule_double,reducteur,vis_ecrou}/solidcraft/` (format de la bielle, sans maillages, chemins anonymisés), `tests/test_cas_reference.py` (18 tests, depuis les réponses enregistrées), `tests/test_cas_reference_reel.py` (4 tests `solidcraft`, ouverture par `doc.open`), `tests/outils_cas_reference.py` (références indépendantes : période par moyenne arithmético-géométrique, énergie, Lagrange RK4). Aucun code de production modifié, aucun commit `fix:`.
+- Résultats (référence / obtenu / tolérance) :
+
+| Cas | Référence | Obtenu | Tolérance |
+|---|---|---|---|
+| Pendule simple T₀ (lâcher à 1°) | 1,03625 s | 1,036275 s | 1e-3 rel. (écart 2,2e-5) |
+| Pendule simple T(30°) | 1,05429 s | 1,054296 s | 1e-3 (4e-6) |
+| Pendule simple ω au point bas | 3,13863 rad/s | 3,138628 rad/s | 1e-3 (2e-6) |
+| EX-31, g désactivé | immobile | écart < 1e-9 | 1e-9 |
+| Pendule double μ, m, h, Ic, rc | 0, 2, 0, 2, 0 | identiques | exact |
+| Pendule double, énergie sur 2 s | dérive relative < 1e-3 | 1,9e-4 | 1e-3 de E₀ − E_repos |
+| Pendule double, φ₂(1 s) vs RK4 de Lagrange | 1,943180 rad | 1,943088 rad | 5e-4 rad (écart 9,2e-5) |
+| Réducteur 20/60, ω_e = 30 | \|ω_s\| = 10 rad/s, \|ω_s + k·ω_e\| < 1e-6 | 10,00019 rad/s, 7,7e-13 | 1e-3 ; 1e-6 |
+| Réducteur, Ce = 1 N·m, η = 1 | Cs = 3 N·m | 3 N·m, vitesses constantes à 1e-4 | 1e-3 |
+| Réducteur, η = 0,95 | Cs = 2,85 N·m | 2,85 N·m | 1e-3 |
+| Vis-écrou p = 5 mm, ω = 10 | 7,9577 mm/s | 7,95776 mm/s | 1e-4 |
+| Vis-écrou, couple 2 N·m | 2 513,27 N | 2 513,27 N, écrou immobile à 1e-4 m | 1e-3 |
+| EX-44, bielle 1 s / 4 000 pas | < 10 s | 1,2 s (direct, `simuler_etude`) | 10 s |
+
+- Choix : barre 400 × 20 × 20 mm d'acier créé par `material.create` (7,8 g/cm³, masse 1 248 g exacte) ; axe des pivots des pendules selon y, vis-écrou et réducteur d'axe z ; poses enregistrées par `joint.drive` (θ = 0°, 1° et 30° pour le pendule simple, 60° et 60° relatifs pour le double) ; la maquette du pendule simple est enregistrée à 30°. Les angles initiaux du pendule double sont déduits des CdG importés, la référence RK4 n'utilise que ces angles. Ouverture de maquette : la commande SolidCraft est `doc.open` (pas `file.open`) ; les tests réels rouvrent à la fin le document qui était ouvert (chemin lu dans `document.inspect`), jamais d'enregistrement.
+- Ambiguïtés : tolérance de 1e-3 relatif prise pour les périodes, vitesses et efforts (la SPEC n'en donne pas pour le pendule) ; dérive d'énergie rapportée à E₀ − E_repos (barres pendantes) ; marqueur `perf` absent de la branche : le test EX-44 est marqué `slow` en attendant le lot de finitions (à changer en `perf`) ; la SPEC donne 2 513,27 N arrondi : le chargement du test est 2π·C/p = 2 513,2741 N.
+- Sorties : `pytest -m solidcraft` 8 passés ; `pytest -q` 571 passés ; ruff check, ruff format --check, pyright : sans erreur.
+- État de SolidCraft : bielle rouverte depuis son fichier, non modifiée (dirty faux ; pile d'annulation à 0 après réouverture).
+>>>>>>> worktree-agent-a7320418561364fe7
 
 ## 2026-10-25 — Lot 10, animation dans SolidCraft et trajectoires (fait)
 - Fait : `cao/animation.py` (`Animateur(canal, etude, resultats, horloge, attente)` : `lire`/`pause`/`avancer`/`aller_a`/`jouer`/`terminer`/`reinitialiser`, vitesse ×0,1 à ×2, curseur ; `tracer_trajectoire`, `effacer_trajectoires`), `ihm/vue_animation.py` (onglet Animation : lecture/pause, arrêt, vitesse, curseur, capteur de point, tracer/effacer), branchement dans `ihm/fenetre.py` (rubrique Animation, tracé et effacement par QThreadPool, restauration à la fermeture), `tests/faux_serveur.py` étendu (`occurrence.move` en attente, `engine.batch`, `component.revert_position`, `sketch.*`, `timeline.delete`, `sequences_batch`, `commandes_recues()`, `pose()`). Capture : `docs/captures/lot10_animation.png` (`tests/outils_capture.py animation`).

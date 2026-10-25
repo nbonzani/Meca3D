@@ -1,0 +1,237 @@
+{
+  "format": "solidcraft/26",
+  "name": "pendule_simple",
+  "units": "mm",
+  "params": [],
+  "features": [
+    {
+      "id": 3,
+      "name": "Box1",
+      "suppressed": false,
+      "body_names": [
+        "Bati_corps"
+      ],
+      "param_names": [
+        "d1",
+        "d2",
+        "d3"
+      ],
+      "component": 1,
+      "type": "box",
+      "corner": [
+        -30.0,
+        10.0,
+        -30.0
+      ],
+      "length": "60",
+      "width": "20",
+      "height": "60",
+      "operation": "new_body"
+    },
+    {
+      "id": 6,
+      "name": "Box2",
+      "suppressed": false,
+      "body_names": [
+        "Barre_corps"
+      ],
+      "param_names": [
+        "d4",
+        "d5",
+        "d6"
+      ],
+      "component": 4,
+      "type": "box",
+      "corner": [
+        -10.0,
+        -10.0,
+        -400.0
+      ],
+      "length": "20",
+      "width": "20",
+      "height": "400",
+      "operation": "new_body"
+    }
+  ],
+  "next_id": 7,
+  "components": [
+    {
+      "id": 1,
+      "name": "Bati",
+      "parent": 0
+    },
+    {
+      "id": 4,
+      "name": "Barre",
+      "parent": 0
+    }
+  ],
+  "occurrences": [
+    {
+      "id": 2,
+      "component": 1,
+      "parent": 0,
+      "name": "Bati:1",
+      "transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "grounded": true
+    },
+    {
+      "id": 5,
+      "component": 4,
+      "parent": 0,
+      "name": "Barre:1",
+      "transform": [
+        [
+          0.9998476951563913,
+          0.0,
+          -0.01745240643728351,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.01745240643728351,
+          0.0,
+          0.9998476951563913,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "grounded": false
+    }
+  ],
+  "assembly": {
+    "joints": [
+      {
+        "id": 1,
+        "name": "L01_pivot",
+        "kind": "revolute",
+        "a": {
+          "occurrence": 2,
+          "snap": {
+            "type": "point",
+            "point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "z": [
+              0.0,
+              1.0,
+              0.0
+            ]
+          }
+        },
+        "b": {
+          "occurrence": 5,
+          "snap": {
+            "type": "point",
+            "point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "z": [
+              0.0,
+              1.0,
+              0.0
+            ]
+          }
+        },
+        "values": [
+          0.017453292519943295
+        ],
+        "limits": [
+          null
+        ],
+        "flip": true,
+        "offset": 0.0,
+        "angle": 0.0
+      }
+    ],
+    "origins": [
+      {
+        "name": "L01_pivot_a",
+        "origin": {
+          "occurrence": 2,
+          "snap": {
+            "type": "point",
+            "point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "z": [
+              0.0,
+              1.0,
+              0.0
+            ]
+          }
+        }
+      },
+      {
+        "name": "L01_pivot_b",
+        "origin": {
+          "occurrence": 5,
+          "snap": {
+            "type": "point",
+            "point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "z": [
+              0.0,
+              1.0,
+              0.0
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "materials": {
+    "Barre_corps": "Acier",
+    "Bati_corps": "Acier"
+  },
+  "user_materials": [
+    {
+      "name": "Acier",
+      "density": 7.8
+    }
+  ]
+}
