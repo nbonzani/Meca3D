@@ -2,7 +2,11 @@
 """Tableau des torseurs de liaison à l'instant choisi par un curseur temporel (EX-50).
 
 Torseur statique {i→j} ou j→i, ou torseur cinématique {V j/i}, en base de liaison ou en base
-monde. Les composantes nulles par construction sont affichées « 0 » (valeur exactement nulle).
+monde. Affichage lisible (`resultats.affichage`) : composantes nulles par construction « 0 »
+exact (en base de liaison), 4 chiffres significatifs, bruit numérique sous 1e-9 fois le maximum
+du tableau affiché ramené à « 0 ». En base monde, seul le seuil relatif s'applique (une
+composante nulle en base de liaison ne l'est plus une fois le torseur tourné). Les unités sont
+dans les en-têtes de colonnes.
 """
 
 import numpy as np
@@ -21,12 +25,13 @@ from PyQt6.QtWidgets import (
 from meca3d.ihm import textes
 from meca3d.modele.etude import Etude
 from meca3d.moteur.base import ResultatsBruts
+from meca3d.resultats.affichage import formater_tableau
 from meca3d.resultats.export import COMPOSANTES_CINEMATIQUES, COMPOSANTES_STATIQUES
-from meca3d.resultats.torseurs import torseur_cinematique, torseur_statique
-
-
-def _texte_valeur(x: float) -> str:
-    return "0" if x == 0.0 else f"{x:.6g}"
+from meca3d.resultats.torseurs import (
+    masque_nul_par_construction,
+    torseur_cinematique,
+    torseur_statique,
+)
 
 
 class VueTorseurs(QWidget):
@@ -35,6 +40,7 @@ class VueTorseurs(QWidget):
         self._etude: Etude | None = None
         self._resultats: ResultatsBruts | None = None
         self._valeurs: dict[str, np.ndarray] = {}
+        self._nuls: dict[str, np.ndarray] = {}
         self._composantes: tuple[str, ...] = COMPOSANTES_STATIQUES
         disposition = QVBoxLayout(self)
         options = QHBoxLayout()
@@ -103,6 +109,7 @@ class VueTorseurs(QWidget):
     def _calculer(self) -> None:
         etude, resultats = self._etude, self._resultats
         self._valeurs = {}
+        self._nuls = {}
         cinematique = self.choix_torseur.currentData() == "cinematique" or (
             resultats is not None and not resultats.forces
         )
@@ -117,6 +124,10 @@ class VueTorseurs(QWidget):
                 else:
                     tors = torseur_statique(etude, resultats, liaison.nom, de=i, base=base)
                 self._valeurs[liaison.nom] = tors
+                if base == "liaison":
+                    self._nuls[liaison.nom] = masque_nul_par_construction(
+                        etude, liaison.nom, statique=not cinematique
+                    )
         self.table.setColumnCount(len(self._composantes))
         self.table.setHorizontalHeaderLabels(list(self._composantes))
         self._remplir_table()
@@ -130,9 +141,10 @@ class VueTorseurs(QWidget):
             return
         k = self.curseur.value()
         self.etiquette_instant.setText(textes.etiquette_instant(self.instant()))
-        for r, nom in enumerate(noms):
-            for c in range(len(self._composantes)):
-                texte = _texte_valeur(float(self._valeurs[nom][k, c]))
+        instant = np.array([self._valeurs[nom][k] for nom in noms])
+        nuls = np.array([self._nuls.get(nom, np.zeros(instant.shape[1], bool)) for nom in noms])
+        for r, ligne in enumerate(formater_tableau(instant, nuls)):
+            for c, texte in enumerate(ligne):
                 self.table.setItem(r, c, QTableWidgetItem(texte))
         self.table.resizeColumnsToContents()
 

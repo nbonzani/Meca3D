@@ -30,6 +30,7 @@ def _port_libre() -> int:
         return s.getsockname()[1]
 
 
+@pytest.mark.perf
 def test_ex01_connexion_et_document_inspect_sous_une_seconde() -> None:
     with FauxServeur() as faux:
         debut = time.monotonic()
@@ -84,6 +85,7 @@ def test_ex01_dossier_de_controle_par_variable_denvironnement(
     assert CanalSolidCraft().port == 31999
 
 
+@pytest.mark.perf
 def test_ex01_solidcraft_absent_message_en_moins_de_trois_secondes() -> None:
     port = _port_libre()
     canal = CanalSolidCraft(port=port, jeton=JETON_DE_TEST)

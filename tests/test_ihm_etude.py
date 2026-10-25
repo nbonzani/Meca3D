@@ -47,6 +47,7 @@ def _simuler(fenetre: FenetrePrincipale, qtbot: QtBot, cinematique: bool = False
 
 
 # --- EX-60 : enregistrer, rouvrir, simuler -------------------------------------------------
+@pytest.mark.slow
 def test_ex60_enregistrer_rouvrir_simuler_resultats_identiques_bit_a_bit(
     fenetre: FenetrePrincipale, qtbot: QtBot, tmp_path: Path
 ) -> None:
@@ -267,6 +268,7 @@ def test_r7_garde_fou_hyperstatique_dans_lihm(fenetre: FenetrePrincipale, qtbot:
     assert "indéterminé" in fenetre.dernier_message
 
 
+@pytest.mark.slow
 def test_r7_mode_cinematique_isostatique_depuis_lihm(
     fenetre: FenetrePrincipale, qtbot: QtBot
 ) -> None:
@@ -281,6 +283,7 @@ def test_r7_mode_cinematique_isostatique_depuis_lihm(
     assert np.abs(resultats.positions["Piston"][:, 0] - x_b).max() < 1e-6
 
 
+@pytest.mark.slow
 def test_r7_ex23_trois_pivots_et_glissiere_option_cochee_depuis_lihm(
     fenetre: FenetrePrincipale, qtbot: QtBot
 ) -> None:

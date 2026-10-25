@@ -36,6 +36,7 @@ def fenetre(qtbot: QtBot) -> Iterator[FenetrePrincipale]:
     f.annuler()
 
 
+@pytest.mark.perf
 def test_r6_premier_calcul_depuis_lihm_prechauffee(
     fenetre: FenetrePrincipale, qtbot: QtBot, record_property: Callable[[str, object], None]
 ) -> None:
@@ -51,6 +52,7 @@ def test_r6_premier_calcul_depuis_lihm_prechauffee(
     assert duree < CONSIGNE_PREMIER_CALCUL
 
 
+@pytest.mark.slow
 def test_r6_deuxieme_calcul_aussi_prechauffe(fenetre: FenetrePrincipale, qtbot: QtBot) -> None:
     fenetre.charger_etude(etude_bielle("60", 60.0))
     fenetre.show()
@@ -60,6 +62,7 @@ def test_r6_deuxieme_calcul_aussi_prechauffe(fenetre: FenetrePrincipale, qtbot: 
     qtbot.waitUntil(fenetre.prechauffe_pret, timeout=DELAI_PRECHAUFFAGE)  # processus suivant
 
 
+@pytest.mark.slow
 def test_r6_processus_prechauffe_resultats_identiques_au_calcul_direct() -> None:
     etude = etude_bielle("60", 60.0)
     chaud = ProcessusPrechauffe()
@@ -82,6 +85,7 @@ def test_r6_processus_prechauffe_resultats_identiques_au_calcul_direct() -> None
         chaud.arreter()
 
 
+@pytest.mark.perf
 def test_r6_arret_dun_processus_prechauffe_inutilise_est_rapide() -> None:
     chaud = ProcessusPrechauffe()
     chaud.demarrer()

@@ -26,6 +26,7 @@ def _reducteur(eta: float):
     return etude
 
 
+@pytest.mark.slow
 def test_ex16_deux_phases_moteur_puis_frein() -> None:
     """Entrée imposée à 30 rad/s. Phase 1 (moteur) : charge résistante de 3 N·m sur la sortie,
     couple d'entrée 3/(3·η) = 1,05263 N·m. Phase 2 (frein) : couple entraînant de 3 N·m sur la

@@ -134,7 +134,8 @@ class ArbreEtude(QTreeWidget):
                     or ((grandeurs_pilotables(etude.liaison(pilote.liaison).type) or ("angle",))[0])
                 )
                 texte = f"{pilote.liaison} : {textes.loi_pilote(pilote.loi.texte, grandeur)}"
-                self._ajouter(textes.RUBRIQUE_PILOTES, texte, GENRE_PILOTE, pilote.liaison)
+                item = self._ajouter(textes.RUBRIQUE_PILOTES, texte, GENRE_PILOTE, pilote.liaison)
+                item.setToolTip(0, texte)  # loi complète, l'arbre étant étroit
             for action in etude.actions:
                 texte = textes.libelle_action(action.nom, action.nature.value, action.solide)
                 self._ajouter(textes.RUBRIQUE_ACTIONS, texte, GENRE_ACTION, action.nom)

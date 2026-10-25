@@ -7,15 +7,18 @@ commande peut utiliser `simuler_en_processus()`.
 - Démarrage `spawn` (seul mode sous Windows, compatible PyInstaller avec `freeze_support`).
 - Frontière sérialisée : l'étude traverse sous forme de dict JSON (`Etude.vers_dict`), les
   résultats reviennent en tableaux numpy (`ResultatsBruts`), les erreurs en (type, message, t).
-- Progression : un message au plus toutes les `PERIODE_PROGRESSION` s, émis par la fonction
-  utilisateur post-pas du solveur ; la même fonction lit l'événement d'annulation douce.
+- Progression : un message au plus toutes les `PERIODE_PROGRESSION` s, émis par le rappel
+  `progression` passé explicitement au moteur (R5) ; le moteur lit l'événement d'annulation douce
+  par le paramètre `arret` et lève `CalculAnnule`.
 - Annulation : douce (le solveur s'arrête proprement au pas suivant), puis `terminate()` si le
   processus n'a pas fini après `DELAI_ANNULATION_DOUCE` (prototype du lot 1a : terminate en 7 ms).
 """
 
+import atexit
 import multiprocessing
 import queue
 import time
+import weakref
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from enum import StrEnum
@@ -25,6 +28,7 @@ from typing import Any
 
 from meca3d.modele.etude import Etude, Reglages
 from meca3d.moteur.base import (
+    CalculAnnule,
     ErreurGardeFou,
     ErreurLiaisonNonPriseEnCharge,
     ErreurModele,
@@ -64,67 +68,28 @@ def cinematique_disponible() -> bool:
 
 
 # --- côté processus fils --------------------------------------------------------------------
-class _SystemeSuivi:
-    """Enveloppe d'un `MainSystem` Exudyn : `SolveDynamic` installe la fonction post-pas."""
-
-    def __init__(self, systeme: Any, post_pas: Callable[[Any, float], bool]) -> None:
-        self._systeme = systeme
-        self._post_pas = post_pas
-
-    def SolveDynamic(self, *args: Any, **kwargs: Any) -> Any:
-        self._systeme.SetPostStepUserFunction(self._post_pas)
-        return self._systeme.SolveDynamic(*args, **kwargs)
-
-    def __getattr__(self, nom: str) -> Any:
-        return getattr(self._systeme, nom)
-
-
-class _ConteneurSuivi:
-    def __init__(self, conteneur: Any, post_pas: Callable[[Any, float], bool]) -> None:
-        self._conteneur = conteneur
-        self._post_pas = post_pas
-
-    def AddSystem(self, *args: Any, **kwargs: Any) -> _SystemeSuivi:
-        return _SystemeSuivi(self._conteneur.AddSystem(*args, **kwargs), self._post_pas)
-
-    def __getattr__(self, nom: str) -> Any:
-        return getattr(self._conteneur, nom)
-
-
-class _ExudynSuivi:
-    """Module `exudyn` vu par `moteur/exudyn_dyn.py` dans le fils : seul `SystemContainer` change.
-
-    Cela donne la progression et l'annulation douce sans modifier le moteur (les modes dynamique
-    et cinématique passent tous deux par `exudyn_dyn`).
-    """
-
-    def __init__(self, exu: Any, post_pas: Callable[[Any, float], bool]) -> None:
-        self._exu = exu
-        self._post_pas = post_pas
-
-    def SystemContainer(self, *args: Any, **kwargs: Any) -> _ConteneurSuivi:
-        return _ConteneurSuivi(self._exu.SystemContainer(*args, **kwargs), self._post_pas)
-
-    def __getattr__(self, nom: str) -> Any:
-        return getattr(self._exu, nom)
-
-
 def _simuler_dans_le_fils(
-    etude: Etude, reglages: Reglages | None, mode: ModeSimulation
+    etude: Etude,
+    reglages: Reglages | None,
+    mode: ModeSimulation,
+    progression: Callable[[float], None],
+    arret: Callable[[], bool],
 ) -> ResultatsBruts:
     """Dynamique : moteur direct (le garde-fou a été appliqué par l'IHM). Cinématique :
     `simuler_etude`, qui désigne les ddl redondants à libérer (EX-23) puis appelle
-    `MoteurCinematique` ; l'option est lue dans `etude.hyperstatique_autorise`."""
+    `MoteurCinematique` ; l'option est lue dans `etude.hyperstatique_autorise`.
+
+    La progression et l'arrêt doux sont des paramètres explicites des moteurs (R5)."""
     if mode is ModeSimulation.DYNAMIQUE:
         from meca3d.moteur.exudyn_dyn import MoteurExudynDyn
 
-        return MoteurExudynDyn().simuler(etude, reglages)
+        return MoteurExudynDyn().simuler(etude, reglages, progression=progression, arret=arret)
     from meca3d.graphe.mobilite import Mode
     from meca3d.moteur.simulation import simuler_etude
 
     if reglages is not None:
         etude = replace(etude, reglages=reglages)
-    return simuler_etude(etude, Mode.CINEMATIQUE)
+    return simuler_etude(etude, Mode.CINEMATIQUE, progression=progression, arret=arret)
 
 
 def _precharger() -> None:
@@ -150,25 +115,21 @@ def _travailleur(
         sortie.put(("demarre",))
         dernier = [0.0]
 
-        def post_pas(mbs: Any, t: float) -> bool:
+        def progression(fraction: float) -> None:
             maintenant = time.perf_counter()
-            if maintenant - dernier[0] >= PERIODE_PROGRESSION:
+            if maintenant - dernier[0] >= PERIODE_PROGRESSION or fraction >= 1.0:
                 dernier[0] = maintenant
-                sortie.put(("progression", min(1.0, max(0.0, t / duree)), float(t)))
-            return not annulation.is_set()
+                sortie.put(("progression", fraction, fraction * duree))
 
-        from meca3d.moteur import exudyn_dyn
-
-        reel = exudyn_dyn.exu
-        exudyn_dyn.exu = _ExudynSuivi(reel, post_pas)
-        try:
-            resultats = _simuler_dans_le_fils(etude, reglages, ModeSimulation(mode))
-        finally:
-            exudyn_dyn.exu = reel
+        resultats = _simuler_dans_le_fils(
+            etude, reglages, ModeSimulation(mode), progression, annulation.is_set
+        )
         if annulation.is_set():
             sortie.put(("annule",))
         else:
             sortie.put(("fin", resultats))
+    except CalculAnnule:
+        sortie.put(("annule",))
     except ErreurMoteur as e:
         if annulation.is_set():
             sortie.put(("annule",))
@@ -242,6 +203,7 @@ class ProcessusPrechauffe:
             daemon=True,
         )
         self._processus.start()
+        _PRECHAUFFES.add(self)
 
     @property
     def vivant(self) -> bool:
@@ -273,6 +235,19 @@ class ProcessusPrechauffe:
             if file is not None:
                 file.close()
                 file.cancel_join_thread()
+
+
+_PRECHAUFFES: "weakref.WeakSet[ProcessusPrechauffe]" = weakref.WeakSet()
+
+
+def arreter_tous_les_prechauffes() -> None:
+    """Arrête tout processus préchauffé encore inutilisé (sortie du programme, nettoyage des
+    tests) : aucun processus d'attente ne doit survivre à la fenêtre qui l'a demandé."""
+    for chaud in list(_PRECHAUFFES):
+        chaud.arreter()
+
+
+atexit.register(arreter_tous_les_prechauffes)
 
 
 class CalculEnCours:

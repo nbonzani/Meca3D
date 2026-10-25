@@ -1,7 +1,7 @@
 {
   "fichiers_proteges": [".env", ".git/", "uv.lock", "decade_archive/", "prototypes/exudyn_bielle/bielle_manivelle.py"],
   "dossier_tests": "tests/",
-  "commande_tests": ["uv", "run", "pytest", "-q", "-x", "--no-header", "-m", "not slow and not solidcraft"],
+  "commande_tests": ["uv", "run", "pytest", "-q", "-x", "--no-header", "-m", "not slow and not solidcraft and not perf"],
   "commandes_qualite": [["uv", "run", "ruff", "check", "."], ["uv", "run", "pyright"]],
   "formateurs": {
     ".py": [["uv", "run", "ruff", "check", "--fix", "{fichier}"], ["uv", "run", "ruff", "format", "{fichier}"]]

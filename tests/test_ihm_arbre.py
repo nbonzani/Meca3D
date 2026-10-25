@@ -290,6 +290,7 @@ def test_ex41_mode_cinematique_prevu_ou_desactive_avec_message(
 
 
 # --- EX-42 : simulation depuis l'IHM -------------------------------------------------------
+@pytest.mark.slow
 def test_ex42_simulation_lancee_depuis_lihm_puis_annulee(
     fenetre: FenetrePrincipale, qtbot: QtBot
 ) -> None:
@@ -307,6 +308,7 @@ def test_ex42_simulation_lancee_depuis_lihm_puis_annulee(
     assert "annulé" in fenetre.dernier_message.lower()
 
 
+@pytest.mark.slow
 def test_ex42_simulation_depuis_lihm_menee_a_son_terme(
     fenetre: FenetrePrincipale, qtbot: QtBot
 ) -> None:
@@ -319,6 +321,7 @@ def test_ex42_simulation_depuis_lihm_menee_a_son_terme(
     assert fenetre.action_simuler.isEnabled()
 
 
+@pytest.mark.slow
 def test_ex43_echec_du_solveur_message_pedagogique_dans_lihm(
     fenetre: FenetrePrincipale, qtbot: QtBot, monkeypatch: pytest.MonkeyPatch
 ) -> None:

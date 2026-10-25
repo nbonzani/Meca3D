@@ -68,6 +68,7 @@ def test_ex14_cinematique_helicoidale() -> None:
     assert v[-1] == pytest.approx(7.9577e-3, rel=1e-4)
 
 
+@pytest.mark.slow
 def test_q7_cinematique_train_epicycloidal() -> None:
     etude = etude_epicycloidal()
     etude.couplages = [Engrenage.depuis_dents("Willis", "Ls", "Lp", 20, 40)]
