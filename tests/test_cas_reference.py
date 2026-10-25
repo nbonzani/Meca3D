@@ -305,8 +305,7 @@ def test_ex14_vis_ecrou_effort_axial() -> None:
 # ---------------------------------------------------------------------------- EX-44
 
 
-# marqueur `perf` absent de cette branche (créé par le lot de finitions) : `slow` en attendant
-@pytest.mark.slow
+@pytest.mark.perf
 def test_ex44_bielle_moins_de_10_s() -> None:
     """Bielle-manivelle de référence, 1 s, 4 000 pas : moins de 10 s de calcul (EX-44), étude
     validée, garde-fou et traduction Exudyn compris."""
