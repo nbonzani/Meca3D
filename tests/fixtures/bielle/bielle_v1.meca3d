@@ -1,0 +1,238 @@
+{
+  "version_etude": 1,
+  "maquette": "bielle_manivelle.solidcraft",
+  "revision": 47,
+  "solides": [
+    {
+      "nom": "Bati",
+      "fixe": true,
+      "masse": 0.020640000000000002,
+      "cdg": [
+        0.0,
+        0.0,
+        -0.03
+      ],
+      "inertie": [
+        [
+          2.9240000000000024e-06,
+          0.0,
+          -1.501757651567459e-22
+        ],
+        [
+          0.0,
+          2.9240000000000037e-06,
+          1.501757651567459e-22
+        ],
+        [
+          -1.501757651567459e-22,
+          1.501757651567459e-22,
+          5.504e-06
+        ]
+      ]
+    },
+    {
+      "nom": "Manivelle",
+      "fixe": false,
+      "masse": 0.312,
+      "cdg": [
+        0.05,
+        0.0,
+        0.0
+      ],
+      "inertie": [
+        [
+          2.0800000000000038e-05,
+          1.7099671073859142e-20,
+          2.7241185307502744e-21
+        ],
+        [
+          1.7099671073859142e-20,
+          0.00027039999999999985,
+          -1.668041519590657e-37
+        ],
+        [
+          2.7241185307502744e-21,
+          -1.668041519590657e-37,
+          0.00027039999999999985
+        ]
+      ]
+    },
+    {
+      "nom": "Bielle",
+      "fixe": false,
+      "masse": 0.936,
+      "cdg": [
+        0.25,
+        -1.3216655740203956e-14,
+        0.0
+      ],
+      "inertie": [
+        [
+          6.24e-05,
+          6.162673634178374e-16,
+          0.0
+        ],
+        [
+          6.162673634178374e-16,
+          0.0070512,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0070512
+        ]
+      ]
+    },
+    {
+      "nom": "Piston",
+      "fixe": false,
+      "masse": 0.5,
+      "cdg": [
+        0.4000000000000213,
+        0.0,
+        0.0
+      ],
+      "inertie": [
+        [
+          7.5e-05,
+          1.3694767421904324e-37,
+          -1.3189962658099837e-37
+        ],
+        [
+          1.3694767421904324e-37,
+          7.5e-05,
+          1.3694767421904324e-37
+        ],
+        [
+          -1.3189962658099837e-37,
+          1.3694767421904324e-37,
+          7.5e-05
+        ]
+      ]
+    }
+  ],
+  "liaisons": [
+    {
+      "nom": "L01_pivot",
+      "type_sc": "revolute",
+      "solide_a": "Bati",
+      "solide_b": "Manivelle",
+      "centre": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "axe_sc": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "valeur_pose": 0.0,
+      "type": "pivot",
+      "axe": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "direction": null,
+      "statut": "validee"
+    },
+    {
+      "nom": "L12_pivot",
+      "type_sc": "revolute",
+      "solide_a": "Manivelle",
+      "solide_b": "Bielle",
+      "centre": [
+        0.1,
+        0.0,
+        0.0
+      ],
+      "axe_sc": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "valeur_pose": -8.811804928461874e-14,
+      "type": "pivot",
+      "axe": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "direction": null,
+      "statut": "validee"
+    },
+    {
+      "nom": "L23_rotule",
+      "type_sc": "ball",
+      "solide_a": "Bielle",
+      "solide_b": "Piston",
+      "centre": [
+        0.4,
+        -2.6435414785385624e-14,
+        0.0
+      ],
+      "axe_sc": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "valeur_pose": null,
+      "type": "lineaire_annulaire",
+      "axe": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "direction": null,
+      "statut": "validee"
+    },
+    {
+      "nom": "L30_glissiere",
+      "type_sc": "slider",
+      "solide_a": "Bati",
+      "solide_b": "Piston",
+      "centre": [
+        0.4,
+        0.0,
+        0.0
+      ],
+      "axe_sc": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "valeur_pose": 2.1271942807784174e-14,
+      "type": "glissiere",
+      "axe": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "direction": null,
+      "statut": "validee"
+    }
+  ],
+  "pilotes": [
+    {
+      "liaison": "L01_pivot",
+      "loi": "Piecewise((10*(t - 0.2/pi*sin(pi*t/0.2)), t < 0.2), (2 + 20*(t - 0.2), True))",
+      "constantes": {},
+      "grandeur": null
+    }
+  ],
+  "pesanteur": {
+    "vecteur": [
+      0.0,
+      -9.81,
+      0.0
+    ],
+    "actif": true
+  },
+  "reglages": {
+    "duree": 1.0,
+    "nb_pas": 4000,
+    "periode_ecriture": 0.002
+  }
+}

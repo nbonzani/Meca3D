@@ -1,7 +1,8 @@
 {
-  "version_etude": 1,
+  "version_etude": 2,
   "maquette": "bielle_manivelle.solidcraft",
   "revision": 47,
+  "validation_en_bloc": false,
   "solides": [
     {
       "nom": "Bati",
@@ -116,6 +117,7 @@
     {
       "nom": "L01_pivot",
       "type_sc": "revolute",
+      "couplage_screw": false,
       "solide_a": "Bati",
       "solide_b": "Manivelle",
       "centre": [
@@ -141,6 +143,7 @@
     {
       "nom": "L12_pivot",
       "type_sc": "revolute",
+      "couplage_screw": false,
       "solide_a": "Manivelle",
       "solide_b": "Bielle",
       "centre": [
@@ -166,6 +169,7 @@
     {
       "nom": "L23_rotule",
       "type_sc": "ball",
+      "couplage_screw": false,
       "solide_a": "Bielle",
       "solide_b": "Piston",
       "centre": [
@@ -191,6 +195,7 @@
     {
       "nom": "L30_glissiere",
       "type_sc": "slider",
+      "couplage_screw": false,
       "solide_a": "Bati",
       "solide_b": "Piston",
       "centre": [
@@ -214,6 +219,7 @@
       "statut": "validee"
     }
   ],
+  "couplages": [],
   "pilotes": [
     {
       "liaison": "L01_pivot",
@@ -222,6 +228,7 @@
       "grandeur": null
     }
   ],
+  "capteurs": [],
   "pesanteur": {
     "vecteur": [
       0.0,
