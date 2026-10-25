@@ -317,3 +317,41 @@ def unite_de(grandeur: str) -> str:
     if grandeur.endswith(")") and "(" in grandeur:
         return grandeur[grandeur.rindex("(") + 1 : -1]
     return ""
+
+
+# --- animation dans SolidCraft et trajectoires (EX-53, EX-52) ----------------------------------
+ONGLET_ANIMATION = "Animation"
+ANIMATION_LECTURE = "Lecture"
+ANIMATION_PAUSE = "Pause"
+ANIMATION_ARRET = "Arrêter (restaurer la pose)"
+ANIMATION_VITESSE = "Vitesse :"
+ANIMATION_VITESSES: tuple[tuple[str, float], ...] = (
+    ("×0,1", 0.1),
+    ("×0,25", 0.25),
+    ("×0,5", 0.5),
+    ("×1", 1.0),
+    ("×2", 2.0),
+)
+ANIMATION_TRAJECTOIRE_CAPTEUR = "Capteur de point :"
+ANIMATION_TRACER = "Tracer la trajectoire"
+ANIMATION_EFFACER = "Effacer les trajectoires"
+ANIMATION_AIDE = (
+    "Rejoue dans SolidCraft le mouvement simulé : lecture, pause, vitesse de ×0,1 à ×2 et curseur "
+    "temporel. La pose initiale de la maquette est restaurée à l'arrêt, en fin de lecture et à la "
+    "fermeture ; la maquette n'est jamais enregistrée. Garder la fenêtre de SolidCraft visible."
+)
+ANIMATION_INACTIVE = "Animation indisponible : "
+ANIMATION_SANS_RESULTAT = "lancer d'abord une simulation."
+ANIMATION_SANS_CONNEXION = "connecter SolidCraft."
+ANIMATION_OCCUPEE = "une opération est en cours."
+ANIMATION_PAS_DE_CAPTEUR = "Aucun capteur de point : en ajouter un (branche Capteurs)."
+MSG_TRAJECTOIRE_TRACEE = (
+    "Trajectoire tracée dans SolidCraft (esquisse 3D « {nom} »). La maquette est modifiée : "
+    "l'enregistrer dans SolidCraft pour conserver la trajectoire."
+)
+MSG_TRAJECTOIRES_EFFACEES = "Trajectoires effacées de la maquette SolidCraft : {nombre}."
+MSG_AUCUNE_TRAJECTOIRE = "Aucune trajectoire à effacer."
+
+
+def animation_temps(t: float, duree: float) -> str:
+    return f"t = {t:.3f} s / {duree:.3f} s".replace(".", ",")

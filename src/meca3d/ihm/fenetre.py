@@ -51,9 +51,11 @@ from meca3d.ihm.arbre import (
     ArbreEtude,
 )
 from meca3d.ihm.proprietes import PanneauProprietes
+from meca3d.ihm.vue_animation import VueAnimation
 from meca3d.ihm.vue_courbes import VueCourbes
 from meca3d.ihm.vue_graphe import VueGraphe
 from meca3d.ihm.vue_torseurs import VueTorseurs
+from meca3d.modele.capteurs import CapteurPoint
 from meca3d.modele.etude import (
     ErreurEtude,
     ErreurValidation,
@@ -142,12 +144,14 @@ class FenetrePrincipale(QMainWindow):
         self.vue_graphe = VueGraphe()
         self.vue_courbes = VueCourbes()
         self.vue_torseurs = VueTorseurs()
+        self.vue_animation = VueAnimation(lambda: self.canal)
         self.journal = QPlainTextEdit()
         self.journal.setReadOnly(True)
         self.onglets = QTabWidget()
         self.onglets.addTab(self.vue_graphe, textes.ONGLET_GRAPHE)
         self.onglets.addTab(self.vue_courbes, textes.ONGLET_COURBES)
         self.onglets.addTab(self.vue_torseurs, textes.ONGLET_TORSEURS)
+        self.onglets.addTab(self.vue_animation, textes.ONGLET_ANIMATION)
         self.onglets.addTab(self.journal, textes.ONGLET_JOURNAL)
         self.separateur = QSplitter(Qt.Orientation.Horizontal)
         self.separateur.addWidget(self.arbre)
@@ -181,6 +185,9 @@ class FenetrePrincipale(QMainWindow):
         self.proprietes.modifiee.connect(self._sur_modification)
         self.proprietes.capteurs_modifies.connect(self._sur_capteurs_modifies)
         self.bouton_reimporter.clicked.connect(self.importer)
+        self.vue_animation.trajectoire_demandee.connect(self.tracer_trajectoire)
+        self.vue_animation.effacement_demande.connect(self.effacer_trajectoires)
+        self.vue_animation.erreur.connect(self._message)
         self._actualiser()
 
     # --- construction ------------------------------------------------------------------------
@@ -333,6 +340,7 @@ class FenetrePrincipale(QMainWindow):
         """Alimente les courbes et le tableau des torseurs (vides sans résultat)."""
         self.vue_courbes.afficher(self.etude, self.resultats)
         self.vue_torseurs.afficher(self.etude, self.resultats)
+        self.vue_animation.definir(self.etude, self.resultats)
         if basculer and self.resultats is not None:
             self.onglets.setCurrentWidget(self.vue_courbes)
 
@@ -415,6 +423,9 @@ class FenetrePrincipale(QMainWindow):
         )
         self.action_importer.setEnabled(peut_importer)
         self.bouton_reimporter.setEnabled(peut_importer)
+        self.vue_animation.autoriser(
+            connecte and not self._import_en_cours and not self._verification_en_cours
+        )
 
     # --- sélection ---------------------------------------------------------------------------
     def _sur_selection(self, genre: str, nom: str) -> None:
@@ -455,6 +466,9 @@ class FenetrePrincipale(QMainWindow):
         elif nom == textes.RUBRIQUE_COURBES:
             self.onglets.setCurrentWidget(self.vue_courbes)
             self.proprietes.afficher_texte(nom, self.vue_courbes.etiquette_stats.text())
+        elif nom == textes.RUBRIQUE_ANIMATION:
+            self.onglets.setCurrentWidget(self.vue_animation)
+            self.proprietes.afficher_texte(nom, textes.ANIMATION_AIDE)
         elif nom == textes.RUBRIQUE_PILOTES and self.mobilite is not None:
             self.proprietes.afficher_texte(
                 nom,
@@ -571,6 +585,60 @@ class FenetrePrincipale(QMainWindow):
             self.canal = None
             self.etiquette_connexion.setText(textes.CONNEXION_ABSENTE)
         self._maj_actions()
+
+    # --- trajectoires dans SolidCraft (EX-52) --------------------------------------------------
+    def tracer_trajectoire(self, nom_capteur: str) -> None:
+        """Trace dans la maquette, par une spline 3D, la trajectoire d'un capteur de point."""
+        capteur = next(
+            (
+                c
+                for c in (self.etude.capteurs if self.etude is not None else [])
+                if isinstance(c, CapteurPoint) and c.nom == nom_capteur
+            ),
+            None,
+        )
+        animateur = self.vue_animation.animateur()
+        if capteur is None or animateur is None:
+            return
+        self.vue_animation.arreter()
+        self.vue_animation.definir_occupe(True)
+
+        def travail() -> object:
+            return animateur.tracer_trajectoire(
+                capteur.point,
+                capteur.solide,
+                reference=capteur.solide_reference,
+                nom=f"Trajectoire_{capteur.nom}",
+            )
+
+        def reussite(nom: object) -> None:
+            self.vue_animation.definir_occupe(False)
+            self._message(textes.MSG_TRAJECTOIRE_TRACEE.format(nom=nom))
+
+        def echec(message: str) -> None:
+            self.vue_animation.definir_occupe(False)
+            self._message(message)
+
+        self._lancer(travail, reussite, echec)
+
+    def effacer_trajectoires(self) -> None:
+        """Efface de la maquette les trajectoires tracées par Meca3D (`timeline.delete`)."""
+        animateur = self.vue_animation.animateur()
+        if animateur is None or not animateur.trajectoires:
+            self._message(textes.MSG_AUCUNE_TRAJECTOIRE)
+            return
+        self.vue_animation.arreter()
+        self.vue_animation.definir_occupe(True)
+
+        def reussite(nombre: object) -> None:
+            self.vue_animation.definir_occupe(False)
+            self._message(textes.MSG_TRAJECTOIRES_EFFACEES.format(nombre=nombre))
+
+        def echec(message: str) -> None:
+            self.vue_animation.definir_occupe(False)
+            self._message(message)
+
+        self._lancer(animateur.effacer_trajectoires, reussite, echec)
 
     # --- EX-06, R3 : la structure de la maquette a-t-elle changé ? ---------------------------
     def verifier_structure(self, suite: Callable[[], None] | None = None) -> None:
@@ -830,6 +898,8 @@ class FenetrePrincipale(QMainWindow):
 
     def closeEvent(self, a0: QCloseEvent | None) -> None:  # noqa: N802 - nom imposé par Qt
         self.annuler()
+        self._pool.waitForDone(2000)  # un tracé de trajectoire en cours doit se terminer
+        self.vue_animation.arreter()  # restaure la pose de la maquette (EX-53)
         if self.prechauffe is not None:
             self.prechauffe.arreter()
         self._pool.waitForDone(2000)
