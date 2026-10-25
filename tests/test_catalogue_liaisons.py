@@ -94,12 +94,30 @@ INVARIANTS = {
 TYPES_ESSAI = [t for t in TypeLiaison if t is not TypeLiaison.HELICOIDALE]
 
 
+# La pesanteur seule n'excite pas toutes les rotations libres : pour l'appui plan, tous les moments
+# disponibles sont perpendiculaires à la normale. On lance alors le solide autour de la normale,
+# vitesse compatible avec la liaison (rotation autour de l'axe passant par le centre).
+VITESSE_ANGULAIRE_INITIALE = {TypeLiaison.APPUI_PLAN: 2.0}  # rad/s autour de z local
+
+
+def _vitesses_initiales(etude: Etude, type_liaison: TypeLiaison):
+    omega = VITESSE_ANGULAIRE_INITIALE.get(type_liaison)
+    if omega is None:
+        return None
+    n = etude.liaison("L").base()[:, 2]
+    w = omega * n
+    v = np.cross(w, etude.solide("Corps").cdg - CENTRE)
+    return {"Corps": (v, w)}
+
+
 @pytest.mark.parametrize("type_liaison", TYPES_ESSAI, ids=lambda t: t.value)
 def test_ex10_grands_deplacements(type_liaison: TypeLiaison) -> None:
     etude = _etude(type_liaison)
     liaison = etude.liaison("L")
     base = liaison.base()
-    res = MoteurExudynDyn().simuler(etude)
+    res = MoteurExudynDyn().simuler(
+        etude, vitesses_initiales=_vitesses_initiales(etude, type_liaison)
+    )
     rot = res.rotations["Corps"]  # (n, 3, 3)
     pos = res.positions["Corps"]
     cdg = etude.solide("Corps").cdg
@@ -123,7 +141,8 @@ def test_ex10_grands_deplacements(type_liaison: TypeLiaison) -> None:
         assert angle_max >= ROTATION_MIN
 
     efforts = np.hstack([res.forces["L"], res.moments["L"]])
-    assert np.abs(efforts[:, ~bloques]).max() < TOL_EFFORT
+    if (~bloques).any():  # encastrement : aucun ddl libre, rien à contrôler ici
+        assert np.abs(efforts[:, ~bloques]).max() < TOL_EFFORT
 
 
 def test_ex10_lineaire_rectiligne_transmet_un_torseur() -> None:

@@ -2,7 +2,7 @@
 """Moteur dynamique Exudyn : corps rigides, GenericJoint, pilotes, pesanteur (D1, EX-40)."""
 
 import importlib
-from collections.abc import Callable
+from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
 import numpy as np
@@ -105,8 +105,21 @@ def _verifier(etude: Etude) -> None:
 class MoteurExudynDyn:
     """Implémente `Moteur` : dynamique à pas fixe, generalized-α."""
 
-    def simuler(self, etude: Etude, reglages: Reglages | None = None) -> ResultatsBruts:
+    def simuler(
+        self,
+        etude: Etude,
+        reglages: Reglages | None = None,
+        vitesses_initiales: Mapping[
+            str, tuple[Sequence[float] | np.ndarray, Sequence[float] | np.ndarray]
+        ]
+        | None = None,
+    ) -> ResultatsBruts:
+        """`vitesses_initiales` : par solide, (vitesse du CdG, vitesse angulaire), repère monde, SI.
+
+        Par défaut, départ au repos. Elles doivent être compatibles avec les liaisons.
+        """
         reglages = reglages or etude.reglages
+        vitesses_initiales = vitesses_initiales or {}
         _verifier(etude)
         exu.config.printToConsole = False
         conteneur = exu.SystemContainer()
@@ -119,7 +132,10 @@ class MoteurExudynDyn:
             if s.fixe:
                 corps[s.nom] = sol
                 continue
+            v0, w0 = vitesses_initiales.get(s.nom, ((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)))
             corps[s.nom] = mbs.CreateRigidBody(
+                initialVelocity=[float(x) for x in v0],
+                initialAngularVelocity=[float(x) for x in w0],
                 inertia=RigidBodyInertia(
                     mass=s.masse, inertiaTensor=s.inertie, inertiaTensorAtCOM=True
                 ),
