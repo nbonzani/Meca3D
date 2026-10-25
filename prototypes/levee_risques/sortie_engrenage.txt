@@ -1,0 +1,18 @@
+=== Engrenage Z1=20, Z2=60 (k = 1/3), EX-14 ===
+Cas A (position) : omega_e mesuré = 30.000567187 rad/s (imposé 30), omega_s = -10.000189062 (attendu -10)
+   |omega_s| - 10 = 1.891e-04 rad/s (critère 1e-6 -> KO) ; omega_s + k·omega_e = 1.492e-13 (rapport exact ?)
+   dérive angulaire phi2 + k·phi1 après 1 s = -1.449e-04 rad ; lambda = 4.787e-09 N·m
+   pas 2e-03 : |omega_s|-10 = 7.563e-04 ; |omega_s + k·omega_e| = 1.868e-11 ; dérive angle = -5.798e-04
+   pas 5e-04 : |omega_s|-10 = 4.726e-05 ; |omega_s + k·omega_e| = 4.796e-14 ; dérive angle = -3.624e-05
+Cas A (vitesse) : omega_e mesuré = 30.000000000 rad/s (imposé 30), omega_s = -10.000000000 (attendu -10)
+   |omega_s| - 10 = 7.105e-15 rad/s (critère 1e-6 -> OK) ; omega_s + k·omega_e = 7.091e-12 (rapport exact ?)
+   dérive angulaire phi2 + k·phi1 après 1 s = -1.449e-04 rad ; lambda = -5.339e-13 N·m
+   pas 2e-03 : |omega_s|-10 = 1.776e-15 ; |omega_s + k·omega_e| = 3.553e-15 ; dérive angle = -5.797e-04
+   pas 5e-04 : |omega_s|-10 = 0.000e+00 ; |omega_s + k·omega_e| = 2.236e-11 ; dérive angle = -3.624e-05
+   dérive angulaire à t = 5 s (pilotage vitesse, h = 1e-3) : -8.171e-04 rad ; |omega_s|-10 = 7.11e-15
+   dérive angulaire à t = 20 s (pilotage vitesse, h = 1e-3) : -3.338e-03 rad ; |omega_s|-10 = 1.07e-14
+Cas B : Ce = 1 N·m moteur, charge visqueuse c = 0.3 N·m·s/rad en sortie
+   omega_e = 30.000000 (attendu 30), omega_s = -10.000000 (attendu -10), acc_s = -6.20e-06 rad/s2
+   Cs (couple résistant appliqué en sortie) = 3.000000 N·m (attendu 3, tol 1e-3 -> OK)
+   multiplicateur de Lagrange lu dans le connecteur = 3.000000 N·m (|.| attendu 3)
+   réaction du pivot de sortie (ForceLocal) = [0. 0. 0.] N (attendu ~0 : pas de poussée radiale)

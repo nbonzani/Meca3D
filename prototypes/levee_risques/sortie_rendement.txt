@@ -1,0 +1,17 @@
+=== Rendement du réducteur, EX-16 ===
+Cas 1 (courant) : Ce = 1 N·m, η = 0,95 : ω_e = 28.5000, ω_s = -9.5000 rad/s ; Cs = 2.850000 N·m (attendu 2,85 ; écart abs 6.36e-10)
+   puissance entrée = 28.5000 W, sortie = 27.0750 W, rapport = 0.950000 (attendu 0,95)
+Cas 1 (pas_prec) : Ce = 1 N·m, η = 0,95 : ω_e = 28.5000, ω_s = -9.5000 rad/s ; Cs = 2.850000 N·m (attendu 2,85 ; écart abs 4.40e-09)
+   puissance entrée = 28.5000 W, sortie = 27.0750 W, rapport = 0.950000 (attendu 0,95)
+Cas 1 bis : η = 1.00 : Cs = 3.000000 N·m (attendu 3.0000)
+Cas 1 bis : η = 0.50 : Cs = 1.500000 N·m (attendu 1.5000)
+Cas 2 : entrée imposée 30 rad/s ; phase 1 (moteur) charge visqueuse c = 0,3 (Cs = 3 N·m) ; phase 2 (frein) couple entraînant de 3 N·m sur la sortie
+   [deux_sens, courant]
+   phase 1 : couple d'entrée = 1.05263 N·m (attendu 1.05263), signe -1, ω_e = 30.000
+   phase 2 : couple d'entrée = 0.95000 N·m (attendu 0.95000), signe +1, ω_e = 30.000
+   [deux_sens, pas_prec]
+   phase 1 : couple d'entrée = 1.05263 N·m (attendu 1.05263), signe -1, ω_e = 30.000
+   phase 2 : couple d'entrée = 0.95000 N·m (attendu 0.95000), signe +1, ω_e = 30.000
+   [avant_seul, courant]
+   phase 1 : couple d'entrée = 1.05263 N·m (attendu 1.05263), signe -1, ω_e = 30.000
+   phase 2 : couple d'entrée = 1.05263 N·m (attendu 0.95000), signe +1, ω_e = 30.000

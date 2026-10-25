@@ -1,0 +1,16 @@
+--- Partie A : processus spawn
+   calcul court (1 s simulée, 4000 pas) : construction+import dans le fils = 0.70 s, SolveDynamic = 0.48 s
+   calcul long prévu (240000 pas) ≈ 29 s
+   [dure] 59 messages de progression en 3 s, intervalle moyen 0.053 s, max 0.308 s, avancement final 9.6 %
+   [dure] annulation -> processus terminé en 0.007 s (critère < 1 s -> OK)
+   [douce] 62 messages de progression en 3 s, intervalle moyen 0.050 s, max 0.285 s, avancement final 10.0 %
+   [douce] annulation -> processus terminé en 0.088 s (critère < 1 s -> OK) ; arrêt propre à t = 6.384 s simulée (ok=True)
+   nouveau calcul après annulation : 1er message de progression après 1.16 s (spawn + import + construction)
+--- Partie B : calcul dans un thread, latence du fil principal (compteur 1 ms)
+   référence (rien d'autre) : écart moyen 1.64 ms, max 2.70 ms
+   thread, bielle (fonctions utilisateur Python) :
+      255 ticks sur ~6 s ; écart moyen 15.50 ms, max 16.7 ms, 99e centile 16.24 ms ; calcul terminé en 4.0 s
+   thread, pendule sans fonction Python :
+      1 ticks sur ~6 s ; écart moyen 1.50 ms, max 1.5 ms, 99e centile 1.50 ms ; calcul terminé en 10.5 s
+--- Partie B' : QThread (PyQt6), minuteur Qt 1 ms dans le fil principal
+   214 ticks en ~6 s (attendu ~ 6000 si fluide) ; écart moyen 16.81 ms, max 19.2 ms ; calcul terminé en 3.6 s

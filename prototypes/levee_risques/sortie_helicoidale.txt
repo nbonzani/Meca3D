@@ -1,0 +1,11 @@
+=== Hélicoïdale / vis-écrou p = 5 mm, EX-14 ===
+Cas 1 : ω = 10.000000000 rad/s ; v = 7.957747 mm/s (attendu 7.9577)  écart relatif = 0.00e+00
+        x(1 s) = 7.161972 mm ; attendu p·θ/2π = 7.161972 mm ; écart relatif = 6.30e-15
+Cas 2 : C = 2 N·m, F0 = 2513.2741 N (attendu 2513,27), équilibre libre (départ au repos)
+        x_max = 7.566e-13 m, |v| = 1.513e-12 m/s, |a| = 1.513e-12 m/s2, |α| = 1.929e-09 rad/s2
+        effort axial lu dans le couplage = -2513.2741 N (attendu 2513,27 ; écart relatif 1.81e-16 -> OK)
+        sensibilité : F0 x 1.001 -> α = -161.9 rad/s2, x(0,1 s) = -6.415e-04 m (déséquilibre détectable)
+        sensibilité : F0 x 0.999 -> α = 160.4 rad/s2, x(0,1 s) = 6.413e-04 m (déséquilibre détectable)
+Cas 3 : mêmes charges, ω = 10 rad/s imposé : multiplicateurs
+        pilotage : -2.012e-06 N·m (nul = équilibre) ; couplage = -2513.2741 N (attendu 2513,27)
+        F0 x 1,001 : pilotage = -0.0020 N·m (écart attendu ≈ 2·1e-3 = 2e-3 N·m)
