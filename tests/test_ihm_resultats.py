@@ -50,6 +50,7 @@ def _lire_csv(chemin: Path) -> dict[str, np.ndarray]:
     return {nom: valeurs[:, i] for i, nom in enumerate(entetes)}
 
 
+@pytest.mark.slow
 def test_ex52_courbe_du_couple_moteur_min_max_moyenne_coherents_avec_le_csv(
     fenetre: FenetrePrincipale, qtbot: QtBot, tmp_path: Path
 ) -> None:
@@ -79,6 +80,7 @@ def test_ex52_courbe_du_couple_moteur_min_max_moyenne_coherents_avec_le_csv(
     assert np.abs(y - refs).max() / np.abs(refs).max() <= TOLERANCE_EX40
 
 
+@pytest.mark.slow
 def test_ex52_toute_grandeur_en_fonction_dune_autre(
     fenetre: FenetrePrincipale, qtbot: QtBot
 ) -> None:
@@ -93,6 +95,7 @@ def test_ex52_toute_grandeur_en_fonction_dune_autre(
     assert not np.array_equal(x, fenetre.vue_courbes.donnees_courbe()[1])
 
 
+@pytest.mark.slow
 def test_ex51_un_capteur_ajoute_apres_la_simulation_apparait_dans_les_courbes(
     fenetre: FenetrePrincipale, qtbot: QtBot
 ) -> None:
@@ -112,6 +115,7 @@ def test_ex51_un_capteur_ajoute_apres_la_simulation_apparait_dans_les_courbes(
     assert "B x (m)" in fenetre.vue_courbes.grandeurs()
 
 
+@pytest.mark.slow
 def test_ex50_tableau_des_torseurs_a_linstant_choisi(
     fenetre: FenetrePrincipale, qtbot: QtBot
 ) -> None:
@@ -140,6 +144,7 @@ def test_ex50_tableau_des_torseurs_a_linstant_choisi(
     assert vue.liaisons() == ["L01_pivot", "L12_pivot", "L23_rotule", "L30_glissiere"]
 
 
+@pytest.mark.slow
 def test_ex50_torseur_cinematique_disponible_dans_le_tableau(
     fenetre: FenetrePrincipale, qtbot: QtBot
 ) -> None:
@@ -153,6 +158,7 @@ def test_ex50_torseur_cinematique_disponible_dans_le_tableau(
     assert vue.valeur("L01_pivot", "Vx (m/s)") == 0.0
 
 
+@pytest.mark.slow
 def test_ex52_export_csv_depuis_lihm_identique_a_meca3d_simuler(
     fenetre: FenetrePrincipale, qtbot: QtBot, tmp_path: Path
 ) -> None:

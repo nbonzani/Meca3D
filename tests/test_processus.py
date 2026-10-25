@@ -64,6 +64,7 @@ def _ecart_max(a: ResultatsBruts, b: ResultatsBruts) -> float:
     return max(ecarts)
 
 
+@pytest.mark.slow
 def test_ex42_resultats_identiques_au_calcul_direct() -> None:
     etude = lire_etude(ETUDE)
     direct = MoteurExudynDyn().simuler(etude)
@@ -73,6 +74,7 @@ def test_ex42_resultats_identiques_au_calcul_direct() -> None:
     assert en_processus.t.shape == (501,)
 
 
+@pytest.mark.slow
 def test_ex42_progression_recue_et_croissante() -> None:
     etude = lire_etude(ETUDE)
     mesures: list[Progression] = []
@@ -87,6 +89,7 @@ def test_ex42_progression_recue_et_croissante() -> None:
     assert max(instants) <= etude.reglages.duree + 1e-9
 
 
+@pytest.mark.perf
 def test_ex42_annulation_retour_a_letat_pret_en_moins_dune_seconde() -> None:
     calcul = CalculEnCours(_etude_longue())
     calcul.demarrer()
@@ -101,6 +104,7 @@ def test_ex42_annulation_retour_a_letat_pret_en_moins_dune_seconde() -> None:
     assert not calcul.processus_vivant
 
 
+@pytest.mark.perf
 def test_ex42_annulation_immediate_pendant_le_demarrage() -> None:
     calcul = CalculEnCours(_etude_longue())
     calcul.demarrer()
@@ -112,6 +116,7 @@ def test_ex42_annulation_immediate_pendant_le_demarrage() -> None:
     assert not calcul.processus_vivant
 
 
+@pytest.mark.slow
 def test_ex42_nouveau_calcul_possible_apres_annulation() -> None:
     premier = CalculEnCours(_etude_longue())
     premier.demarrer()
@@ -124,6 +129,7 @@ def test_ex42_nouveau_calcul_possible_apres_annulation() -> None:
     assert second.resultats.t.shape == (501,)
 
 
+@pytest.mark.slow
 def test_ex43_modele_hyperstatique_erreur_typee_avec_message_et_instant() -> None:
     etude = _etude_hyperstatique()
     calcul = CalculEnCours(etude)
@@ -140,12 +146,14 @@ def test_ex43_modele_hyperstatique_erreur_typee_avec_message_et_instant() -> Non
     assert f"{erreur.t_echec:.4g}" in message
 
 
+@pytest.mark.slow
 def test_ex43_simuler_en_processus_relance_lerreur_typee() -> None:
     with pytest.raises(ErreurSolveur) as exc:
         simuler_en_processus(_etude_hyperstatique())
     assert exc.value.t_echec is not None
 
 
+@pytest.mark.slow
 def test_ex43_modele_invalide_erreur_modele_pedagogique() -> None:
     etude = etude_proposee("00")  # aucune liaison validée
     calcul = CalculEnCours(etude)
@@ -163,6 +171,7 @@ def test_ex42_etude_transmise_sous_forme_de_dict() -> None:
     assert isinstance(calcul.donnees_etude, dict)
 
 
+@pytest.mark.slow
 def test_ex42_reglages_surcharges() -> None:
     etude = lire_etude(ETUDE)
     court = replace(etude.reglages, duree=0.2, nb_pas=800)

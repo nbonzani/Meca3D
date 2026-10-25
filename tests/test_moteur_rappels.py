@@ -31,6 +31,7 @@ def test_r5_sans_rappel_le_resultat_est_inchange() -> None:
     assert (seul.positions["Piston"] == avec.positions["Piston"]).all()
 
 
+@pytest.mark.perf
 def test_r5_arret_leve_calcul_annule_rapidement() -> None:
     """Un calcul d'une dizaine de secondes, arrêté à 5 % : retour en moins de 1 s après l'ordre."""
     etude = etude_bielle()
