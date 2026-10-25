@@ -31,6 +31,9 @@ SensorObject = _utilitaires.SensorObject
 # ARCHITECTURE § 5, CLAUDE.md : sans amortissement numérique (ρ∞ < 1), les réactions divergent.
 RHO_INFINI = 0.9
 
+# Tolérance de Newton (relative et absolue) des modèles à couplages, voir `reglages_solveur`
+TOLERANCE_NEWTON_COUPLAGES = 1e-12
+
 # Linéaire rectiligne = deux ponctuelles de même normale, placées à ±ECART_PONCTUELLES le long de
 # la ligne de contact (x local). La cinématique est exacte quel que soit l'écartement (z des deux
 # points nul <=> Tz = 0 et Ry = 0) ; 0,1 m (valeur du prototype) évite seulement un mauvais
@@ -314,16 +317,29 @@ class MoteurExudynDyn:
                     )
                 )
 
-        ss = exu.SimulationSettings()
-        ss.timeIntegration.endTime = reglages.duree
-        ss.timeIntegration.numberOfSteps = reglages.nb_pas
-        ss.timeIntegration.verboseMode = 0
-        ss.timeIntegration.generalizedAlpha.spectralRadius = RHO_INFINI
-        ss.solution.file.write = False
-        ss.solution.sensors.writePeriod = reglages.periode_ecriture
-        ss.show.computationTime = False
-        ss.show.statistics = False
+        def reglages_solveur(duree: float, nb_pas: int) -> Any:
+            ss = exu.SimulationSettings()
+            ss.timeIntegration.endTime = duree
+            ss.timeIntegration.numberOfSteps = nb_pas
+            ss.timeIntegration.verboseMode = 0
+            ss.timeIntegration.generalizedAlpha.spectralRadius = RHO_INFINI
+            ss.solution.file.write = False
+            ss.solution.sensors.writePeriod = reglages.periode_ecriture
+            if installation.couplages:
+                # Les contraintes de couplage ont un jacobien sans dérivée en position (le
+                # connecteur n'accepte que ∂g/∂q̇) : Newton converge linéairement et doit
+                # être poussé (écart de relation : 2·10⁻⁵ relatif aux tolérances par défaut,
+                # 10⁻⁹ avec celles-ci). Pas pour le frottement, dont le jacobien est numérique.
+                ss.timeIntegration.newton.relativeTolerance = TOLERANCE_NEWTON_COUPLAGES
+                ss.timeIntegration.newton.absoluteTolerance = TOLERANCE_NEWTON_COUPLAGES
+            ss.show.computationTime = False
+            ss.show.statistics = False
+            return ss
 
+        ss = reglages_solveur(reglages.duree, reglages.nb_pas)
+
+        mbs.Assemble()
+        installation.amorcer(mbs, reglages_solveur(reglages.duree / reglages.nb_pas, 1))
         annule = False
         if progression is not None or arret is not None:
 
@@ -338,7 +354,6 @@ class MoteurExudynDyn:
 
             mbs.SetPostStepUserFunction(post_pas)
 
-        mbs.Assemble()
         try:
             reussi = mbs.SolveDynamic(ss)
         except Exception as e:  # le moteur C++ lève des exceptions Python génériques

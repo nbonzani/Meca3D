@@ -255,6 +255,7 @@ class _Systeme:
     def ligne(self, termes: list[Terme], q: np.ndarray) -> np.ndarray:
         """Coefficients de (ẋ, ė) (7 valeurs) des termes d'un même solide, à l'état `q`."""
         e = np.asarray(q[3:7], dtype=float)
+        e = e / np.linalg.norm(e)  # ω_local = G(e)·ė suppose |e| = 1 (la norme dérive en h²)
         rotation = np.asarray(_rb.EulerParameters2RotationMatrix(e), dtype=float)
         g = _g_ep(e)
         ligne = np.zeros(7)
@@ -663,6 +664,24 @@ class Installation:
             c.installer_pertes(mbs, corps)
             c.ajouter_capteur(mbs)
         self.frottements = installer_frottements(mbs, etude, corps, joints)
+
+    def amorcer(self, mbs: Any, reglages_un_pas: Any) -> None:
+        """Multiplicateurs initiaux cohérents (EX-16, rendement dès le premier pas).
+
+        Les pertes de rendement dépendent du multiplicateur λ, nul à l'initialisation d'Exudyn :
+        l'accélération initiale serait calculée sans perte. Un premier pas d'essai (un pas de la
+        simulation) donne λ, qui devient la valeur initiale des multiplicateurs ; le solveur
+        repart des conditions initiales avec ce λ (écart d'ordre h·dλ/dt avec le λ de t = 0).
+        Sans objet si aucun rendement n'est inférieur à 1."""
+        if not any(c.relation.rendement < 1.0 for c in self.couplages):
+            return
+        try:
+            mbs.SolveDynamic(reglages_un_pas)
+        except Exception:  # repli : démarrage sans amorçage
+            return
+        mbs.systemData.SetAECoordinates(
+            mbs.systemData.GetAECoordinates(), exu.ConfigurationType.Initial
+        )
 
     def extraire(self, resultats: Any, duree: float) -> None:
         """Renseigne `efforts_couplages`, `fluage` et les avertissements de `resultats`."""
