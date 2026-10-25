@@ -7,6 +7,13 @@ message, port éphémère, jeton attendu sur la première requête de chaque con
 seules, format différent, liaison sur sous-occurrence) s'injectent par `Scenario` ou par les
 attributs du serveur. `file.export` écrit réellement les fichiers (copie des exports enregistrés),
 dans un dossier qui doit exister.
+
+Animation et trajectoires (lot 10, EX-53, EX-52) : `occurrence.move` (relatif, cumulatif, en
+attente avec `capture: false`, comme le vrai SolidCraft : `component.list` ne montre pas les poses
+en attente, seul `pending_moves` les liste), `engine.batch`, `component.revert_position`,
+`sketch.create` / `sketch.options` / `sketch.spline3d` / `sketch.finish`, `timeline.delete`.
+`sequences_batch` garde les séquences reçues, `commandes_recues()` toutes les commandes dans
+l'ordre (lots compris), `pose(nom)` la pose courante (en attente comprise) d'une occurrence.
 """
 
 import copy
@@ -14,9 +21,11 @@ import json
 import shutil
 import socket
 import threading
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+
+import numpy as np
 
 DOSSIER = Path(__file__).parent / "fixtures" / "bielle" / "solidcraft"
 JETON_DE_TEST = "0123456789abcdef0123456789abcdef"  # valeur fictive, sans lien avec un vrai jeton
@@ -25,6 +34,17 @@ JETON_DE_TEST = "0123456789abcdef0123456789abcdef"  # valeur fictive, sans lien 
 ID_SOUS_OCCURRENCE = 14
 NOM_SOUS_OCCURRENCE = "Goupille:1"
 NOM_LIAISON_SOUS_OCCURRENCE = "L_goupille"
+
+
+@dataclass
+class Esquisse:
+    """Esquisse créée par `sketch.create` (trajectoires, EX-52)."""
+
+    identifiant: int
+    nom: str
+    sketch_3d: bool = False
+    termine: bool = False
+    points: list[list[float]] = field(default_factory=list)
 
 
 @dataclass
@@ -69,6 +89,11 @@ class FauxServeur:
         self.types_modifies: dict[str, str] = {}
         self.links: list[dict[str, Any]] | None = None
         self.connexions = 0
+        # Animation (lot 10) : poses en attente (matrices 4×4 usuelles, mm) par identifiant
+        # d'occurrence, séquences d'engine.batch, esquisses de trajectoires
+        self.poses_en_attente: dict[int, np.ndarray] = {}
+        self.sequences_batch: list[list[dict[str, Any]]] = []
+        self.esquisses: list[Esquisse] = []
         self._verrou = threading.Lock()
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -109,6 +134,39 @@ class FauxServeur:
     def revision(self, valeur: int) -> None:
         """Simule une modification de la maquette entre deux lectures."""
         self.scenario.revision = valeur
+
+    def commandes_recues(self) -> list[str]:
+        """Noms de toutes les commandes reçues dans l'ordre, les lots d'engine.batch dépliés."""
+        noms: list[str] = []
+        for r in self.requetes:
+            if r.get("method") == "engine.batch":
+                noms.extend(str(c["command"]) for c in (r.get("params") or {})["commands"])
+            else:
+                noms.append(_nom(r))
+        return noms
+
+    def _occurrences(self) -> dict[int, tuple[str, np.ndarray]]:
+        """Occurrences de premier niveau : identifiant -> (nom, pose initiale 4×4, mm)."""
+        liste = _lire(f"component_list_theta{self.theta}.json")
+        racine = next(c for c in liste["components"] if c.get("parent") is None)
+        return {
+            o["id"]: (o["name"], np.array(o["transform"], dtype=float).T)
+            for o in racine["children"]
+        }
+
+    def pose(self, nom: str) -> np.ndarray:
+        """Pose courante 4×4 (mm, en attente comprise) de l'occurrence « Manivelle:1 » ou
+        « Manivelle »."""
+        for ident, (n, initiale) in self._occurrences().items():
+            if n == nom or n.rsplit(":", 1)[0] == nom:
+                return self.poses_en_attente.get(ident, initiale)
+        raise KeyError(nom)
+
+    def pose_initiale(self, nom: str) -> np.ndarray:
+        for n, initiale in self._occurrences().values():
+            if n == nom or n.rsplit(":", 1)[0] == nom:
+                return initiale
+        raise KeyError(nom)
 
     def methodes_recues(self) -> list[str]:
         """Noms des requêtes reçues : la commande pour engine.execute, sinon la méthode."""
@@ -212,6 +270,8 @@ class FauxServeur:
             inspection = _lire(f"document_inspect_theta{self.theta}.json")
             inspection["revision"] = self.revision
             return {"id": ident, "ok": True, "result": inspection}
+        if methode == "engine.batch":
+            return self._lot(ident, requete.get("params") or {})
         if methode == "engine.execute":
             params = requete.get("params") or {}
             return self._commande(ident, params.get("command"), params.get("params") or {})
@@ -232,7 +292,101 @@ class FauxServeur:
             return {"id": ident, "ok": True, "result": propriete}
         if commande == "file.export":
             return self._exporter(ident, params)
+        if commande == "occurrence.move":
+            return self._deplacer(ident, params)
+        if commande == "component.revert_position":
+            return self._revenir(ident, params)
+        if commande in ("sketch.create", "sketch.options", "sketch.spline3d", "sketch.finish"):
+            return self._esquisse(ident, commande, params)
+        if commande == "timeline.delete":
+            return self._supprimer(ident, params)
         return {"id": ident, "ok": False, "error": f"unknown command: {commande}"}
+
+    # --- animation et trajectoires (lot 10) -----------------------------------------------
+    def _lot(self, ident: Any, params: dict[str, Any]) -> dict[str, Any]:
+        commandes = list(params.get("commands") or [])
+        self.sequences_batch.append(commandes)
+        resultats: list[Any] = []
+        for commande in commandes:
+            reponse = self._commande(ident, commande.get("command"), commande.get("params") or {})
+            if not reponse.get("ok"):
+                return {
+                    "id": ident,
+                    "ok": False,
+                    "error": f"batch: {commande.get('command')}: {reponse.get('error')}",
+                }
+            resultats.append(reponse["result"])
+        return {
+            "id": ident,
+            "ok": True,
+            "result": {"completed": len(resultats), "undone": 0, "results": resultats},
+        }
+
+    def _deplacer(self, ident: Any, params: dict[str, Any]) -> dict[str, Any]:
+        occurrence = params.get("occurrence")
+        if occurrence not in self._occurrences():
+            return {"id": ident, "ok": False, "error": f"occurrence inconnue : {occurrence}"}
+        if params.get("space") != "world":
+            return {"id": ident, "ok": False, "error": "le faux serveur ne gère que space=world"}
+        if params.get("capture", True):
+            return {"id": ident, "ok": False, "error": "le faux serveur exige capture=false"}
+        courante = self.poses_en_attente.get(occurrence, self._occurrences()[occurrence][1])
+        delta = np.eye(4)
+        if params.get("axis") is not None:
+            axe = np.array(params["axis"], dtype=float)
+            axe /= np.linalg.norm(axe)
+            angle = float(params["angle"])
+            k = np.array([[0, -axe[2], axe[1]], [axe[2], 0, -axe[0]], [-axe[1], axe[0], 0]])
+            rotation = np.eye(3) + np.sin(angle) * k + (1 - np.cos(angle)) * (k @ k)
+            origine = np.array(params.get("origin") or [0.0, 0.0, 0.0], dtype=float)
+            delta[:3, :3] = rotation
+            delta[:3, 3] = origine - rotation @ origine
+        delta[:3, 3] += np.array(params.get("translate") or [0.0, 0.0, 0.0], dtype=float)
+        nouvelle = delta @ courante
+        self.poses_en_attente[occurrence] = nouvelle
+        resultat = {"occurrence": occurrence, "pending": True, "transform": nouvelle.T.tolist()}
+        return {"id": ident, "ok": True, "result": resultat}
+
+    def _revenir(self, ident: Any, params: dict[str, Any]) -> dict[str, Any]:
+        visees = params.get("occurrences")
+        ids = list(self.poses_en_attente) if visees is None else list(visees)
+        retirees = [i for i in ids if self.poses_en_attente.pop(i, None) is not None]
+        return {"id": ident, "ok": True, "result": {"reverted": len(retirees)}}
+
+    def _esquisse(self, ident: Any, commande: str, params: dict[str, Any]) -> dict[str, Any]:
+        if commande == "sketch.create":
+            nom = str(params.get("name") or f"Esquisse{len(self.esquisses) + 1}")
+            if any(e.nom == nom for e in self.esquisses):
+                nom = f"{nom}_{len(self.esquisses) + 1}"
+            esquisse = Esquisse(identifiant=100 + len(self.esquisses), nom=nom)
+            self.esquisses.append(esquisse)
+            resultat = {"name": nom, "sketch": esquisse.identifiant}
+            return {"id": ident, "ok": True, "result": resultat}
+        if not self.esquisses:
+            return {"id": ident, "ok": False, "error": "aucune esquisse active"}
+        courante = self.esquisses[-1]
+        if commande == "sketch.options":
+            courante.sketch_3d = bool(params.get("sketch_3d", courante.sketch_3d))
+            resultat = {"options": {"sketch_3d": courante.sketch_3d}}
+            return {"id": ident, "ok": True, "result": resultat}
+        if commande == "sketch.spline3d":
+            if not courante.sketch_3d:
+                return {"id": ident, "ok": False, "error": "3D Sketch required"}
+            points = [[float(x) for x in p] for p in params.get("points") or []]
+            if len(points) < 2:
+                return {"id": ident, "ok": False, "error": "2 points au moins"}
+            courante.points = points
+            return {"id": ident, "ok": True, "result": {"created": {"curves": ["w1"]}}}
+        courante.termine = True
+        return {"id": ident, "ok": True, "result": {"sketch": courante.identifiant, "profiles": 0}}
+
+    def _supprimer(self, ident: Any, params: dict[str, Any]) -> dict[str, Any]:
+        visees = [str(f) for f in params.get("features") or []]
+        supprimees = [e for e in self.esquisses if e.nom in visees or str(e.identifiant) in visees]
+        if not supprimees:
+            return {"id": ident, "ok": False, "error": f"feature inconnue : {visees}"}
+        self.esquisses = [e for e in self.esquisses if e not in supprimees]
+        return {"id": ident, "ok": True, "result": {"deleted": [e.identifiant for e in supprimees]}}
 
     def _joint_list(self) -> dict[str, Any]:
         joints = _lire(f"joint_list_theta{self.theta}.json")
@@ -261,6 +415,8 @@ class FauxServeur:
             }
             manivelle = next(c for c in liste["components"] if c["id"] == 4)
             manivelle["children"].append(sous)
+        # les poses en attente ne modifient pas `transform` (constaté sur le vrai SolidCraft)
+        liste["pending_moves"] = sorted(self.poses_en_attente)
         return liste
 
     def _exporter(self, ident: Any, params: dict[str, Any]) -> dict[str, Any]:
