@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Fenêtre principale, arbre de l'étude et lancement des simulations (EX-61, EX-11, EX-22, EX-42)."""
+"""Fenêtre principale, arbre de l'étude, simulations (EX-61, EX-11, EX-22, EX-42)."""
 
 import os
 
