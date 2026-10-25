@@ -169,6 +169,14 @@ Le dépôt a pour racine `D:\CLAUDE\dev\Meca3D` :
   - *Rendement* : deux couples de perte (`LoadTorqueVector`), pondérés par le sens de la puissance.
   - *Résultats* : tous les critères sont tenus. EX-14, EX-15 et EX-16 restent en V1 (décision du 25 octobre 2026). D9 est confirmé : sans fonction Python, le solveur ne libère pas le GIL, et l'annulation par `terminate()` prend 7 ms.
 
+- **D14 — Résultats du lot 1b** ([RESULTATS_1b.md](../prototypes/levee_risques/RESULTATS_1b.md)), décidés le 25 octobre 2026.
+  - *Animation* : `occurrence.move` avec les poses Exudyn, un `engine.batch` par image (58 images/s), puis restauration par `component.revert_position` : retour exact, document non modifié, pile d'annulation intacte. Repli : `joint.drive` encadré par `edit.checkpoint` et `edit.restore_checkpoint`.
+  - *Couplages* : ils se lisent dans `joint.list.links` (`a`, `b`, `ratio`, `unit`, `coupling{type, ra, rb, pitch, radius, internal, reverse}`). Ni le `ratio` ni les `values` de la liaison menée ne sont à lire dans le JSON.
+  - *Sous-assemblages* : une sous-occurrence est repérée par `parent != 0`. La règle d'EX-04 est confirmée : la liaison est signalée et non importée.
+  - *Trajectoires* : `sketch.spline3d`.
+  - *Exécutable* : PyInstaller en mode dossier, avec `--hidden-import exudyn.exudynCPP` (indispensable). Le résultat est identique au bit près au mode source. Taille 105 à 136 Mo.
+  - *Prérequis* : la fenêtre SolidCraft doit être visible pour garder la cadence.
+
 Décisions coûteuses à défaire :
 - D1 (moteur) ;
 - D4 (modèle neutre) ;

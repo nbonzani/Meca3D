@@ -55,7 +55,7 @@ Conventions de toutes les exigences : unités SI en interne (m, kg, s, rad, N, N
   - *Acceptation* : bielle-manivelle de référence (fixture) → masses et I_zz identiques à 10⁻⁹ près aux valeurs du prototype (manivelle I_zz = 2,704·10⁻⁴ kg·m², bielle I_zz = 7,0512·10⁻³ kg·m²), et 4 liaisons lues.
 - **EX-05 Configuration de référence.** Le modèle est construit dans la pose courante de la maquette au moment de l'import. Cette pose est mémorisée dans l'étude.
   - *Acceptation* : import à θ = 60° puis simulation à partir de θ₀ = 60° → x_B(0) = 0,3372281 m à 10⁻⁶ près.
-- **EX-06 Maquette modifiée.** Meca3D mémorise le numéro `revision` de `document.inspect` lors de l'import. Si la révision change, un bandeau propose de réimporter, et les choix de l'élève sont conservés pour les liaisons de même nom.
+- **EX-06 Maquette modifiée.** Lors de l'import, Meca3D mémorise une **signature de structure** de la maquette : composants, occurrences, liaisons et leurs types, couplages, masses. Si cette signature change, un bandeau propose de réimporter, et les choix de l'élève sont conservés pour les liaisons de même nom. Le numéro `revision` de `document.inspect` ne convient pas, car il augmente aussi à chaque animation (constat du lot 1b).
   - *Acceptation* : révision changée (faux serveur) → bandeau affiché ; après réimport, les types de liaison choisis sont conservés.
 
 ### 3.2 Modèle cinématique
@@ -186,10 +186,11 @@ Conventions de toutes les exigences : unités SI en interne (m, kg, s, rad, N, N
   - Courbes : toute grandeur de capteur en fonction de t ou d'une autre grandeur.
   - Valeurs extrêmes : min, max et moyenne affichés.
   - Export CSV : séparateur `;`, décimale `,`, UTF-8 avec BOM, en-têtes avec unités.
-  - Trajectoire d'un point : retracée dans SolidCraft.
+  - Trajectoire d'un point : retracée dans SolidCraft par une spline 3D (`sketch.spline3d`) passant par les points calculés par Exudyn. Elle peut être effacée par `timeline.delete`. `motion.trace.keep` n'est pas retenu, car il est purement cinématique et ignore la simulation (lot 1b).
   - *Acceptation* : le CSV de la bielle relu par Excel en français montre les colonnes `t (s)` et `C (N·m)`, avec 501 lignes pour une période d'échantillonnage de 2 ms sur 1 s.
 - **EX-53 Animation dans SolidCraft.** Le mouvement simulé est rejoué dans la maquette (lecture, pause, vitesse ×0,1 à ×2, curseur temporel), à 20 images/s au moins.
-  - *Acceptation* : bielle-manivelle → la pose SolidCraft à t = 0,5 s correspond à θ simulé à 0,1° près (relu par `joint.list`).
+  - *Moyen (lot 1b)* : poses calculées par Exudyn, appliquées par `occurrence.move` (`capture: false`), un `engine.batch` par image. La pose initiale est restaurée par `component.revert_position`, et le document n'est pas marqué modifié. La fenêtre SolidCraft doit être visible : réduite, elle ne traite qu'une requête par image, soit environ 115 ms par requête au lieu de 16,6 ms.
+  - *Acceptation* : bielle-manivelle → la pose SolidCraft à t = 0,5 s correspond à la pose simulée à 0,1° près (relue par `component.list`).
   - *Acceptation* : cadence mesurée ≥ 20 images/s.
   - *Acceptation* : en fin d'animation ou à l'interruption, la pose initiale de la maquette est restaurée (valeurs de `joint.list` identiques à 10⁻⁹ près), et Meca3D n'enregistre jamais la maquette.
 

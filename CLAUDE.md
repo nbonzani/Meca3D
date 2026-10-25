@@ -33,3 +33,5 @@ Plan et état : docs/PLAN.md, docs/PROGRESS.md. Décisions : docs/ARCHITECTURE.m
 - SolidCraft : `transform` est stockée par colonnes (à transposer), les longueurs sont en mm, les masses en g ; angles en deg dans l'API, en rad dans le JSON. L'URDF omet la liaison qui ferme une boucle et ne sert qu'aux inerties. `file.export` exige un dossier existant.
 - Canal de contrôle : une requête à la fois par connexion. Après un `timeout`, ne pas renvoyer la requête : la relire avec `control.pending`.
 - Prototypes de référence : `prototypes/exudyn_bielle` (solution Newton-Euler) et `prototypes/sonde_solidcraft` (chaîne SolidCraft → Exudyn).
+- SolidCraft : fenêtre réduite → ~115 ms par requête (une requête par image affichée) ; la garder visible (`ui.window {"action":"maximize"}`). `revision` change à chaque animation : ne pas s'en servir pour détecter une modification.
+- PyInstaller : `--hidden-import exudyn.exudynCPP` indispensable ; `multiprocessing.freeze_support()` dans le point d'entrée.
