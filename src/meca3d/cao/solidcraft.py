@@ -65,7 +65,7 @@ def etude_depuis_reponses(
         lien = inerties.get(proprietes["name"])
         if lien is None:
             raise ErreurImport(f"URDF : lien « {proprietes['name']} » (inertie) absent.")
-        r_occ, _ = unites.rotation_translation(occ["transform"])
+        r_occ, t_occ = unites.rotation_translation(occ["transform"])
         r_ref = lien.rotation_composant
         # repère monde de référence -> repère du composant -> pose courante
         inertie = r_occ @ (r_ref.T @ lien.inertie @ r_ref) @ r_occ.T
@@ -76,6 +76,8 @@ def etude_depuis_reponses(
                 masse=unites.g_vers_kg(float(total["mass_g"])),
                 cdg=unites.mm_vers_m(np.array(total["center_of_mass"], dtype=float)),
                 inertie=0.5 * (inertie + inertie.T),
+                repere_rotation=r_occ,
+                repere_origine=t_occ,
             )
         )
 

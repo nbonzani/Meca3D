@@ -14,9 +14,9 @@ d'indice 3) ont une erreur de 4·10⁻³ relative au maximum (ordre 1 en h), et 
 point de pivot reste à 3·10⁻⁷ au lieu des 10⁻⁹ d'EX-51 ; la formulation d'indice 2 est indisponible
 avec `offsetUserFunction_t`. La dérivation directe est exacte à la précision numérique.
 
-Limite : les rangées de rotation utilisent la vitesse angulaire relative exprimée dans la base de
-liaison ; elle est exacte pour les liaisons à au plus un ddl de rotation libre ou à rotations
-toutes libres, et du second ordre en angle pour la rotule à doigt.
+Les rangées de rotation utilisent la vitesse angulaire relative exprimée dans la base de liaison,
+exacte pour toutes les liaisons du catalogue ; la rotule à doigt a son équation propre, celle
+qu'Exudyn contraint : (x local de a)·(y local de b) = 0.
 """
 
 from collections.abc import Collection, Mapping, Sequence
@@ -50,6 +50,7 @@ class _Contrainte:
     axe: int
     decalage: float = 0.0
     pilote: Pilote | None = None
+    doigt: bool = False  # rotule à doigt : x local du solide a ⟂ y local du solide b
 
 
 def _contraintes(etude: Etude, liberes: Collection[tuple[str, int]]) -> list[_Contrainte]:
@@ -73,7 +74,11 @@ def _contraintes(etude: Etude, liberes: Collection[tuple[str, int]]) -> list[_Co
             piloté = _INDICE_PILOTE[_grandeur_pilote(pilote, liaison)]
             axes[piloté] = 1
         for ddl, bloque in enumerate(axes):
-            if bloque:
+            if bloque and ddl == 5 and liaison.type is TypeLiaison.ROTULE_A_DOIGT:
+                # Exudyn contraint Rz de la rotule à doigt par (x local de a)·(y local de b) = 0
+                # (vérifié : R_rel[0, 1] = 1e-14), non par ω_rel·z = 0
+                contraintes.append(_Contrainte(liaison, True, 2, doigt=True))
+            elif bloque:
                 est_pilote = ddl == piloté
                 contraintes.append(
                     _Contrainte(liaison, ddl >= 3, ddl % 3, 0.0, pilote if est_pilote else None)
@@ -124,7 +129,17 @@ class _Cinematique:
             else:
                 derivee1 = c.pilote.loi.vitesse(t)
                 derivee2 = c.pilote.loi.acceleration(t)
-            if c.rotation:
+            if c.doigt:
+                x_a = ra @ base0[:, 0]
+                y_b = rb @ base0[:, 1]
+                n = np.cross(y_b, x_a)
+                coefficients = {nb: (np.zeros(3), n), na: (np.zeros(3), -n)}
+                if vitesses is None:
+                    membre[i] = 0.0
+                else:
+                    n_point = np.cross(np.cross(wb, y_b), x_a) + np.cross(y_b, np.cross(wa, x_a))
+                    membre[i] = -float((wb - wa) @ n_point)
+            elif c.rotation:
                 coefficients = {nb: (np.zeros(3), u), na: (np.zeros(3), -u)}
                 if vitesses is None:
                     membre[i] = derivee1
@@ -198,6 +213,27 @@ def vitesses_initiales(
         nom: (vitesses[c : c + 3], vitesses[c + 3 : c + 6])
         for nom, c in cinematique.colonne.items()
     }
+
+
+def residu_vitesses(
+    etude: Etude, resultats: ResultatsBruts, liberes: Collection[tuple[str, int]] = ()
+) -> np.ndarray:
+    """Résidu (n, nb de contraintes) des équations de liaison au niveau vitesse, évalué avec les
+    vitesses de `resultats` (diagnostic : nul si elles sont compatibles avec les liaisons)."""
+    cinematique = _Cinematique(etude, liberes)
+    sortie = np.zeros((len(resultats.t), len(cinematique.contraintes)))
+    for i in range(len(resultats.t)):
+        x = {nom: cinematique.cdg0[nom] for nom in cinematique.cdg0}
+        r = {nom: np.eye(3) for nom in cinematique.cdg0}
+        twist = np.zeros(6 * len(cinematique.mobiles))
+        for nom, c in cinematique.colonne.items():
+            x[nom] = resultats.positions[nom][i]
+            r[nom] = resultats.rotations[nom][i]
+            twist[c : c + 3] = resultats.vitesses[nom][i]
+            twist[c + 3 : c + 6] = resultats.vitesses_angulaires[nom][i]
+        matrice, membre = cinematique._systeme(x, r, float(resultats.t[i]), None)
+        sortie[i] = matrice @ twist - membre
+    return sortie
 
 
 def calculer_cinematique(

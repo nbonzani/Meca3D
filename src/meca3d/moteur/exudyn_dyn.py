@@ -84,11 +84,18 @@ def _fonctions_offset(
     return offset, offset_t
 
 
-def _fonction_charge(action: ActionExterieure) -> Callable[..., list[float]]:
-    """Fonction utilisateur d'Exudyn : vecteur force ou couple de l'action à l'instant t."""
+def _fonction_charge(
+    action: ActionExterieure, rotation_repere: np.ndarray
+) -> Callable[..., list[float]]:
+    """Fonction utilisateur d'Exudyn : vecteur force ou couple de l'action à l'instant t.
+
+    En repère solide, les composantes sont celles du repère du composant CAO : elles sont ramenées
+    au repère monde de la pose d'import (le repère propre d'un corps Exudyn) par `rotation_repere`.
+    """
+    passage = rotation_repere if action.repere is RepereAction.SOLIDE else np.eye(3)
 
     def charge(mbs: Any, t: float, load: Any) -> list[float]:
-        return [float(x) for x in action.valeur(t)]
+        return [float(x) for x in passage @ action.valeur(t)]
 
     return charge
 
@@ -234,7 +241,7 @@ class MoteurExudynDyn:
                 # le repère du solide coïncide avec le monde à la pose d'import (rotation nulle)
                 localPosition=[float(x) for x in np.array(action.point) - solide.cdg],
                 bodyFixed=action.repere is RepereAction.SOLIDE,
-                loadVectorUserFunction=_fonction_charge(action),
+                loadVectorUserFunction=_fonction_charge(action, solide.repere_rotation),
                 show=False,
             )
         for ressort in etude.ressorts:

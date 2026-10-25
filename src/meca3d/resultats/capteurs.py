@@ -2,9 +2,11 @@
 """Capteurs de point (EX-51) : position, vitesse et accélération d'un point d'un solide relativement
 à un solide de référence quelconque, en base du solide de référence ou en base monde.
 
-Conventions. Le repère d'un solide coïncide avec le repère monde à la pose d'import et lui est lié
-ensuite : son origine est le point matériel du solide situé à l'origine du monde à l'import. La
-position est celle du point par rapport à cette origine ; la vitesse et l'accélération sont celles
+Conventions. Le repère d'un solide est celui de son composant CAO (`Solide.repere_rotation`,
+`Solide.repere_origine`, repère monde à la pose d'import), lié au solide ensuite. Le point du
+capteur est donné en repère monde à la pose d'import (`Solide.vers_monde` convertit une saisie en
+coordonnées pièce). La position est celle du point par rapport à l'origine du repère de référence ;
+la vitesse et l'accélération sont celles
 du point DANS le repère du solide de référence (dérivées relatives, termes de Coriolis et
 d'entraînement compris), puis exprimées dans la base demandée.
 """
@@ -23,6 +25,8 @@ class EtatSolide:
     """Cinématique d'un solide dans le repère monde, (n, ...) : x, v, a (CdG), R, ω, α."""
 
     cdg_import: np.ndarray
+    repere_rotation: np.ndarray
+    repere_origine: np.ndarray
     x: np.ndarray
     rotation: np.ndarray
     v: np.ndarray
@@ -49,6 +53,8 @@ def etat_solide(etude: Etude, resultats: ResultatsBruts, nom: str) -> EtatSolide
     if solide.fixe or nom not in resultats.positions:
         return EtatSolide(
             solide.cdg,
+            solide.repere_rotation,
+            solide.repere_origine,
             np.broadcast_to(solide.cdg, (n, 3)),
             np.broadcast_to(np.eye(3), (n, 3, 3)),
             zeros,
@@ -62,6 +68,8 @@ def etat_solide(etude: Etude, resultats: ResultatsBruts, nom: str) -> EtatSolide
 
     return EtatSolide(
         solide.cdg,
+        solide.repere_rotation,
+        solide.repere_origine,
         resultats.positions[nom],
         resultats.rotations[nom],
         lire(resultats.vitesses),
@@ -83,12 +91,12 @@ def mesurer_point(etude: Etude, resultats: ResultatsBruts, capteur: CapteurPoint
     solide = etat_solide(etude, resultats, capteur.solide)
     reference = etat_solide(etude, resultats, capteur.solide_reference)
     p, v_p, a_p = solide.point(np.array(capteur.point))
-    o, v_o, a_o = reference.point(np.zeros(3))
+    o, v_o, a_o = reference.point(reference.repere_origine)
     w, alpha = reference.omega, reference.alpha
     r = p - o
     v_rel = v_p - v_o - np.cross(w, r)
     a_rel = a_p - a_o - np.cross(alpha, r) - np.cross(w, np.cross(w, r)) - 2.0 * np.cross(w, v_rel)
     if capteur.base is BaseCapteur.REFERENCE:
-        rt = np.swapaxes(reference.rotation, 1, 2)
+        rt = np.swapaxes(reference.rotation @ reference.repere_rotation, 1, 2)
         r, v_rel, a_rel = (np.einsum("nij,nj->ni", rt, vec) for vec in (r, v_rel, a_rel))
     return MesurePoint(np.array(r), np.array(v_rel), np.array(a_rel))
