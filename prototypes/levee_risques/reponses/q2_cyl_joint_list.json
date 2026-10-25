@@ -1,0 +1,103 @@
+{
+ "id": 56,
+ "ok": true,
+ "result": {
+  "conflicts": [],
+  "dof": [
+   {
+    "dof": 0,
+    "occurrence": 0
+   },
+   {
+    "dof": 0,
+    "occurrence": 2
+   },
+   {
+    "dof": 2,
+    "occurrence": 5
+   }
+  ],
+  "errors": [],
+  "fixed": [
+   0,
+   2
+  ],
+  "floating": [],
+  "joints": [
+   {
+    "a": 2,
+    "b": 5,
+    "flip": true,
+    "frame_a": {
+     "origin": [
+      0.0,
+      0.0,
+      35.0
+     ],
+     "z": [
+      0.0,
+      0.0,
+      1.0
+     ]
+    },
+    "frame_b": {
+     "origin": [
+      0.0,
+      0.0,
+      35.0
+     ],
+     "z": [
+      0.0,
+      0.0,
+      1.0
+     ]
+    },
+    "id": 1,
+    "name": "L_helicoidale",
+    "offset": 0.0,
+    "suppressed": false,
+    "type": "cylindrical",
+    "values": [
+     {
+      "limits": null,
+      "name": "angle",
+      "unit": "deg",
+      "value": 0.0
+     },
+     {
+      "limits": null,
+      "name": "distance",
+      "unit": "mm",
+      "value": 0.0
+     }
+    ],
+    "visible": true
+   }
+  ],
+  "links": [
+   {
+    "a": 1,
+    "b": 1,
+    "coupling": {
+     "pitch": 5.0,
+     "type": "screw"
+    },
+    "ia": 0,
+    "ib": 1,
+    "offset": 0.0,
+    "ratio": 0.01388888888888889,
+    "unit": "mm"
+   }
+  ],
+  "origins": [
+   {
+    "name": "L_helicoidale_a",
+    "occurrence": 2
+   },
+   {
+    "name": "L_helicoidale_b",
+    "occurrence": 5
+   }
+  ]
+ }
+}

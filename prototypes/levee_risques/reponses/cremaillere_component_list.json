@@ -1,0 +1,268 @@
+{
+ "id": 106,
+ "ok": true,
+ "result": {
+  "active": 0,
+  "components": [
+   {
+    "bodies": [],
+    "children": [
+     {
+      "component": 1,
+      "grounded": true,
+      "id": 2,
+      "name": "Bati:1",
+      "parent": 0,
+      "transform": [
+       [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+       ]
+      ]
+     },
+     {
+      "component": 4,
+      "grounded": false,
+      "id": 5,
+      "name": "Pignon:1",
+      "parent": 0,
+      "transform": [
+       [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+       ]
+      ]
+     },
+     {
+      "component": 7,
+      "grounded": false,
+      "id": 8,
+      "name": "Cremaillere:1",
+      "parent": 0,
+      "transform": [
+       [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+       ]
+      ]
+     }
+    ],
+    "construction": [],
+    "features": [],
+    "id": 0,
+    "name": "cremaillere",
+    "occurrences": [],
+    "parent": null,
+    "sketches": []
+   },
+   {
+    "bodies": [
+     "Bati_corps"
+    ],
+    "children": [],
+    "construction": [],
+    "features": [
+     "Box1"
+    ],
+    "id": 1,
+    "name": "Bati",
+    "occurrences": [
+     {
+      "component": 1,
+      "grounded": true,
+      "id": 2,
+      "name": "Bati:1",
+      "parent": 0,
+      "transform": [
+       [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+       ]
+      ]
+     }
+    ],
+    "parent": 0,
+    "sketches": []
+   },
+   {
+    "bodies": [
+     "Pignon_corps"
+    ],
+    "children": [],
+    "construction": [],
+    "features": [
+     "Cylinder1"
+    ],
+    "id": 4,
+    "name": "Pignon",
+    "occurrences": [
+     {
+      "component": 4,
+      "grounded": false,
+      "id": 5,
+      "name": "Pignon:1",
+      "parent": 0,
+      "transform": [
+       [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+       ]
+      ]
+     }
+    ],
+    "parent": 0,
+    "sketches": []
+   },
+   {
+    "bodies": [
+     "Cremaillere_corps"
+    ],
+    "children": [],
+    "construction": [],
+    "features": [
+     "Box2"
+    ],
+    "id": 7,
+    "name": "Cremaillere",
+    "occurrences": [
+     {
+      "component": 7,
+      "grounded": false,
+      "id": 8,
+      "name": "Cremaillere:1",
+      "parent": 0,
+      "transform": [
+       [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+       ]
+      ]
+     }
+    ],
+    "parent": 0,
+    "sketches": []
+   }
+  ],
+  "pending_moves": []
+ }
+}

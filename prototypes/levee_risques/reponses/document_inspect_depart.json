@@ -1,0 +1,100 @@
+{
+ "id": 2,
+ "ok": true,
+ "result": {
+  "active_sketch": null,
+  "bodies": [
+   {
+    "feature": 3,
+    "name": "Bati_corps",
+    "visible": true
+   },
+   {
+    "feature": 6,
+    "name": "Manivelle_corps",
+    "visible": true
+   },
+   {
+    "feature": 9,
+    "name": "Bielle_corps",
+    "visible": true
+   },
+   {
+    "feature": 12,
+    "name": "Piston_corps",
+    "visible": true
+   }
+  ],
+  "dirty": true,
+  "hidden_origin": [],
+  "marker": 4,
+  "metadata": {},
+  "name": "bielle_manivelle",
+  "params": [],
+  "path": "D:\\CLAUDE\\dev\\Solidcraft\\meca3d_sonde\\bielle_manivelle.solidcraft",
+  "redo": 0,
+  "revision": 49,
+  "selection": [],
+  "sketches": [],
+  "timeline": [
+   {
+    "boolean_diagnostics": {
+     "events": [],
+     "truncated": false
+    },
+    "error": null,
+    "id": 3,
+    "ms": 4.6672,
+    "name": "Box1",
+    "rolled_back": false,
+    "suppressed": false,
+    "type": "BoxFeature",
+    "warning": null
+   },
+   {
+    "boolean_diagnostics": {
+     "events": [],
+     "truncated": false
+    },
+    "error": null,
+    "id": 6,
+    "ms": 1.7062,
+    "name": "Box2",
+    "rolled_back": false,
+    "suppressed": false,
+    "type": "BoxFeature",
+    "warning": null
+   },
+   {
+    "boolean_diagnostics": {
+     "events": [],
+     "truncated": false
+    },
+    "error": null,
+    "id": 9,
+    "ms": 1.0238,
+    "name": "Box3",
+    "rolled_back": false,
+    "suppressed": false,
+    "type": "BoxFeature",
+    "warning": null
+   },
+   {
+    "boolean_diagnostics": {
+     "events": [],
+     "truncated": false
+    },
+    "error": null,
+    "id": 12,
+    "ms": 0.9309999999999999,
+    "name": "Box4",
+    "rolled_back": false,
+    "suppressed": false,
+    "type": "BoxFeature",
+    "warning": null
+   }
+  ],
+  "undo": 23,
+  "units": "mm"
+ }
+}

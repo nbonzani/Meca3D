@@ -1,0 +1,176 @@
+<?xml version="1.0"?>
+<!-- Exported by SolidCraft; units: m, kg, rad -->
+<robot name="sous_assemblage_propre">
+  <link name="base_link">
+  </link>
+  <link name="Bati">
+    <inertial>
+      <origin xyz="0.1 0.05 -0.005" rpy="0 0 0"/>
+      <mass value="1.5479999999999998"/>
+      <inertia ixx="0.011622899999999999" ixy="0" ixz="0" iyy="0.0206529" iyz="0" izz="0.03225"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="sous_assemblage_propre-Bati.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="sous_assemblage_propre-Bati.stl"/></geometry>
+    </collision>
+  </link>
+  <link name="Groupe_1">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-6"/>
+      <inertia ixx="1e-12" ixy="0" ixz="0" iyy="1e-12" iyz="0" izz="1e-12"/>
+    </inertial>
+  </link>
+  <link name="Groupe_2">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-6"/>
+      <inertia ixx="1e-12" ixy="0" ixz="0" iyy="1e-12" iyz="0" izz="1e-12"/>
+    </inertial>
+  </link>
+  <link name="Barre_1">
+    <inertial>
+      <origin xyz="0 -0.05 0.005" rpy="0 0 0"/>
+      <mass value="0.0129"/>
+      <inertia ixx="1.0857499999999997e-5" ixy="-3.7543941289186476e-23" ixz="0" iyy="2.1500000000000157e-7" iyz="0" izz="1.0857499999999997e-5"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 -1.5707963267948966"/>
+      <geometry><mesh filename="sous_assemblage_propre-Barre.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 -1.5707963267948966"/>
+      <geometry><mesh filename="sous_assemblage_propre-Barre.stl"/></geometry>
+    </collision>
+  </link>
+  <link name="Axe_1">
+    <inertial>
+      <origin xyz="0.09999999999999971 -1.5064415215625097e-18 0.005000000000018944" rpy="0 0 0"/>
+      <mass value="0.0020416161569706015"/>
+      <inertia ixx="5.171129046929435e-8" ixy="-3.793925410442778e-12" ixz="0" iyy="5.171401387642627e-8" iyz="2.6217437110118168e-23" izz="3.673250988438002e-8"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="sous_assemblage_propre-Axe.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="sous_assemblage_propre-Axe.stl"/></geometry>
+    </collision>
+  </link>
+  <link name="Barre_2">
+    <inertial>
+      <origin xyz="0.05 0 0.005" rpy="0 0 0"/>
+      <mass value="0.0129"/>
+      <inertia ixx="2.1500000000000157e-7" ixy="3.7543941289186476e-23" ixz="0" iyy="1.0857499999999997e-5" iyz="0" izz="1.0857499999999997e-5"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="sous_assemblage_propre-Barre.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="sous_assemblage_propre-Barre.stl"/></geometry>
+    </collision>
+  </link>
+  <link name="Axe_2">
+    <inertial>
+      <origin xyz="0.09999999999999971 -1.5064415215625097e-18 0.005000000000018944" rpy="0 0 0"/>
+      <mass value="0.0020416161569706015"/>
+      <inertia ixx="5.171129046929435e-8" ixy="-3.793925410442778e-12" ixz="0" iyy="5.171401387642627e-8" iyz="2.6217437110118168e-23" izz="3.673250988438002e-8"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="sous_assemblage_propre-Axe.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="sous_assemblage_propre-Axe.stl"/></geometry>
+    </collision>
+  </link>
+  <link name="Barre_2_2">
+    <inertial>
+      <origin xyz="0.05 0 0.005" rpy="0 0 0"/>
+      <mass value="0.0129"/>
+      <inertia ixx="2.1500000000000157e-7" ixy="3.7543941289186476e-23" ixz="0" iyy="1.0857499999999997e-5" iyz="0" izz="1.0857499999999997e-5"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="sous_assemblage_propre-Barre.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="sous_assemblage_propre-Barre.stl"/></geometry>
+    </collision>
+  </link>
+  <link name="Axe_2_2">
+    <inertial>
+      <origin xyz="0.09999999999999971 -1.5064415215625097e-18 0.005000000000018944" rpy="0 0 0"/>
+      <mass value="0.0020416161569706015"/>
+      <inertia ixx="5.171129046929435e-8" ixy="-3.793925410442778e-12" ixz="0" iyy="5.171401387642627e-8" iyz="2.6217437110118168e-23" izz="3.673250988438002e-8"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="sous_assemblage_propre-Axe.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="sous_assemblage_propre-Axe.stl"/></geometry>
+    </collision>
+  </link>
+  <joint name="Bati_fixed" type="fixed">
+    <parent link="base_link"/>
+    <child link="Bati"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <joint name="L_g1" type="continuous">
+    <parent link="Bati"/>
+    <child link="Groupe_1"/>
+    <origin xyz="0 0 0" rpy="0 0 1.5707963267948966"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="1000" velocity="10"/>
+  </joint>
+  <joint name="L_g2" type="continuous">
+    <parent link="Bati"/>
+    <child link="Groupe_2"/>
+    <origin xyz="0 0.15 0" rpy="0 0 1.5707963267948966"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="1000" velocity="10"/>
+  </joint>
+  <joint name="L_barre1" type="continuous">
+    <parent link="Bati"/>
+    <child link="Barre_1"/>
+    <origin xyz="0 -0.15 0" rpy="0 0 1.5707963267948966"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="1000" velocity="10"/>
+  </joint>
+  <joint name="Axe_1_fixed" type="fixed">
+    <parent link="base_link"/>
+    <child link="Axe_1"/>
+    <origin xyz="0 -0.15 0" rpy="0 0 0"/>
+  </joint>
+  <joint name="Barre_2_fixed" type="fixed">
+    <parent link="Groupe_1"/>
+    <child link="Barre_2"/>
+    <origin xyz="0 0 0" rpy="0 0 -1.5707963267948966"/>
+  </joint>
+  <joint name="Axe_2_fixed" type="fixed">
+    <parent link="Groupe_1"/>
+    <child link="Axe_2"/>
+    <origin xyz="0 0 0" rpy="0 0 -1.5707963267948966"/>
+  </joint>
+  <joint name="Barre_2_2_fixed" type="fixed">
+    <parent link="Groupe_2"/>
+    <child link="Barre_2_2"/>
+    <origin xyz="0 0 0" rpy="0 0 -1.5707963267948966"/>
+  </joint>
+  <joint name="Axe_2_2_fixed" type="fixed">
+    <parent link="Groupe_2"/>
+    <child link="Axe_2_2"/>
+    <origin xyz="0 0 0" rpy="0 0 -1.5707963267948966"/>
+  </joint>
+</robot>

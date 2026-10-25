@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!-- Exported by SolidCraft; units: m, kg, rad -->
+<robot name="cremaillere">
+  <link name="base_link">
+  </link>
+  <link name="Bati">
+    <inertial>
+      <origin xyz="0 0 -0.005" rpy="0 0 0"/>
+      <mass value="0.3096"/>
+      <inertia ixx="3.7409999999999993e-4" ixy="0" ixz="0" iyy="0.0010345799999999998" iyz="0" izz="0.00140352"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="cremaillere-Bati.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="cremaillere-Bati.stl"/></geometry>
+    </collision>
+  </link>
+  <link name="Pignon">
+    <inertial>
+      <origin xyz="2.1439208392296456e-18 -2.3678900581009807e-19 0.005000000000001113" rpy="0 0 0"/>
+      <mass value="0.01620640787001225"/>
+      <inertia ixx="1.755236703885273e-6" ixy="-1.0203011024899846e-10" ixz="1.1315734127496627e-22" iyy="1.7553099445266127e-6" iyz="3.302204731880492e-23" izz="3.2404398505782875e-6"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 -1.5707963267948966"/>
+      <geometry><mesh filename="cremaillere-Pignon.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 -1.5707963267948966"/>
+      <geometry><mesh filename="cremaillere-Pignon.stl"/></geometry>
+    </collision>
+  </link>
+  <link name="Cremaillere">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.02064"/>
+      <inertia ixx="4.420399999999999e-5" ixy="0" ixz="7.508788257837295e-23" iyy="4.420399999999999e-5" iyz="3.003515303134918e-22" izz="3.440000000000064e-7"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.005 -0.025 0" rpy="0 -1.5707963267948966 -3.141592653589793"/>
+      <geometry><mesh filename="cremaillere-Cremaillere.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="-0.005 -0.025 0" rpy="0 -1.5707963267948966 -3.141592653589793"/>
+      <geometry><mesh filename="cremaillere-Cremaillere.stl"/></geometry>
+    </collision>
+  </link>
+  <joint name="Bati_fixed" type="fixed">
+    <parent link="base_link"/>
+    <child link="Bati"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <joint name="L_pignon" type="continuous">
+    <parent link="Bati"/>
+    <child link="Pignon"/>
+    <origin xyz="0 0 0" rpy="0 0 1.5707963267948966"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="1000" velocity="10"/>
+  </joint>
+  <joint name="L_cremaillere" type="prismatic">
+    <parent link="Bati"/>
+    <child link="Cremaillere"/>
+    <origin xyz="0 -0.025 0.005" rpy="0 -1.5707963267948966 -3.141592653589793"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-1000" upper="1000" effort="1000" velocity="10"/>
+  </joint>
+</robot>

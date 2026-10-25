@@ -1,0 +1,39 @@
+{
+ "commande": "pyinstaller --noconfirm --clean --onedir --name mini_meca3d --hidden-import exudyn.exudynCPP --exclude-module tkinter mini_meca3d.py",
+ "taille_dist_Mo": 136.1,
+ "nombre_de_fichiers": 233,
+ "plus_gros": [
+  [
+   "libscipy_openblas64_-ed4f167a5330424524f45258e7ca2c8d.dll",
+   20.6
+  ],
+  [
+   "opengl32sw.dll",
+   20.6
+  ],
+  [
+   "Qt6Core.dll",
+   10.4
+  ],
+  [
+   "Qt6Gui.dll",
+   9.5
+  ],
+  [
+   "exudynCPP.cp312-win_amd64.pyd",
+   8.6
+  ],
+  [
+   "python312.dll",
+   6.9
+  ],
+  [
+   "Qt6Widgets.dll",
+   6.5
+  ],
+  [
+   "libcrypto-3.dll",
+   5.2
+  ]
+ ]
+}

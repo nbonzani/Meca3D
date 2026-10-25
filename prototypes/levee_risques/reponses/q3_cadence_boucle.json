@@ -1,0 +1,63 @@
+{
+ "etat_initial": {
+  "name": "bielle_manivelle",
+  "dirty": true,
+  "revision": 54,
+  "undo": 9,
+  "marker": 4
+ },
+ "theta0": 59.99999999999999,
+ "A_batch_1_drive_par_image": {
+  "images_par_s": 54.329572531989214,
+  "latence_mediane_ms": 17.408199986675754,
+  "latence_max_ms": 32.23999997135252
+ },
+ "A_etat_apres": {
+  "name": "bielle_manivelle",
+  "dirty": true,
+  "revision": 455,
+  "undo": 200,
+  "marker": 4
+ },
+ "A_retour_drive_ecart": {
+  "valeurs_max": 6.036152555566332e-08,
+  "poses_max": 2.3471670829167124e-08,
+  "pending_apres": []
+ },
+ "A_restore_checkpoint_ecart": {
+  "valeurs_max": 0.0,
+  "poses_max": 0.0,
+  "pending_apres": []
+ },
+ "A_etat_apres_restore": {
+  "name": "bielle_manivelle",
+  "dirty": true,
+  "revision": 459,
+  "undo": 9,
+  "marker": 4
+ },
+ "B_batch_3_moves_par_image": {
+  "images_par_s": 58.132420421691364,
+  "latence_mediane_ms": 16.545599995879456,
+  "latence_max_ms": 25.78429999994114
+ },
+ "B_etat_apres": {
+  "name": "bielle_manivelle",
+  "dirty": true,
+  "revision": 1059,
+  "undo": 9,
+  "marker": 4
+ },
+ "B_revert_ecart": {
+  "valeurs_max": 0.0,
+  "poses_max": 0.0,
+  "pending_apres": []
+ },
+ "B_etat_apres_revert": {
+  "name": "bielle_manivelle",
+  "dirty": true,
+  "revision": 1060,
+  "undo": 9,
+  "marker": 4
+ }
+}

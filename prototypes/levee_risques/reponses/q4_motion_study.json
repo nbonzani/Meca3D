@@ -1,0 +1,10 @@
+{
+ "id": 8,
+ "ok": true,
+ "result": {
+  "keys": 1,
+  "name": "rotation_manivelle",
+  "steps": 100,
+  "study": 1
+ }
+}

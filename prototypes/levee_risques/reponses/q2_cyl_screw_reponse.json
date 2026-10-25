@@ -1,0 +1,28 @@
+{
+ "id": 55,
+ "ok": true,
+ "result": {
+  "conflicts": [],
+  "dof": [
+   {
+    "dof": 0,
+    "occurrence": 0
+   },
+   {
+    "dof": 0,
+    "occurrence": 2
+   },
+   {
+    "dof": 2,
+    "occurrence": 5
+   }
+  ],
+  "errors": [],
+  "fixed": [
+   0,
+   2
+  ],
+  "link": 0,
+  "ratio": 0.01388888888888889
+ }
+}

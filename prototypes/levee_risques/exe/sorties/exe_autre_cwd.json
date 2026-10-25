@@ -1,0 +1,23 @@
+{
+ "ok": true,
+ "n_points": 1001,
+ "theta_fin_rad": -3.1334442619018894,
+ "force_locale_fin_N": [
+  1.5513798546320094e-23,
+  -7.65715434905865,
+  0.31655585173830864
+ ],
+ "somme_theta": -1624.5498856700624,
+ "norme_force_max_N": 76.51335156652824,
+ "duree_calcul_s": 0.019062100036535412,
+ "exudyn": "1.13.6",
+ "pid_calcul": 149616,
+ "duree_totale_processus_s": 1.44625429995358,
+ "code_sortie_fils": 0,
+ "pid_parent": 100896,
+ "mode": "exe",
+ "python": "3.12.10",
+ "methode_demarrage": "spawn",
+ "plateforme_qt": "offscreen",
+ "fenetre_affichee": false
+}

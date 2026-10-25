@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!-- Exported by SolidCraft; units: m, kg, rad -->
+<robot name="vis_ecrou">
+  <link name="base_link">
+  </link>
+  <link name="Bati">
+    <inertial>
+      <origin xyz="0 0 -0.005" rpy="0 0 0"/>
+      <mass value="0.3096"/>
+      <inertia ixx="3.7409999999999993e-4" ixy="0" ixz="0" iyy="0.0010345799999999998" iyz="0" izz="0.00140352"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="vis_ecrou-Bati.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="vis_ecrou-Bati.stl"/></geometry>
+    </collision>
+  </link>
+  <link name="Vis">
+    <inertial>
+      <origin xyz="1.7202858947589875e-16 1.183129994558756e-16 0.05000000000005172" rpy="0 0 0"/>
+      <mass value="0.01010871227443279"/>
+      <inertia ixx="8.486963698689862e-6" ixy="5.569843726424653e-13" ixz="-3.8186340489597665e-20" iyy="8.486963298867763e-6" iyz="-2.8545983354826586e-20" izz="1.260732068045136e-7"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 -1.5707963267948966"/>
+      <geometry><mesh filename="vis_ecrou-Vis.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 -1.5707963267948966"/>
+      <geometry><mesh filename="vis_ecrou-Vis.stl"/></geometry>
+    </collision>
+  </link>
+  <link name="Ecrou">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.00516"/>
+      <inertia ixx="2.149999999999996e-7" ixy="0" ixz="-3.7543941289186476e-23" iyy="2.149999999999996e-7" iyz="-3.7543941289186476e-23" izz="3.44e-7"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 -0.035" rpy="0 0 -1.5707963267948966"/>
+      <geometry><mesh filename="vis_ecrou-Ecrou.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 -0.035" rpy="0 0 -1.5707963267948966"/>
+      <geometry><mesh filename="vis_ecrou-Ecrou.stl"/></geometry>
+    </collision>
+  </link>
+  <joint name="Bati_fixed" type="fixed">
+    <parent link="base_link"/>
+    <child link="Bati"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <joint name="L_vis_pivot" type="continuous">
+    <parent link="Bati"/>
+    <child link="Vis"/>
+    <origin xyz="0 0 0" rpy="0 0 1.5707963267948966"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="1000" velocity="10"/>
+  </joint>
+  <joint name="L_ecrou_glissiere" type="prismatic">
+    <parent link="Bati"/>
+    <child link="Ecrou"/>
+    <origin xyz="0 0 0.035" rpy="0 0 1.5707963267948966"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-1000" upper="1000" effort="1000" velocity="10"/>
+  </joint>
+</robot>

@@ -1,0 +1,28 @@
+{
+ "id": 24,
+ "ok": true,
+ "result": {
+  "created": {
+   "constraints": [],
+   "curves": [],
+   "dimensions": [],
+   "points": []
+  },
+  "options": {
+   "grid": true,
+   "show_constraints": true,
+   "show_construction": true,
+   "show_dimensions": true,
+   "show_points": true,
+   "show_profile": true,
+   "show_projected": true,
+   "sketch_3d": true,
+   "slice": false,
+   "snap": true
+  },
+  "sketch": {
+   "dof": 0,
+   "solved": true
+  }
+ }
+}

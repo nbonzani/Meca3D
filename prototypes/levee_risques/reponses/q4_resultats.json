@@ -1,0 +1,195 @@
+{
+ "etat_depart": {
+  "name": "bielle_manivelle",
+  "dirty": false,
+  "revision": 40,
+  "undo": 0,
+  "marker": 4
+ },
+ "theta0_deg": 59.99999999999999,
+ "trace_joint_P_bielle": {
+  "duree_s": 0.2688992999610491,
+  "samples": 200,
+  "stopped_at": null,
+  "stopped_by_loop": null,
+  "stopped_by_contact": null,
+  "cles": [
+   "occurrence",
+   "points",
+   "samples",
+   "stopped_at",
+   "stopped_by_contact",
+   "stopped_by_loop"
+  ],
+  "ecart_max_mm_vs_analytique": 1.4951332616419677e-08,
+  "premier_point": [
+   200.0,
+   -8.155651431960027e-12,
+   0.0
+  ],
+  "dernier_point": [
+   200.0,
+   -4.862147641477269e-09,
+   0.0
+  ]
+ },
+ "trace_joint_B_piston": {
+  "duree_s": 0.2727409999934025,
+  "samples": 200,
+  "stopped_at": null,
+  "stopped_by_loop": null,
+  "stopped_by_contact": null,
+  "cles": [
+   "occurrence",
+   "points",
+   "samples",
+   "stopped_at",
+   "stopped_by_contact",
+   "stopped_by_loop"
+  ],
+  "ecart_max_mm_vs_analytique": 4.0578584048489574e-08,
+  "premier_point": [
+   400.000000000017,
+   0.0,
+   0.0
+  ],
+  "dernier_point": [
+   400.0000000230666,
+   0.0,
+   0.0
+  ]
+ },
+ "etat_apres_trace": {
+  "name": "bielle_manivelle",
+  "dirty": false,
+  "revision": 40,
+  "undo": 0,
+  "marker": 4
+ },
+ "motion_study_reponse": {
+  "id": 8,
+  "ok": true,
+  "result": {
+   "keys": 1,
+   "name": "rotation_manivelle",
+   "steps": 100,
+   "study": 1
+  }
+ },
+ "etat_apres_study": {
+  "name": "bielle_manivelle",
+  "dirty": true,
+  "revision": 41,
+  "undo": 1,
+  "marker": 4
+ },
+ "trace_etude_P": {
+  "samples": 101,
+  "ecart_max_mm_vs_analytique": 1.505895852460526e-08
+ },
+ "motion_plot_duree_s": 0.3087890999740921,
+ "motion_plot_cles": [
+  "joints",
+  "point",
+  "samples",
+  "step",
+  "steps",
+  "stopped_at",
+  "stopped_by_contact",
+  "stopped_by_loop",
+  "study",
+  "time"
+ ],
+ "keep": {
+  "avant": {
+   "name": "bielle_manivelle",
+   "dirty": true,
+   "revision": 41,
+   "undo": 1,
+   "marker": 4
+  },
+  "apres": {
+   "name": "bielle_manivelle",
+   "dirty": true,
+   "revision": 43,
+   "undo": 2,
+   "marker": 5
+  },
+  "reponse_cles": [
+   "curves",
+   "name",
+   "occurrence",
+   "points",
+   "samples",
+   "sketch",
+   "stopped_at",
+   "stopped_by_contact",
+   "stopped_by_loop"
+  ],
+  "sketches_avant": [],
+  "sketches_apres": [
+   {
+    "curves": 0,
+    "dof": 0,
+    "id": 13,
+    "name": "Trace_P",
+    "profiles": 0,
+    "status": "solved",
+    "visible": true
+   }
+  ],
+  "timeline_ajoute": [
+   "Trace_P"
+  ]
+ },
+ "screenshot": true,
+ "alternative_spline3d": {
+  "duree_s": 0.09314150002319366,
+  "ok": true,
+  "reponse_resume": {
+   "created": {
+    "constraints": [],
+    "curves": [],
+    "dimensions": [],
+    "points": [],
+    "wires": [
+     "w1"
+    ]
+   },
+   "curves": [
+    "w1"
+   ],
+   "sketch": {
+    "dof": 0,
+    "solved": true
+   }
+  }
+ },
+ "sketches_finaux": [
+  {
+   "curves": 0,
+   "dof": 0,
+   "id": 13,
+   "name": "Trace_P",
+   "profiles": 0,
+   "status": "solved",
+   "visible": true
+  },
+  {
+   "curves": 0,
+   "dof": 0,
+   "id": 14,
+   "name": "Trace_alt",
+   "profiles": 0,
+   "status": "solved",
+   "visible": true
+  }
+ ],
+ "etat_final": {
+  "name": "bielle_manivelle",
+  "dirty": true,
+  "revision": 51,
+  "undo": 7,
+  "marker": 6
+ }
+}

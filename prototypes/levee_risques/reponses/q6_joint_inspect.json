@@ -1,0 +1,5 @@
+{
+ "error": "unknown command `joint.inspect` (did you mean `document.inspect`, `sketch.inspect` or `timeline.inspect`?)",
+ "id": 18,
+ "ok": false
+}

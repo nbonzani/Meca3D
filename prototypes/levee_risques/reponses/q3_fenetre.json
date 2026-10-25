@@ -1,0 +1,29 @@
+{
+ "document": {
+  "name": "bielle_manivelle",
+  "dirty": false,
+  "undo": 0
+ },
+ "latence_document_inspect_ms_fenetre_normale": 33.5,
+ "minimize": {
+  "custom_titlebar": true,
+  "maximized": false
+ },
+ "latence_fenetre_reduite_ms": 114.2,
+ "screenshot_fenetre_reduite": {
+  "error": "no frame was presented (window hidden?); use ui.render",
+  "hidden": true,
+  "id": 66,
+  "ok": false
+ },
+ "maximize_depuis_reduite": {
+  "custom_titlebar": true,
+  "maximized": false
+ },
+ "latence_apres_maximize_ms": 34.0,
+ "etat_apres": {
+  "name": "bielle_manivelle",
+  "dirty": false,
+  "undo": 0
+ }
+}

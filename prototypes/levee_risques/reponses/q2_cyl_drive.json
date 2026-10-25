@@ -1,0 +1,80 @@
+[
+ {
+  "demande_values": [
+   90.0,
+   0
+  ],
+  "reponse": [
+   {
+    "limits": null,
+    "name": "angle",
+    "unit": "deg",
+    "value": 90.0
+   },
+   {
+    "limits": null,
+    "name": "distance",
+    "unit": "mm",
+    "value": 1.25
+   }
+  ],
+  "liste": {
+   "L_helicoidale": [
+    90.0,
+    1.25
+   ]
+  }
+ },
+ {
+  "demande_values": [
+   360.0,
+   0
+  ],
+  "reponse": [
+   {
+    "limits": null,
+    "name": "angle",
+    "unit": "deg",
+    "value": 360.0
+   },
+   {
+    "limits": null,
+    "name": "distance",
+    "unit": "mm",
+    "value": 5.0
+   }
+  ],
+  "liste": {
+   "L_helicoidale": [
+    360.0,
+    5.0
+   ]
+  }
+ },
+ {
+  "demande_values": [
+   0,
+   10
+  ],
+  "reponse": [
+   {
+    "limits": null,
+    "name": "angle",
+    "unit": "deg",
+    "value": 0.0
+   },
+   {
+    "limits": null,
+    "name": "distance",
+    "unit": "mm",
+    "value": 0.0
+   }
+  ],
+  "liste": {
+   "L_helicoidale": [
+    0.0,
+    0.0
+   ]
+  }
+ }
+]

@@ -1,0 +1,942 @@
+{
+ "repos": {
+  "occurrences": {
+   "2": {
+    "nom": "Bati:1",
+    "composant": 1,
+    "parent": 0,
+    "grounded": true,
+    "transform_translation": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "5": {
+    "nom": "Barre:1",
+    "composant": 4,
+    "parent": 0,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     -150.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "12": {
+    "nom": "Barre:2",
+    "composant": 4,
+    "parent": 10,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "8": {
+    "nom": "Axe:1",
+    "composant": 7,
+    "parent": 0,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     -150.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "13": {
+    "nom": "Axe:2",
+    "composant": 7,
+    "parent": 10,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "11": {
+    "nom": "Groupe:1",
+    "composant": 10,
+    "parent": 0,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "14": {
+    "nom": "Groupe:2",
+    "composant": 10,
+    "parent": 0,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     150.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  },
+  "groupe_children": [
+   {
+    "id": 12,
+    "name": "Barre:2",
+    "parent": 10,
+    "component": 4
+   },
+   {
+    "id": 13,
+    "name": "Axe:2",
+    "parent": 10,
+    "component": 7
+   }
+  ],
+  "cdg": {
+   "Barre:1 (5)": [
+    [
+     50.0,
+     -150.0,
+     5.0
+    ],
+    [
+     5
+    ]
+   ],
+   "Barre:2 (12) sans path": "invalid parameters for `occurrence.properties`: occurrence has multiple placements; supply its `path`",
+   "Barre:2 chemin [11,12]": [
+    [
+     50.0,
+     0.0,
+     5.0
+    ],
+    [
+     11,
+     12
+    ]
+   ],
+   "Barre:2 chemin [14,12]": [
+    [
+     50.0,
+     150.0,
+     5.0
+    ],
+    [
+     14,
+     12
+    ]
+   ],
+   "Axe:2 chemin [11,13]": [
+    [
+     100.0,
+     -0.0,
+     5.0
+    ],
+    [
+     11,
+     13
+    ]
+   ],
+   "Axe:2 chemin [14,13]": [
+    [
+     100.0,
+     150.0,
+     5.0
+    ],
+    [
+     14,
+     13
+    ]
+   ],
+   "Groupe:1 (11)": [
+    [
+     56.834,
+     -0.0,
+     5.0
+    ],
+    [
+     11
+    ]
+   ],
+   "Groupe:2 (14)": [
+    [
+     56.834,
+     150.0,
+     5.0
+    ],
+    [
+     14
+    ]
+   ]
+  },
+  "valeurs": {
+   "LA_bati_groupe1": [
+    0.0
+   ],
+   "LB_bati_barre1": [
+    0.0
+   ],
+   "LC_sous": [
+    0.0
+   ],
+   "LD_bati_axe2": [
+    0.0
+   ]
+  }
+ },
+ "drive LA 30": {
+  "occurrences": {
+   "2": {
+    "nom": "Bati:1",
+    "composant": 1,
+    "parent": 0,
+    "grounded": true,
+    "transform_translation": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "5": {
+    "nom": "Barre:1",
+    "composant": 4,
+    "parent": 0,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     -150.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "12": {
+    "nom": "Barre:2",
+    "composant": 4,
+    "parent": 10,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     0.866,
+     -0.5,
+     0.0,
+     0.0
+    ]
+   },
+   "8": {
+    "nom": "Axe:1",
+    "composant": 7,
+    "parent": 0,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     -150.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "13": {
+    "nom": "Axe:2",
+    "composant": 7,
+    "parent": 10,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     0.866,
+     -0.5,
+     0.0,
+     0.0
+    ]
+   },
+   "11": {
+    "nom": "Groupe:1",
+    "composant": 10,
+    "parent": 0,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     0.866,
+     0.5,
+     0.0,
+     0.0
+    ]
+   },
+   "14": {
+    "nom": "Groupe:2",
+    "composant": 10,
+    "parent": 0,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     150.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  },
+  "groupe_children": [
+   {
+    "id": 12,
+    "name": "Barre:2",
+    "parent": 10,
+    "component": 4
+   },
+   {
+    "id": 13,
+    "name": "Axe:2",
+    "parent": 10,
+    "component": 7
+   }
+  ],
+  "cdg": {
+   "Barre:1 (5)": [
+    [
+     50.0,
+     -150.0,
+     5.0
+    ],
+    [
+     5
+    ]
+   ],
+   "Barre:2 (12) sans path": "invalid parameters for `occurrence.properties`: occurrence has multiple placements; supply its `path`",
+   "Barre:2 chemin [11,12]": [
+    [
+     50.0,
+     0.0,
+     5.0
+    ],
+    [
+     11,
+     12
+    ]
+   ],
+   "Barre:2 chemin [14,12]": [
+    [
+     43.301,
+     125.0,
+     5.0
+    ],
+    [
+     14,
+     12
+    ]
+   ],
+   "Axe:2 chemin [11,13]": [
+    [
+     100.0,
+     -0.0,
+     5.0
+    ],
+    [
+     11,
+     13
+    ]
+   ],
+   "Axe:2 chemin [14,13]": [
+    [
+     86.603,
+     100.0,
+     5.0
+    ],
+    [
+     14,
+     13
+    ]
+   ],
+   "Groupe:1 (11)": [
+    [
+     56.834,
+     -0.0,
+     5.0
+    ],
+    [
+     11
+    ]
+   ],
+   "Groupe:2 (14)": [
+    [
+     49.22,
+     121.583,
+     5.0
+    ],
+    [
+     14
+    ]
+   ]
+  },
+  "valeurs": {
+   "LA_bati_groupe1": [
+    29.999999999999996
+   ],
+   "LB_bati_barre1": [
+    0.0
+   ],
+   "LC_sous": [
+    0.0
+   ],
+   "LD_bati_axe2": [
+    0.0
+   ]
+  }
+ },
+ "drive LD 40": {
+  "occurrences": {
+   "2": {
+    "nom": "Bati:1",
+    "composant": 1,
+    "parent": 0,
+    "grounded": true,
+    "transform_translation": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "5": {
+    "nom": "Barre:1",
+    "composant": 4,
+    "parent": 0,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     -150.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "12": {
+    "nom": "Barre:2",
+    "composant": 4,
+    "parent": 10,
+    "grounded": false,
+    "transform_translation": [
+     23.396,
+     -64.279,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     0.766,
+     0.6428,
+     0.0,
+     0.0
+    ]
+   },
+   "8": {
+    "nom": "Axe:1",
+    "composant": 7,
+    "parent": 0,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     -150.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "13": {
+    "nom": "Axe:2",
+    "composant": 7,
+    "parent": 10,
+    "grounded": false,
+    "transform_translation": [
+     23.396,
+     -64.279,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     0.766,
+     0.6428,
+     0.0,
+     0.0
+    ]
+   },
+   "11": {
+    "nom": "Groupe:1",
+    "composant": 10,
+    "parent": 0,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "14": {
+    "nom": "Groupe:2",
+    "composant": 10,
+    "parent": 0,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     150.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  },
+  "groupe_children": [
+   {
+    "id": 12,
+    "name": "Barre:2",
+    "parent": 10,
+    "component": 4
+   },
+   {
+    "id": 13,
+    "name": "Axe:2",
+    "parent": 10,
+    "component": 7
+   }
+  ],
+  "cdg": {
+   "Barre:1 (5)": [
+    [
+     50.0,
+     -150.0,
+     5.0
+    ],
+    [
+     5
+    ]
+   ],
+   "Barre:2 (12) sans path": "invalid parameters for `occurrence.properties`: occurrence has multiple placements; supply its `path`",
+   "Barre:2 chemin [11,12]": [
+    [
+     61.698,
+     -32.139,
+     5.0
+    ],
+    [
+     11,
+     12
+    ]
+   ],
+   "Barre:2 chemin [14,12]": [
+    [
+     61.698,
+     117.861,
+     5.0
+    ],
+    [
+     14,
+     12
+    ]
+   ],
+   "Axe:2 chemin [11,13]": [
+    [
+     100.0,
+     -0.0,
+     5.0
+    ],
+    [
+     11,
+     13
+    ]
+   ],
+   "Axe:2 chemin [14,13]": [
+    [
+     100.0,
+     150.0,
+     5.0
+    ],
+    [
+     14,
+     13
+    ]
+   ],
+   "Groupe:1 (11)": [
+    [
+     66.933,
+     -27.747,
+     5.0
+    ],
+    [
+     11
+    ]
+   ],
+   "Groupe:2 (14)": [
+    [
+     66.933,
+     122.253,
+     5.0
+    ],
+    [
+     14
+    ]
+   ]
+  },
+  "valeurs": {
+   "LA_bati_groupe1": [
+    0.0
+   ],
+   "LB_bati_barre1": [
+    0.0
+   ],
+   "LC_sous": [
+    0.0
+   ],
+   "LD_bati_axe2": [
+    40.0
+   ]
+  }
+ },
+ "drive LC 25": {
+  "occurrences": {
+   "2": {
+    "nom": "Bati:1",
+    "composant": 1,
+    "parent": 0,
+    "grounded": true,
+    "transform_translation": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "5": {
+    "nom": "Barre:1",
+    "composant": 4,
+    "parent": 0,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     -150.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "12": {
+    "nom": "Barre:2",
+    "composant": 4,
+    "parent": 10,
+    "grounded": false,
+    "transform_translation": [
+     9.369,
+     42.262,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     0.9063,
+     -0.4226,
+     0.0,
+     0.0
+    ]
+   },
+   "8": {
+    "nom": "Axe:1",
+    "composant": 7,
+    "parent": 0,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     -150.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "13": {
+    "nom": "Axe:2",
+    "composant": 7,
+    "parent": 10,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "11": {
+    "nom": "Groupe:1",
+    "composant": 10,
+    "parent": 0,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "14": {
+    "nom": "Groupe:2",
+    "composant": 10,
+    "parent": 0,
+    "grounded": false,
+    "transform_translation": [
+     0.0,
+     150.0,
+     0.0,
+     1.0
+    ],
+    "transform_col0": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  },
+  "groupe_children": [
+   {
+    "id": 12,
+    "name": "Barre:2",
+    "parent": 10,
+    "component": 4
+   },
+   {
+    "id": 13,
+    "name": "Axe:2",
+    "parent": 10,
+    "component": 7
+   }
+  ],
+  "cdg": {
+   "Barre:1 (5)": [
+    [
+     50.0,
+     -150.0,
+     5.0
+    ],
+    [
+     5
+    ]
+   ],
+   "Barre:2 (12) sans path": "invalid parameters for `occurrence.properties`: occurrence has multiple placements; supply its `path`",
+   "Barre:2 chemin [11,12]": [
+    [
+     54.685,
+     21.131,
+     5.0
+    ],
+    [
+     11,
+     12
+    ]
+   ],
+   "Barre:2 chemin [14,12]": [
+    [
+     54.685,
+     171.131,
+     5.0
+    ],
+    [
+     14,
+     12
+    ]
+   ],
+   "Axe:2 chemin [11,13]": [
+    [
+     100.0,
+     -0.0,
+     5.0
+    ],
+    [
+     11,
+     13
+    ]
+   ],
+   "Axe:2 chemin [14,13]": [
+    [
+     100.0,
+     150.0,
+     5.0
+    ],
+    [
+     14,
+     13
+    ]
+   ],
+   "Groupe:1 (11)": [
+    [
+     60.878,
+     18.243,
+     5.0
+    ],
+    [
+     11
+    ]
+   ],
+   "Groupe:2 (14)": [
+    [
+     60.878,
+     168.243,
+     5.0
+    ],
+    [
+     14
+    ]
+   ]
+  },
+  "valeurs": {
+   "LA_bati_groupe1": [
+    0.0
+   ],
+   "LB_bati_barre1": [
+    0.0
+   ],
+   "LC_sous": [
+    25.0
+   ],
+   "LD_bati_axe2": [
+    0.0
+   ]
+  }
+ }
+}

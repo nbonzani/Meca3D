@@ -1,0 +1,47 @@
+[
+ {
+  "pignon_deg": 0,
+  "L_pignon": [
+   0.0
+  ],
+  "L_cremaillere": [
+   0.0
+  ]
+ },
+ {
+  "pignon_deg": 30,
+  "L_pignon": [
+   29.999999999999996
+  ],
+  "L_cremaillere": [
+   10.471975511965976
+  ]
+ },
+ {
+  "pignon_deg": 90,
+  "L_pignon": [
+   90.0
+  ],
+  "L_cremaillere": [
+   31.41592653589793
+  ]
+ },
+ {
+  "pignon_deg": 180,
+  "L_pignon": [
+   180.0
+  ],
+  "L_cremaillere": [
+   62.83185307179586
+  ]
+ },
+ {
+  "pignon_deg": -57.29577951308232,
+  "L_pignon": [
+   -57.29577951308232
+  ],
+  "L_cremaillere": [
+   -20.0
+  ]
+ }
+]

@@ -1,0 +1,124 @@
+{
+ "etat_initial": {
+  "dirty": true,
+  "revision": 2711,
+  "undo": 200,
+  "redo": 0,
+  "marker": 4
+ },
+ "a_drive": {
+  "images": 200,
+  "duree_s": 3.510527100006584,
+  "images_par_s": 56.9715015160045,
+  "etat_apres": {
+   "dirty": true,
+   "revision": 3112,
+   "undo": 200,
+   "redo": 0,
+   "marker": 4
+  },
+  "ok": true,
+  "fidelite": {
+   "ecart_max_theta_deg": 5.6868714182201074e-09,
+   "ecart_max_xB_mm": 3.999713271696237e-08,
+   "duree_lecture_par_image_ms": 117.01755100191804
+  }
+ },
+ "a_batch": {
+  "images": 200,
+  "duree_s": 1.5100163000170141,
+  "images_par_s": 132.44890137791657,
+  "completed": 200,
+  "total_ms": 527.72,
+  "etat_apres": {
+   "dirty": true,
+   "revision": 3914,
+   "undo": 200,
+   "redo": 0,
+   "marker": 4
+  }
+ },
+ "a_restauration": {
+  "ecart_max_valeurs_articulaires": 8.342027690844134e-08,
+  "ecart_max_poses": 2.296201273566112e-08,
+  "etat_apres": {
+   "dirty": true,
+   "revision": 3916,
+   "undo": 200,
+   "redo": 0,
+   "marker": 4
+  },
+  "valeur_initiale_utilisee": 59.99999999999999
+ },
+ "b_coherence_pose_initiale_mm": 5.147740012034774e-10,
+ "b_move": {
+  "images": 200,
+  "requetes": 600,
+  "duree_s": 10.034527599986177,
+  "images_par_s": 19.931182410647363,
+  "calcul_python_s": 0.04193229984957725,
+  "ecart_xB_mm_derniere_image": 5.684341886080802e-14,
+  "ecart_pose_retournee_vs_cible_max": 1.7763568394002505e-14,
+  "pending_moves": [
+   5,
+   8,
+   11
+  ],
+  "etat_apres": {
+   "dirty": true,
+   "revision": 4516,
+   "undo": 200,
+   "redo": 0,
+   "marker": 4
+  },
+  "joint_list_inchangee_pendant_le_deplacement": 8.342027690844134e-08
+ },
+ "b_restauration": {
+  "reponse": {
+   "reverted": 3
+  },
+  "ecart_max_poses": 2.296201273566112e-08,
+  "xB_cdg_apres_revert": 337.22813235037836,
+  "ecart_valeurs_articulaires": 8.342027690844134e-08,
+  "etat_apres": {
+   "dirty": true,
+   "revision": 4517,
+   "undo": 200,
+   "redo": 0,
+   "marker": 4
+  }
+ },
+ "c_batch_move": {
+  "images": 200,
+  "commandes": 600,
+  "duree_s": 1.9581420999602415,
+  "images_par_s": 102.13763342510272,
+  "completed": 600,
+  "failed": null,
+  "ecart_xB_mm_derniere_image": 2.2961842205404537e-08,
+  "restauration_ecart_max_poses": 2.296201273566112e-08
+ },
+ "etat_final": {
+  "dirty": true,
+  "revision": 5118,
+  "undo": 200,
+  "redo": 0,
+  "marker": 4
+ },
+ "valeurs_finales_vs_initiales": {
+  "L01_pivot": [
+   0.0
+  ],
+  "L12_pivot": [
+   -5.709409833798418e-09
+  ],
+  "L23_rotule": [
+   -8.037321030940348e-08,
+   0.0,
+   8.342027690844134e-08
+  ],
+  "L30_glissiere": [
+   2.296197720852433e-08
+  ]
+ }
+}

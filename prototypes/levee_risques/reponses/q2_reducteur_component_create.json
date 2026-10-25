@@ -1,0 +1,10 @@
+{
+ "id": 2,
+ "ok": true,
+ "result": {
+  "component": 1,
+  "name": "Bati",
+  "occurrence": 2,
+  "parent": 0
+ }
+}

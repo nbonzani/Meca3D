@@ -1,0 +1,350 @@
+{
+ "id": 3,
+ "ok": true,
+ "result": {
+  "active": 0,
+  "components": [
+   {
+    "bodies": [],
+    "children": [
+     {
+      "component": 1,
+      "grounded": true,
+      "id": 2,
+      "name": "Bati:1",
+      "parent": 0,
+      "transform": [
+       [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+       ]
+      ]
+     },
+     {
+      "component": 4,
+      "grounded": false,
+      "id": 5,
+      "name": "Manivelle:1",
+      "parent": 0,
+      "transform": [
+       [
+        0.5000000000000001,
+        0.8660254037844386,
+        0.0,
+        0.0
+       ],
+       [
+        -0.8660254037844386,
+        0.5000000000000001,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+       ]
+      ]
+     },
+     {
+      "component": 7,
+      "grounded": false,
+      "id": 8,
+      "name": "Bielle:1",
+      "parent": 0,
+      "transform": [
+       [
+        0.9574271077563363,
+        -0.2886751345948189,
+        0.0,
+        0.0
+       ],
+       [
+        0.2886751345948189,
+        0.9574271077563363,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+       ],
+       [
+        -45.742710775633626,
+        115.47005383792576,
+        0.0,
+        1.0
+       ]
+      ]
+     },
+     {
+      "component": 10,
+      "grounded": false,
+      "id": 11,
+      "name": "Piston:1",
+      "parent": 0,
+      "transform": [
+       [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+       ],
+       [
+        -62.771867673094334,
+        0.0,
+        0.0,
+        1.0
+       ]
+      ]
+     }
+    ],
+    "construction": [],
+    "features": [],
+    "id": 0,
+    "name": "bielle_manivelle",
+    "occurrences": [],
+    "parent": null,
+    "sketches": []
+   },
+   {
+    "bodies": [
+     "Bati_corps"
+    ],
+    "children": [],
+    "construction": [],
+    "features": [
+     "Box1"
+    ],
+    "id": 1,
+    "name": "Bati",
+    "occurrences": [
+     {
+      "component": 1,
+      "grounded": true,
+      "id": 2,
+      "name": "Bati:1",
+      "parent": 0,
+      "transform": [
+       [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+       ]
+      ]
+     }
+    ],
+    "parent": 0,
+    "sketches": []
+   },
+   {
+    "bodies": [
+     "Manivelle_corps"
+    ],
+    "children": [],
+    "construction": [],
+    "features": [
+     "Box2"
+    ],
+    "id": 4,
+    "name": "Manivelle",
+    "occurrences": [
+     {
+      "component": 4,
+      "grounded": false,
+      "id": 5,
+      "name": "Manivelle:1",
+      "parent": 0,
+      "transform": [
+       [
+        0.5000000000000001,
+        0.8660254037844386,
+        0.0,
+        0.0
+       ],
+       [
+        -0.8660254037844386,
+        0.5000000000000001,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+       ]
+      ]
+     }
+    ],
+    "parent": 0,
+    "sketches": []
+   },
+   {
+    "bodies": [
+     "Bielle_corps"
+    ],
+    "children": [],
+    "construction": [],
+    "features": [
+     "Box3"
+    ],
+    "id": 7,
+    "name": "Bielle",
+    "occurrences": [
+     {
+      "component": 7,
+      "grounded": false,
+      "id": 8,
+      "name": "Bielle:1",
+      "parent": 0,
+      "transform": [
+       [
+        0.9574271077563363,
+        -0.2886751345948189,
+        0.0,
+        0.0
+       ],
+       [
+        0.2886751345948189,
+        0.9574271077563363,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+       ],
+       [
+        -45.742710775633626,
+        115.47005383792576,
+        0.0,
+        1.0
+       ]
+      ]
+     }
+    ],
+    "parent": 0,
+    "sketches": []
+   },
+   {
+    "bodies": [
+     "Piston_corps"
+    ],
+    "children": [],
+    "construction": [],
+    "features": [
+     "Box4"
+    ],
+    "id": 10,
+    "name": "Piston",
+    "occurrences": [
+     {
+      "component": 10,
+      "grounded": false,
+      "id": 11,
+      "name": "Piston:1",
+      "parent": 0,
+      "transform": [
+       [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+       ],
+       [
+        -62.771867673094334,
+        0.0,
+        0.0,
+        1.0
+       ]
+      ]
+     }
+    ],
+    "parent": 0,
+    "sketches": []
+   }
+  ],
+  "pending_moves": []
+ }
+}

@@ -1,0 +1,56 @@
+[
+ {
+  "vis_deg": 0,
+  "L_vis_pivot": [
+   0.0
+  ],
+  "L_ecrou_glissiere": [
+   0.0
+  ]
+ },
+ {
+  "vis_deg": 90,
+  "L_vis_pivot": [
+   90.0
+  ],
+  "L_ecrou_glissiere": [
+   1.25
+  ]
+ },
+ {
+  "vis_deg": 360,
+  "L_vis_pivot": [
+   360.0
+  ],
+  "L_ecrou_glissiere": [
+   5.0
+  ]
+ },
+ {
+  "vis_deg": 720,
+  "L_vis_pivot": [
+   720.0
+  ],
+  "L_ecrou_glissiere": [
+   10.0
+  ]
+ },
+ {
+  "vis_deg": -180,
+  "L_vis_pivot": [
+   -180.0
+  ],
+  "L_ecrou_glissiere": [
+   -2.5
+  ]
+ },
+ {
+  "drive_sur_ecrou": false,
+  "L_vis_pivot": [
+   -180.0
+  ],
+  "L_ecrou_glissiere": [
+   -2.5
+  ]
+ }
+]

@@ -1,0 +1,16 @@
+{
+ "id": 23,
+ "ok": true,
+ "result": {
+  "attachment": "fixed",
+  "created": {
+   "constraints": [],
+   "curves": [],
+   "dimensions": [],
+   "points": []
+  },
+  "name": "Trace_alt",
+  "projected": null,
+  "sketch": 14
+ }
+}

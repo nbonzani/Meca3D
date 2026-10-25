@@ -1,0 +1,50 @@
+{
+ "avant": {
+  "name": "bielle_manivelle",
+  "dirty": true,
+  "revision": 51,
+  "undo": 7,
+  "marker": 6
+ },
+ "ui_documents": 2,
+ "chemin_est_la_copie": true,
+ "timeline_delete": {
+  "id": 4,
+  "ok": true,
+  "result": {
+   "deleted": [
+    13,
+    14
+   ]
+  }
+ },
+ "apres_delete_traces": {
+  "name": "bielle_manivelle",
+  "dirty": true,
+  "revision": 53,
+  "undo": 8,
+  "marker": 4
+ },
+ "sketches": [],
+ "motion_delete": {
+  "id": 7,
+  "ok": true,
+  "result": {
+   "deleted": "rotation_manivelle"
+  }
+ },
+ "apres_delete_etude": {
+  "name": "bielle_manivelle",
+  "dirty": true,
+  "revision": 54,
+  "undo": 9,
+  "marker": 4
+ },
+ "motion_list": {
+  "id": 9,
+  "ok": true,
+  "result": {
+   "studies": []
+  }
+ }
+}
