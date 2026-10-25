@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Interface du moteur de simulation, résultats bruts et erreurs typées (D1)."""
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Protocol
 
@@ -10,11 +11,13 @@ from meca3d.modele.etude import Etude
 from meca3d.modele.etude import Reglages as Reglages
 
 __all__ = [
+    "CalculAnnule",
     "ErreurGardeFou",
     "ErreurLiaisonNonPriseEnCharge",
     "ErreurModele",
     "ErreurMoteur",
     "ErreurSolveur",
+    "Fluage",
     "Moteur",
     "Reglages",
     "ResultatsBruts",
@@ -30,7 +33,13 @@ class ErreurModele(ErreurMoteur):
 
 
 class ErreurLiaisonNonPriseEnCharge(ErreurModele):
-    """Liaison dont la traduction n'existe pas encore dans le moteur (hélicoïdale : lot 7)."""
+    """Liaison ou couplage dont la traduction n'existe pas dans le moteur (ex. : train
+    épicycloïdal hors des cas traités)."""
+
+
+class CalculAnnule(ErreurMoteur):
+    """Calcul arrêté proprement à la demande de l'appelant (drapeau d'arrêt, R5, EX-42) ; aucun
+    résultat partiel n'est renvoyé."""
 
 
 class ErreurGardeFou(ErreurMoteur):
@@ -46,6 +55,22 @@ class ErreurSolveur(ErreurMoteur):
         self.t_echec = t_echec
 
 
+@dataclass(frozen=True)
+class Fluage:
+    """Fluage de la loi de Coulomb régularisée (EX-15) pour une liaison frottante.
+
+    Dans la zone d'adhérence apparente (|v| ≤ 3·ε, où l'effort tangent est inférieur à 99,5 % de
+    f·|N|), le solide glisse à la vitesse v = ε·atanh(F_t / (f·|N|)) au lieu de rester immobile.
+    `vitesse_max` (m/s ou rad/s) et `deplacement` (m ou rad, ∫|v|dt) sont relevés dans cette
+    zone ; `duree` (s) est le temps passé dedans ; `epsilon` est le ε utilisé.
+    """
+
+    vitesse_max: float
+    deplacement: float
+    duree: float
+    epsilon: float
+
+
 @dataclass
 class ResultatsBruts:
     """Sorties du moteur (tableaux numpy, sérialisables).
@@ -59,6 +84,11 @@ class ResultatsBruts:
       solide mobile, repère monde, du centre de gravité (vitesse et accélération) et du solide.
       Dynamique : capteurs d'Exudyn (erreur en O(h) pour les accélérations). Cinématique :
       dérivation exacte des liaisons à partir des poses (voir `moteur/cinematique.py`).
+    - `efforts_couplages[nom]` : (n, 2) effort exercé par le couplage `nom` (ou par l'hélicoïdale
+      du même nom que sa liaison) sur la coordonnée relative de la liaison 1 (entrée) et de la
+      liaison 2 (sortie) : couple en N·m pour une rotation, force en N pour une translation, selon
+      l'axe de la liaison ; pertes du rendement (EX-16) comprises. Vides en mode cinématique.
+    - `fluage[liaison]` : fluage des liaisons frottantes (EX-15).
     - `ddl_liberes` : (liaison, indice du ddl dans [Tx Ty Tz Rx Ry Rz]) libérés par l'option
       « Hyperstatique autorisé » (EX-23). `avertissements` : messages à montrer à l'élève.
     """
@@ -72,9 +102,21 @@ class ResultatsBruts:
     vitesses_angulaires: dict[str, np.ndarray] = field(default_factory=dict)
     accelerations: dict[str, np.ndarray] = field(default_factory=dict)
     accelerations_angulaires: dict[str, np.ndarray] = field(default_factory=dict)
+    efforts_couplages: dict[str, np.ndarray] = field(default_factory=dict)
+    fluage: dict[str, Fluage] = field(default_factory=dict)
     ddl_liberes: list[tuple[str, int]] = field(default_factory=list)
     avertissements: list[str] = field(default_factory=list)
 
 
 class Moteur(Protocol):
-    def simuler(self, etude: Etude, reglages: Reglages | None = None) -> ResultatsBruts: ...
+    """`progression(fraction)` et `arret()` sont facultatifs (R5) ; `arret() == True` interrompt
+    le calcul par `CalculAnnule`."""
+
+    def simuler(
+        self,
+        etude: Etude,
+        reglages: Reglages | None = None,
+        *,
+        progression: Callable[[float], None] | None = None,
+        arret: Callable[[], bool] | None = None,
+    ) -> ResultatsBruts: ...

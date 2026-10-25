@@ -11,8 +11,9 @@ import numpy as np
 from meca3d.modele.actions import ActionExterieure, NatureAction, Pilote, RepereAction
 from meca3d.modele.etude import Etude
 from meca3d.modele.liaison import DDL_BLOQUES, Liaison, Statut, TypeLiaison
+from meca3d.moteur import couplages as couplages_exudyn
 from meca3d.moteur.base import (
-    ErreurLiaisonNonPriseEnCharge,
+    CalculAnnule,
     ErreurModele,
     ErreurSolveur,
     Reglages,
@@ -132,12 +133,7 @@ def _verifier(etude: Etude) -> None:
             raise ErreurModele(f"Pilote : liaison inconnue « {pilote.liaison} ».")
         if etude.liaison(pilote.liaison).valeur_pose is None:
             raise ErreurModele(f"Pilote {pilote.liaison} : pose initiale inconnue.")
-    for liaison in etude.liaisons:
-        if liaison.type is TypeLiaison.HELICOIDALE:
-            raise ErreurLiaisonNonPriseEnCharge(
-                f"Liaison {liaison.nom} : liaison hélicoïdale non encore prise en charge par le "
-                "moteur (le couplage Tx = p·Rx / 2π est prévu au lot 7)."
-            )
+    couplages_exudyn.verifier_frottements(etude)
 
 
 class MoteurExudynDyn:
@@ -152,12 +148,17 @@ class MoteurExudynDyn:
         ]
         | None = None,
         ddl_liberes: Collection[tuple[str, int]] | None = None,
+        progression: Callable[[float], None] | None = None,
+        arret: Callable[[], bool] | None = None,
     ) -> ResultatsBruts:
         """`vitesses_initiales` : par solide, (vitesse du CdG, vitesse angulaire), repère monde, SI.
 
         Par défaut, départ au repos. Elles doivent être compatibles avec les liaisons.
         `ddl_liberes` : (liaison, indice de ddl dans [Tx Ty Tz Rx Ry Rz]) dont le blocage est
         retiré (EX-23, option « Hyperstatique autorisé »).
+        `progression(fraction)` : appelée à chaque pas, fraction de la durée dans [0, 1],
+        croissante, 1 à la fin. `arret()` : lu à chaque pas ; vrai interrompt proprement le
+        calcul par `CalculAnnule` (R5, EX-42).
         """
         reglages = reglages or etude.reglages
         vitesses_initiales = vitesses_initiales or {}
@@ -268,6 +269,10 @@ class MoteurExudynDyn:
                 show=False,
             )
 
+        installation = couplages_exudyn.Installation(
+            mbs, etude, corps, {nom: liste[0][0] for nom, liste in joints.items()}
+        )
+
         capteurs: dict[str, int] = {}
         types = exu.OutputVariableType
         for nom, liste in joints.items():
@@ -319,11 +324,31 @@ class MoteurExudynDyn:
         ss.show.computationTime = False
         ss.show.statistics = False
 
+        annule = False
+        if progression is not None or arret is not None:
+
+            def post_pas(mbs_: Any, t: float) -> bool:
+                nonlocal annule
+                if arret is not None and arret():
+                    annule = True
+                    return False
+                if progression is not None:
+                    progression(min(1.0, t / reglages.duree))
+                return True
+
+            mbs.SetPostStepUserFunction(post_pas)
+
         mbs.Assemble()
         try:
             reussi = mbs.SolveDynamic(ss)
         except Exception as e:  # le moteur C++ lève des exceptions Python génériques
+            if annule:
+                raise CalculAnnule("Calcul annulé à la demande.") from e
             raise ErreurSolveur(self._message_echec(mbs, str(e)), self._temps(mbs)) from e
+        if annule:
+            raise CalculAnnule("Calcul annulé à la demande.")
+        if progression is not None:
+            progression(1.0)
         if reussi is False:
             raise ErreurSolveur(self._message_echec(mbs, ""), self._temps(mbs))
 
@@ -351,6 +376,7 @@ class MoteurExudynDyn:
                 res.vitesses_angulaires[s.nom] = donnees[f"W:{s.nom}"][:, 1:4].copy()
                 res.accelerations[s.nom] = donnees[f"A:{s.nom}"][:, 1:4].copy()
                 res.accelerations_angulaires[s.nom] = donnees[f"B:{s.nom}"][:, 1:4].copy()
+        installation.extraire(res, reglages.duree)
         return res
 
     @staticmethod
