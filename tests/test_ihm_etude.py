@@ -111,8 +111,9 @@ def test_ex60_menu_fichier_nouveau_ouvrir_enregistrer(
     assert fenetre.chemin_etude is None
     fenetre.dialogue_ouvrir = lambda: chemin
     fenetre.action_ouvrir.trigger()
-    assert fenetre.etude is not None
-    assert [x.nom for x in fenetre.etude.liaisons] == [
+    rouverte = fenetre.etude  # nouvelle lecture : pyright garde sinon le rétrécissement « None »
+    assert rouverte is not None
+    assert [x.nom for x in rouverte.liaisons] == [
         "L01_pivot",
         "L12_pivot",
         "L23_rotule",
