@@ -1,12 +1,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Versions corrigées des critères d'équilibre d'EX-14 et d'EX-16 (couplages, rendement).
 
-Les tests homonymes de test_reducteur.py, test_vis_ecrou.py et test_rendement.py, commités avant
-le code, jugent l'équilibre par les accélérations des capteurs d'Exudyn sur tous les échantillons.
-Ce critère est défectueux : ces accélérations sont d'ordre 1 en h (D7 révisée, lot 6) et bruitées
-pour les pièces légères ; l'équilibre se juge sur la constance des vitesses. Les efforts de la
-SPEC (Cs = 3, 2,85 N·m ; 2 513,27 N) sont vérifiés comme dans les originaux, et le même
-chargement écarté de 1e-3 relatif doit faire dériver les vitesses.
+Ces tests remplacent (accord de l'utilisateur du 25/10/2026) des critères d'équilibre fondés sur
+les accélérations des capteurs d'Exudyn, d'ordre 1 en h (D7 révisée, lot 6) et bruitées pour les
+pièces légères : l'équilibre se juge sur la constance des vitesses. Les efforts de la SPEC
+(Cs = 3 et 2,85 N·m ; 2 513,27 N) sont vérifiés à 1e-3, et le même chargement écarté de 1e-3
+relatif doit faire dériver les vitesses.
 """
 
 import numpy as np
@@ -60,10 +59,10 @@ def test_ex14_reducteur_couple_transmis_discrimine_a_1e3_corrige() -> None:
 
 def test_ex16_rendement_couple_de_sortie_corrige() -> None:
     """η = 0,95, Ce = 1 N·m en régime établi : Cs = 2,85 N·m ; le chargement sans perte (3 N·m)
-    n'est pas en équilibre. Le premier pas est approché sans perte (le multiplicateur est encore
-    nul à l'initialisation d'Exudyn) : la vitesse de sortie s'en écarte de 0,04 rad/s au plus."""
+    n'est pas en équilibre. La perte est appliquée dès le premier pas (multiplicateurs initiaux
+    cohérents), donc la vitesse reste constante à 1e-4 rad/s près comme sans perte."""
     res = _reducteur(0.95, 2.85)
-    assert np.abs(res.vitesses_angulaires["Roue2"][:, 2] + 10.0).max() < 0.05
+    assert np.abs(res.vitesses_angulaires["Roue2"][:, 2] + 10.0).max() < 1e-4
     assert abs(res.efforts_couplages["R"][-1, 1]) == pytest.approx(2.85, rel=1e-3)
     res = _reducteur(0.95, 3.0)
     assert abs(res.vitesses_angulaires["Roue2"][-1, 2] + 10.0) > 5.0
@@ -124,11 +123,7 @@ def test_ex16_rendement_vis_ecrou_corrige() -> None:
     }
     res = MoteurExudynDyn().simuler(etude, vitesses_initiales=vitesses)
     assert abs(res.efforts_couplages["VE"][-1, 1]) == pytest.approx(f0, rel=1e-3)
-    # Le premier pas est approché sans perte (multiplicateur nul à l'initialisation d'Exudyn) :
-    # la vis, très légère, change de vitesse à ce pas ; l'équilibre tient ensuite (vitesse
-    # constante entre 0,1 s et 0,3 s) et l'effort transmis est celui de la SPEC.
-    w = res.vitesses_angulaires["Vis"][:, 0]
-    assert np.abs(w[100:] - w[100]).max() < 0.1
+    assert np.abs(res.vitesses_angulaires["Vis"][:, 0] - 10.0).max() < 1e-4
 
 
 def test_q7_train_epicycloidal_couple_transmis_corrige() -> None:

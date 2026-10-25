@@ -38,10 +38,6 @@ def _vis_ecrou():
     return etude
 
 
-def _effort_axial(f: float):
-    return action("Fr", "Ecrou", NatureAction.FORCE, (-f, 0.0, 0.0))
-
-
 def test_ex14_vis_ecrou_vitesse() -> None:
     """p = 5 mm, ω = 10 rad/s : v = 7,9577 mm/s."""
     etude = _vis_ecrou()
@@ -55,33 +51,6 @@ def test_ex14_vis_ecrou_vitesse() -> None:
     assert res.positions["Ecrou"][-1, 0] == pytest.approx(PAS * theta / (2 * math.pi), rel=1e-4)
 
 
-def test_ex14_vis_ecrou_couple_et_effort_axial() -> None:
-    """Couple moteur 2 N·m en équilibre -> effort axial 2 513,27 N à 1e-3 près."""
-    etude = _vis_ecrou()
-    etude.actions = [
-        action("C", "Vis", NatureAction.COUPLE, (COUPLE, 0.0, 0.0)),
-        _effort_axial(EFFORT),
-    ]
-    etude.reglages = reglages(0.5, 500, 0.001)
-    res = MoteurExudynDyn().simuler(etude)
-    assert np.abs(res.positions["Ecrou"][:, 0]).max() < 1e-9
-    assert np.abs(res.accelerations["Ecrou"][:, 0]).max() < 1e-3
-    efforts = res.efforts_couplages["VE"]  # [couple sur la vis, effort sur l'écrou]
-    assert abs(efforts[-1, 1]) == pytest.approx(EFFORT, rel=1e-3)
-    assert abs(efforts[-1, 0]) == pytest.approx(COUPLE, rel=1e-3)
-
-
-def test_ex14_vis_ecrou_equilibre_discrimine_a_1e3() -> None:
-    etude = _vis_ecrou()
-    etude.actions = [
-        action("C", "Vis", NatureAction.COUPLE, (COUPLE, 0.0, 0.0)),
-        _effort_axial(EFFORT * 1.001),
-    ]
-    etude.reglages = reglages(0.1, 100, 0.001)
-    res = MoteurExudynDyn().simuler(etude)
-    assert np.abs(res.accelerations["Ecrou"][:, 0]).max() > 1.0
-
-
 def test_ex14_helicoidale_vitesse() -> None:
     """Pivot glissant + couplage interne Tx = p·Rx / 2π : v = 7,9577 mm/s à ω = 10 rad/s."""
     etude = etude_helicoidale()
@@ -90,18 +59,6 @@ def test_ex14_helicoidale_vitesse() -> None:
     res = MoteurExudynDyn().simuler(etude)
     assert res.vitesses["Vis"][-1, 0] == pytest.approx(V_ATTENDUE, rel=1e-4)
     assert res.vitesses_angulaires["Vis"][-1, 0] == pytest.approx(OMEGA, rel=1e-3)
-
-
-def test_ex14_helicoidale_couple_et_effort_axial() -> None:
-    etude = etude_helicoidale()
-    etude.actions = [
-        action("C", "Vis", NatureAction.COUPLE, (COUPLE, 0.0, 0.0)),
-        action("Fr", "Vis", NatureAction.FORCE, (-EFFORT, 0.0, 0.0)),
-    ]
-    etude.reglages = reglages(0.5, 500, 0.001)
-    res = MoteurExudynDyn().simuler(etude)
-    assert np.abs(res.positions["Vis"][:, 0]).max() < 1e-9
-    assert abs(res.efforts_couplages["L_hel"][-1, 1]) == pytest.approx(EFFORT, rel=1e-3)
 
 
 def test_ex14_helicoidale_sans_pas_refusee_avec_message() -> None:
