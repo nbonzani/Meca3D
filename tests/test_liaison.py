@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Catalogue minimal des liaisons : ddl bloqués (EX-10), propositions (EX-11), réorientation (EX-13)."""
+"""Catalogue minimal : ddl bloqués (EX-10), propositions (EX-11), réorientation (EX-13)."""
 
 import numpy as np
 import pytest

@@ -65,4 +65,6 @@ def test_ex31_pesanteur_par_defaut() -> None:
 def test_ex31_pesanteur_desactivable() -> None:
     p = Pesanteur(vecteur=(0.0, -9.81, 0.0), actif=False)
     assert p.effectif() == pytest.approx([0.0, 0.0, 0.0], abs=0)
-    assert Pesanteur(vecteur=(0.0, -9.81, 0.0)).effectif() == pytest.approx([0.0, -9.81, 0.0], abs=0)
+    assert Pesanteur(vecteur=(0.0, -9.81, 0.0)).effectif() == pytest.approx(
+        [0.0, -9.81, 0.0], abs=0
+    )

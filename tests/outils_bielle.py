@@ -35,7 +35,7 @@ def etude_proposee(theta: str = "00") -> Etude:
 
 
 def etude_bielle(theta: str = "00", theta0_deg: float = 0.0) -> Etude:
-    """Étude prête à simuler : choix de l'élève, pilote L01, pesanteur (0, −9,81, 0), 1 s, 4 000 pas."""
+    """Étude prête à simuler : choix de l'élève, pilote L01, g = (0, −9,81, 0), 1 s, 4 000 pas."""
     etude = etude_proposee(theta)
     etude.maquette = "bielle_manivelle.solidcraft"
     etude.liaison("L23_rotule").type = TypeLiaison.LINEAIRE_ANNULAIRE

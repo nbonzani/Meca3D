@@ -70,7 +70,9 @@ def test_ex40_normale_du_piston(etude: Etude, resultats: ResultatsBruts) -> None
     assert _ecart(tors[:, 1], refs) <= TOLERANCE_EX40
 
 
-def test_ex50_moment_sur_l_axe_libre_nul_hors_pilote(etude: Etude, resultats: ResultatsBruts) -> None:
+def test_ex50_moment_sur_l_axe_libre_nul_hors_pilote(
+    etude: Etude, resultats: ResultatsBruts
+) -> None:
     # pivot L12 : moment d'axe z nul (liaison parfaite)
     tors = torseur_statique(etude, resultats, "L12_pivot", de="Manivelle", base="monde")
     assert np.abs(tors[:, 5]).max() < 1e-9

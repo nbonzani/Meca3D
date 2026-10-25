@@ -10,8 +10,9 @@ from pathlib import Path
 RACINE_TESTS = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(RACINE_TESTS))
 
-from meca3d.modele.etude import ecrire_etude  # noqa: E402
 from outils_bielle import etude_bielle  # noqa: E402
+
+from meca3d.modele.etude import ecrire_etude  # noqa: E402
 
 
 def main() -> None:
