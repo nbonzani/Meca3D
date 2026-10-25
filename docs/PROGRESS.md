@@ -1,5 +1,11 @@
 # Journal de progression
 
+## 2026-10-25 — Lot 5, canal de contrôle et import en direct (fait, sauf test réel)
+- Fait : `cao/canal.py` (`CanalSolidCraft`, erreurs typées, découverte port/jeton, relecture `control.pending`), `cao/solidcraft.py` (`importer`, `structure_a_change`, `reimporter`, `signature_structure`, `EtudeImportee`), `tests/faux_serveur.py` (scénarios), tests EX-01 à EX-06 ; `tests/test_solidcraft_reel.py` écrit, NON lancé (à lancer par le superviseur : `uv run pytest -m solidcraft`, bielle ouverte, `--control 7878`).
+- Décisions : EX-06 par signature de structure (sha256 JSON canonique : composants, occurrences, liaisons, `links`, masses à 1e-6 g, sans pose), selon consigne du superviseur ; la `revision` reste mémorisée mais ne sert plus à détecter une modification. Liaisons sur sous-occurrence ignorées et nommées (`EtudeImportee.liaisons_ignorees`, `avertissements`). Réimport : choix conservés si même nom et même type SolidCraft, sinon proposition et avertissement ; pilotes, pesanteur, réglages conservés.
+- Vigilance : la signature vit dans `EtudeImportee` (`modele/` intouché) et n'est pas écrite dans le `.meca3d` : à ajouter à `Etude` pour qu'une étude rouverte détecte les modifications ; sinon `structure_a_change` rend True. Forme de la réponse de `engine.execute` (résultat direct de la commande) déduite des fixtures, à confirmer par le test réel. Format des `links` non observé (fixture vide).
+- Prochaine action : lancer le test réel, puis IHM du bandeau (EX-06).
+
 ## 2026-10-25 — Lot 4, graphe, mobilité, hyperstatisme (fait)
 - Fait : `graphe/graphe.py` (description minimale figée, graphe networkx multigraphe, μ, base de cycles, isolés, bâti fusionné, `depuis_etude`), `graphe/mobilite.py` (Kc par torseurs, rang SVD 1e-9, m, h, `verifier_avant_simulation`, `designer_ddl_redondants`, `liberer`).
 - Résultats (Ic, rc, m, h) : bielle pivot/pivot/rotule/glissière 6/5/1/1 ; annulaire z 7/6/1/0 ; annulaire x 7/5/2/1 ; 3 pivots + glissière 4/3/1/3 ; pendule double 2/0/2/0 ; engrenage sur bâti Ic = 2, Ec = 1, m = 1, h = 0.
