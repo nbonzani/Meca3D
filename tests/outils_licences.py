@@ -11,7 +11,17 @@ from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
 
 # Familles compatibles avec une distribution sous GPL v3 ou ultérieure (FSF : liste des licences)
-FAMILLES_COMPATIBLES = ("MIT", "BSD", "Apache-2.0", "PSF", "LGPL", "GPL", "Matplotlib", "HPND", "MPL")
+FAMILLES_COMPATIBLES = (
+    "MIT",
+    "BSD",
+    "Apache-2.0",
+    "PSF",
+    "LGPL",
+    "GPL",
+    "Matplotlib",
+    "HPND",
+    "MPL",
+)
 
 _MOTIFS: tuple[tuple[str, str], ...] = (
     (r"\bLGPL|Lesser General Public", "LGPL"),
@@ -38,7 +48,9 @@ def _texte_licence(meta: metadata.PackageMetadata) -> str:
     expression = meta.get("License-Expression")
     if expression:
         return str(expression)
-    classes = [c.split("::")[-1].strip() for c in meta.get_all("Classifier") or [] if "License ::" in c]
+    classes = [
+        c.split("::")[-1].strip() for c in meta.get_all("Classifier") or [] if "License ::" in c
+    ]
     brute = (meta.get("License") or "").strip()
     # le champ License contient parfois le texte entier : seule la première ligne est gardée
     brute = brute.splitlines()[0] if brute else ""
@@ -53,7 +65,12 @@ def _texte_fichiers_licence(nom: str) -> str:
     """Texte des fichiers de licence installés avec le paquet (dist-info/licenses)."""
     morceaux = []
     for fichier in metadata.files(nom) or []:
-        if "licen" in fichier.name.lower() and fichier.suffix.lower() in ("", ".txt", ".md", ".rst"):
+        if "licen" in fichier.name.lower() and fichier.suffix.lower() in (
+            "",
+            ".txt",
+            ".md",
+            ".rst",
+        ):
             try:
                 morceaux.append(fichier.read_text(encoding="utf-8"))
             except (OSError, UnicodeDecodeError):

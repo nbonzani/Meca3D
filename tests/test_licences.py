@@ -35,7 +35,9 @@ def test_ex64_dependances_directes_presentes() -> None:
 
 
 def test_ex64_licences_des_dependances_compatibles_gpl3() -> None:
-    incompatibles = [(d.nom, d.licence) for d in licences_dependances() if not est_compatible_gpl3(d)]
+    incompatibles = [
+        (d.nom, d.licence) for d in licences_dependances() if not est_compatible_gpl3(d)
+    ]
     assert incompatibles == []
 
 
