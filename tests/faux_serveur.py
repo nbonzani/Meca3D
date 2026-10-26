@@ -21,6 +21,7 @@ import json
 import shutil
 import socket
 import threading
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -60,6 +61,8 @@ class Scenario:
     `revision` : remplace la révision de document.inspect (None : valeur de la fixture).
     `format_export` : remplace le champ `format` de l'export JSON.
     `sous_occurrence` : ajoute une liaison visant une sous-occurrence.
+    `fenetre_reduite` : la fenêtre est réduite : chaque requête coûte `latence_reduite` s (115 ms
+    mesurés, RESULTATS_1b § Q3) jusqu'à un `ui.window {"action": "maximize"}`.
     """
 
     jeton_attendu: str | None = JETON_DE_TEST
@@ -70,6 +73,8 @@ class Scenario:
     revision: int | None = None
     format_export: str | None = None
     sous_occurrence: bool = False
+    fenetre_reduite: bool = False
+    latence_reduite: float = 0.12
 
 
 def _lire(nom: str) -> Any:
@@ -266,6 +271,14 @@ class FauxServeur:
     def _repondre(self, requete: dict[str, Any]) -> dict[str, Any]:
         ident = requete.get("id")
         methode = requete.get("method")
+        if self.scenario.fenetre_reduite and methode != "ui.window":
+            time.sleep(self.scenario.latence_reduite)
+        if methode == "ui.window":
+            action = (requete.get("params") or {}).get("action")
+            etat = {"custom_titlebar": True, "maximized": not self.scenario.fenetre_reduite}
+            if action == "maximize":  # seule action qui ramène une fenêtre réduite (mesuré)
+                self.scenario.fenetre_reduite = False
+            return {"id": ident, "ok": True, "result": etat}
         if methode == "document.inspect":
             inspection = _lire(f"document_inspect_theta{self.theta}.json")
             inspection["revision"] = self.revision
