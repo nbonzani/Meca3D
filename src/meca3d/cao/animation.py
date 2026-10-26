@@ -27,6 +27,7 @@ import numpy as np
 
 from meca3d import unites
 from meca3d.cao.canal import CanalSolidCraft, ErreurCanal
+from meca3d.cao.fenetre import ramener_au_premier_plan
 from meca3d.modele.etude import Etude
 from meca3d.moteur.base import ResultatsBruts
 from meca3d.resultats.capteurs import etat_solide
@@ -114,6 +115,7 @@ class Animateur:
         self._pos_ref = 0.0  # position de lecture au dernier recalage
         self._trajectoires: list[str] = []
         self.images_envoyees = 0
+        self.fenetre_ramenee = False  # R10 : la fenêtre était réduite et a été ramenée
         if len(resultats.t) < 2:
             raise ErreurAnimation("Aucun résultat à animer : la simulation n'a pas d'instants.")
 
@@ -195,6 +197,9 @@ class Animateur:
         """Démarre ou reprend la lecture ; depuis la fin, elle repart du début."""
         if self._position >= self.duree - 1e-12:
             self._position = 0.0
+        if not self._initiales and self._mobiles:
+            # préparation (R10 : fenêtre ramenée, jusqu'à ~1 s) AVANT de lancer l'horloge de lecture
+            self._preparer()
         self._en_lecture = True
         self._recaler()
 
@@ -254,6 +259,7 @@ class Animateur:
     # --- poses ----------------------------------------------------------------------------
     def _preparer(self) -> None:
         """Lit les occurrences de premier niveau (identifiants, poses initiales)."""
+        self.fenetre_ramenee = ramener_au_premier_plan(self._canal)  # R10
         composants = self._canal.executer("component.list")
         racine = next((c for c in composants["components"] if c.get("parent") is None), None)
         if racine is None:
