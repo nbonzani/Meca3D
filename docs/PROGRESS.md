@@ -1,5 +1,9 @@
 # Journal de progression
 
+## 2026-10-26 — Publication v0.1.0 (fait)
+- Fait : étiquette v0.1.0, Release GitHub publiée par le workflow Release (exe construit et testé sur windows-latest, zip de 95 Mo) : https://github.com/nbonzani/Meca3D/releases/tag/v0.1.0
+- Prochaine action : retours d'utilisation de l'enseignant, puis v0.1.1.
+
 ## 2026-10-26 — Lot 12, exécutable Windows et chaîne de release, R10, R11 (fait sauf publication)
 - Fait : `meca3d.spec` (deux exécutables dans `dist/meca3d/` : `meca3d.exe` sans console, `meca3d-cli.exe` console pour `simuler`, partage des bibliothèques par `MERGE` ; `--hidden-import exudyn.exudynCPP`, exclusions tkinter, opengl32sw, Qt6Pdf, Qt6Network ; licences copiées dans `licences/`), `packaging/lanceur*.py` (`freeze_support`), `.github/workflows/release.yml` (étiquette `v*` : construction, tests exe, zip, Release ; `workflow_dispatch` : artefact seulement), PyInstaller 6.22.3 en dépendance de développement (`uv add --dev`, `uv.lock` commité), mode d'auto-test de l'IHM (variable `MECA3D_AUTOTEST_DELAI_S` : la fenêtre se ferme dès que le processus de calcul préchauffé est prêt, code 3 sinon), README (installation, usage, développement, licence, crédits).
 - Exécutable (machine chargée) : dossier 170 Mo, 1 081 fichiers (les deux exe pèsent 20 Mo chacun : l'archive de modules, sympy compris, est dupliquée), construction 512 s. Plus que les 105-136 Mo du prototype (matplotlib, sympy, PIL). Exclusions vérifiées : aucune trace d'opengl32sw, Qt6Pdf, Qt6Network. Tests : `tests/test_exe.py` 3 passés (version, CSV de la bielle identique au mode source à 1e-12, IHM hors écran avec processus `spawn` prêt puis fermeture, code 0), 28 s.
