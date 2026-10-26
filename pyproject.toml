@@ -25,7 +25,13 @@ build-backend = "hatchling.build"
 packages = ["src/meca3d"]
 
 [dependency-groups]
-dev = ["pytest>=8", "pytest-qt>=4.4", "ruff>=0.6", "pyright>=1.1.380"]
+dev = [
+    "pytest>=8",
+    "pytest-qt>=4.4",
+    "ruff>=0.6",
+    "pyright>=1.1.380",
+    "pyinstaller>=6.22.3",
+]
 
 [tool.ruff]
 line-length = 100

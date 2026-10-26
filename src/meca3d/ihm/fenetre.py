@@ -5,12 +5,21 @@ Aucune logique métier ici : `modele/`, `graphe/` et `cao/` décident ; la simul
 `moteur/processus.py` (processus séparé) ; connexion et import (E/S réseau) par un QThreadPool.
 """
 
+import os
 import sys
 from collections.abc import Callable
 from functools import partial
 from pathlib import Path
 
-from PyQt6.QtCore import QObject, QRunnable, Qt, QThreadPool, QTimer, pyqtSignal
+from PyQt6.QtCore import (
+    QElapsedTimer,
+    QObject,
+    QRunnable,
+    Qt,
+    QThreadPool,
+    QTimer,
+    pyqtSignal,
+)
 from PyQt6.QtGui import QAction, QCloseEvent, QShowEvent
 from PyQt6.QtWidgets import (
     QApplication,
@@ -908,9 +917,39 @@ class FenetrePrincipale(QMainWindow):
         super().closeEvent(a0)
 
 
+VARIABLE_AUTOTEST = "MECA3D_AUTOTEST_DELAI_S"
+CODE_AUTOTEST_DELAI = 3  # le processus de calcul n'a pas été prêt dans le délai
+PERIODE_AUTOTEST_MS = 100
+
+
+def _armer_autotest(fenetre: FenetrePrincipale, delai: float) -> list[int]:
+    """Auto-test (vérification de l'exécutable, EX-63) : ferme la fenêtre dès que le processus de
+    calcul préchauffé est prêt, ou au bout de `delai` s (code 3). Rend le code de sortie."""
+    code = [CODE_AUTOTEST_DELAI]
+    chrono = QElapsedTimer()
+    chrono.start()
+    minuteur = QTimer(fenetre)
+
+    def verifier() -> None:
+        if fenetre.prechauffe_pret():
+            code[0] = 0
+        elif chrono.elapsed() < delai * 1000.0:
+            return
+        minuteur.stop()
+        fenetre.close()
+
+    minuteur.timeout.connect(verifier)
+    minuteur.start(PERIODE_AUTOTEST_MS)
+    return code
+
+
 def lancer() -> int:
-    """Ouvre la fenêtre principale (`python -m meca3d` sans argument)."""
+    """Ouvre la fenêtre principale (`python -m meca3d` sans argument). Avec la variable
+    MECA3D_AUTOTEST_DELAI_S, la fenêtre se ferme seule (vérification de l'exécutable)."""
     application = QApplication.instance() or QApplication(sys.argv)
     fenetre = FenetrePrincipale()
+    delai = os.environ.get(VARIABLE_AUTOTEST)
+    code = _armer_autotest(fenetre, float(delai)) if delai else None
     fenetre.show()
-    return application.exec()
+    sortie = application.exec()
+    return sortie if code is None else code[0]
