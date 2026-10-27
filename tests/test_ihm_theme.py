@@ -9,11 +9,11 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 from collections.abc import Iterator  # noqa: E402
 
 import pytest  # noqa: E402
-from meca3d.ihm.etapes import EtatEtape  # noqa: E402
 from outils_bielle import etude_bielle, etude_proposee  # noqa: E402
 from pytestqt.qtbot import QtBot  # noqa: E402
 
 from meca3d.ihm import theme  # noqa: E402
+from meca3d.ihm.etapes import EtatEtape  # noqa: E402
 from meca3d.ihm.fenetre import FenetrePrincipale  # noqa: E402
 from meca3d.modele.etude import Reglages  # noqa: E402
 
