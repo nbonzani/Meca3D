@@ -14,7 +14,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 import json  # noqa: E402
 from collections.abc import Iterator  # noqa: E402
 from pathlib import Path  # noqa: E402
-from typing import Any  # noqa: E402
+from typing import Any, cast  # noqa: E402
 
 import pytest  # noqa: E402
 from outils_bielle import etude_proposee  # noqa: E402
@@ -278,7 +278,7 @@ def test_ex16_rendement_modifie_sur_un_couplage_existant(fenetre: FenetrePrincip
     editeur.bouton_ajouter.click()
     assert len(etude.couplages) == 1
     assert etude.couplages[0].rendement == pytest.approx(0.95, abs=1e-12)
-    assert etude.couplages[0].k == pytest.approx(1.0 / 3.0, rel=1e-15)
+    assert cast(Engrenage, etude.couplages[0]).k == pytest.approx(1.0 / 3.0, rel=1e-15)
 
 
 def test_ex14_couplage_supprime(fenetre: FenetrePrincipale) -> None:
