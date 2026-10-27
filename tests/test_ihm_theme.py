@@ -7,6 +7,7 @@ import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 from collections.abc import Iterator  # noqa: E402
+from typing import Any  # noqa: E402
 
 import pytest  # noqa: E402
 from outils_bielle import etude_bielle, etude_proposee  # noqa: E402
@@ -32,7 +33,7 @@ def fenetre(qtbot: QtBot) -> Iterator[FenetrePrincipale]:
     f.annuler()
 
 
-def _luminance(couleur: tuple[float, ...]) -> float:
+def _luminance(couleur: Any) -> float:
     """Luminance relative approchée d'une couleur RVB(A) en [0, 1]."""
     r, v, b = couleur[:3]
     return 0.2126 * r + 0.7152 * v + 0.0722 * b
