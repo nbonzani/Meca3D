@@ -159,7 +159,11 @@ class ArbreEtude(QTreeWidget):
         for nom, rubrique in self._rubriques.items():
             incomplet = any(self.est_incomplet(c) for c in _enfants(rubrique))
             if etude is not None and nom == textes.RUBRIQUE_PILOTES and mobilite is not None:
-                incomplet = incomplet or len(etude.pilotes) != mobilite.m
+                # Moins de lois que de mobilités : mouvement libre, légitime en dynamique (le
+                # mode cinématique le refuse, EX-22) ; plus de lois que m est toujours faux.
+                n = len(etude.pilotes)
+                incomplet = incomplet or n > mobilite.m
+                rubrique.setToolTip(0, textes.info_pilotes(n, mobilite.m))
             if etude is not None and nom == textes.RUBRIQUE_GRAPHE:
                 incomplet = mobilite is None or mobilite.h > 0
             self._marquer(rubrique, incomplet)

@@ -1,5 +1,11 @@
 # Journal de progression
 
+## 2026-10-27 — Exemples livrés et guide utilisateur (fait)
+- Fait : dossier `exemples/` (5 études complètes générées par `exemples/generer_exemples.py` depuis les réponses SolidCraft enregistrées : bielle-manivelle, pendule simple, pendule double, réducteur, vis-écrou ; liaisons validées, pilotes, actions, capteurs, réglages ; maquettes copiées dans `exemples/maquettes/`) ; `tests/test_exemples.py` (ouverture sans élément incomplet, simulation, couplage visible) ; guide utilisateur charte méca ia `docs/guide/` (docx + PDF, captures `tests/outils_capture_guide.py`) ; exemples et PDF ajoutés au zip de la Release.
+- Corrections IHM : rubrique Pilotes signalée seulement si plus de lois que m (mouvement libre légitime en dynamique, infobulle explicative) ; couplages tracés en tireté sur le graphe avec leur rapport ; le panneau Courbes n'affiche plus des statistiques figées ; la boîte Ouvrir part du dossier `exemples`.
+- Vigilance : l'IHM ne permet pas encore de saisir les réglages de simulation, le frottement de Coulomb, le rendement ni un couplage absent de la maquette (moteur et fichier d'étude prêts ; documenté au guide, annexe B).
+- Prochaine action : lot de saisie IHM de ces réglages, puis v0.1.1.
+
 ## 2026-10-26 — Publication v0.1.0 (fait)
 - Fait : étiquette v0.1.0, Release GitHub publiée par le workflow Release (exe construit et testé sur windows-latest, zip de 95 Mo) : https://github.com/nbonzani/Meca3D/releases/tag/v0.1.0
 - Prochaine action : retours d'utilisation de l'enseignant, puis v0.1.1.

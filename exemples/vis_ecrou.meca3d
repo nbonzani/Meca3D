@@ -1,0 +1,221 @@
+{
+  "version_etude": 2,
+  "maquette": "maquettes/vis_ecrou.solidcraft",
+  "revision": 26,
+  "validation_en_bloc": false,
+  "solides": [
+    {
+      "nom": "Bati",
+      "fixe": true,
+      "masse": 1.872,
+      "cdg": [
+        0.0,
+        0.0,
+        -0.005
+      ],
+      "inertie": [
+        [
+          0.0022619999999999997,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.006255599999999999,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0084864
+        ]
+      ]
+    },
+    {
+      "nom": "Vis",
+      "fixe": false,
+      "masse": 0.06125088105763653,
+      "cdg": [
+        1.1449259935149224e-18,
+        1.4497067407348459e-18,
+        0.0500000000000112
+      ],
+      "inertie": [
+        [
+          5.1316522272223686e-05,
+          -3.3678124857451385e-12,
+          1.7260362028499798e-19
+        ],
+        [
+          -3.3678124857451385e-12,
+          5.131652468975266e-05,
+          -2.308941517975673e-19
+        ],
+        [
+          1.7260362028499798e-19,
+          -2.308941517975673e-19,
+          7.623031109110124e-07
+        ]
+      ]
+    },
+    {
+      "nom": "Ecrou",
+      "fixe": false,
+      "masse": 0.0312,
+      "cdg": [
+        0.0,
+        0.0,
+        0.035
+      ],
+      "inertie": [
+        [
+          1.2999999999999975e-06,
+          1.750505092667443e-39,
+          2.270098775625229e-22
+        ],
+        [
+          1.750505092667443e-39,
+          1.2999999999999975e-06,
+          -2.270098775625229e-22
+        ],
+        [
+          2.270098775625229e-22,
+          -2.270098775625229e-22,
+          2.08e-06
+        ]
+      ]
+    }
+  ],
+  "liaisons": [
+    {
+      "nom": "L_vis_pivot",
+      "type_sc": "revolute",
+      "couplage_screw": false,
+      "solide_a": "Bati",
+      "solide_b": "Vis",
+      "centre": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "axe_sc": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "valeur_pose": 0.0,
+      "type": "pivot",
+      "axe": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "direction": null,
+      "statut": "validee"
+    },
+    {
+      "nom": "L_ecrou_glissiere",
+      "type_sc": "slider",
+      "couplage_screw": false,
+      "solide_a": "Bati",
+      "solide_b": "Ecrou",
+      "centre": [
+        0.0,
+        0.0,
+        0.035
+      ],
+      "axe_sc": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "valeur_pose": 0.0,
+      "type": "glissiere",
+      "axe": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "direction": null,
+      "statut": "validee"
+    }
+  ],
+  "couplages": [
+    {
+      "genre": "vis_ecrou",
+      "nom": "Vis-écrou L_vis_pivot-L_ecrou_glissiere",
+      "liaison_1": "L_vis_pivot",
+      "liaison_2": "L_ecrou_glissiere",
+      "p": 0.005,
+      "rendement": 1.0
+    }
+  ],
+  "pilotes": [
+    {
+      "liaison": "L_vis_pivot",
+      "loi": "Piecewise((5.0*(t - 0.2/pi*sin(pi*t/0.2)), t < 0.2), (1.0 + 10.0*(t - 0.2), True))",
+      "constantes": {},
+      "grandeur": null
+    }
+  ],
+  "capteurs": [
+    {
+      "genre": "point",
+      "nom": "Centre_ecrou",
+      "solide": "Ecrou",
+      "point": [
+        0.0,
+        0.0,
+        0.035
+      ],
+      "solide_reference": "Bati",
+      "base": "reference"
+    },
+    {
+      "genre": "liaison",
+      "nom": "T_vis",
+      "liaison": "L_vis_pivot",
+      "sens": "i_vers_j",
+      "base": "liaison"
+    },
+    {
+      "genre": "liaison",
+      "nom": "T_ecrou",
+      "liaison": "L_ecrou_glissiere",
+      "sens": "i_vers_j",
+      "base": "liaison"
+    }
+  ],
+  "pesanteur": {
+    "vecteur": [
+      0.0,
+      0.0,
+      -9.81
+    ],
+    "actif": false
+  },
+  "reglages": {
+    "duree": 1.0,
+    "nb_pas": 1000,
+    "periode_ecriture": 0.002
+  },
+  "actions": [
+    {
+      "nom": "F_resistant",
+      "solide": "Ecrou",
+      "nature": "force",
+      "composantes": [
+        "0.0",
+        "0.0",
+        "-100.0"
+      ],
+      "repere": "monde",
+      "point": [
+        0.0,
+        0.0,
+        0.035
+      ],
+      "constantes": {}
+    }
+  ]
+}

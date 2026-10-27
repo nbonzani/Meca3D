@@ -353,3 +353,34 @@ MSG_AUCUNE_TRAJECTOIRE = "Aucune trajectoire à effacer."
 
 def animation_temps(t: float, duree: float) -> str:
     return f"t = {t:.3f} s / {duree:.3f} s".replace(".", ",")
+
+
+def info_pilotes(nombre: int, m: int) -> str:
+    """Infobulle de la rubrique Pilotes : lois d'entrée saisies face à la mobilité m."""
+    if nombre == m:
+        return f"{nombre} loi(s) d'entrée pour m = {m} : simulations dynamique et cinématique."
+    if nombre < m:
+        return (
+            f"{nombre} loi(s) d'entrée pour m = {m} : mouvement libre en dynamique ; "
+            f"le mode cinématique exige {m} loi(s)."
+        )
+    return f"{nombre} loi(s) d'entrée pour m = {m} : trop de lois, en retirer {nombre - m}."
+
+
+def libelle_couplage(genre: str, valeur: float, rendement: float) -> str:
+    """Étiquette d'un couplage sur le graphe des liaisons (EX-14, EX-16)."""
+    if genre == "engrenage":
+        texte = f"engrenage k = {valeur:.4g}"
+    elif genre == "pignon_cremaillere":
+        texte = f"pignon-crémaillère r = {valeur * 1000:.4g} mm"
+    else:
+        texte = f"vis-écrou p = {valeur * 1000:.4g} mm"
+    return texte if rendement == 1.0 else f"{texte}, η = {rendement:.3g}"
+
+
+COURBES_AIDE = (
+    "Choisir l'abscisse et l'ordonnée au-dessus de la courbe : toute grandeur calculée, en "
+    "fonction du temps ou d'une autre grandeur. Le minimum, le maximum et la moyenne de "
+    "l'ordonnée sont affichés sous les listes. « Exporter les résultats en CSV » enregistre "
+    "toutes les grandeurs."
+)

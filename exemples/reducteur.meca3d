@@ -1,0 +1,222 @@
+{
+  "version_etude": 2,
+  "maquette": "maquettes/reducteur.solidcraft",
+  "revision": 26,
+  "validation_en_bloc": false,
+  "solides": [
+    {
+      "nom": "Bati",
+      "fixe": true,
+      "masse": 1.872,
+      "cdg": [
+        0.04,
+        0.0,
+        -0.005
+      ],
+      "inertie": [
+        [
+          0.0022619999999999997,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.006255599999999999,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0084864
+        ]
+      ]
+    },
+    {
+      "nom": "Roue1",
+      "fixe": false,
+      "masse": 0.09801132525938505,
+      "cdg": [
+        2.2528271670500623e-18,
+        -1.4287508305086574e-18,
+        0.005000000002006335
+      ],
+      "inertie": [
+        [
+          1.0613501990160914e-05,
+          6.169262480172e-10,
+          -1.9966819309044833e-22
+        ],
+        [
+          6.169262480172e-10,
+          1.0613059139771419e-05,
+          6.842071798021217e-22
+        ],
+        [
+          -1.9966819309044833e-22,
+          6.842071798021217e-22,
+          1.9593357236054764e-05
+        ]
+      ]
+    },
+    {
+      "nom": "Roue2",
+      "fixe": false,
+      "masse": 0.8821049046569936,
+      "cdg": [
+        0.0799999999999977,
+        9.392612279712535e-18,
+        0.005000000000000265
+      ],
+      "inertie": [
+        [
+          0.000800921206184008,
+          5.379561057429518e-08,
+          -2.9057264328002926e-19
+        ],
+        [
+          5.379561057429518e-08,
+          0.0008008825898868061,
+          -3.6239998735250563e-20
+        ],
+        [
+          -2.9057264328002926e-19,
+          -3.6239998735250563e-20,
+          0.0015871047626788753
+        ]
+      ]
+    }
+  ],
+  "liaisons": [
+    {
+      "nom": "L1_pivot",
+      "type_sc": "revolute",
+      "couplage_screw": false,
+      "solide_a": "Bati",
+      "solide_b": "Roue1",
+      "centre": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "axe_sc": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "valeur_pose": 0.0,
+      "type": "pivot",
+      "axe": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "direction": null,
+      "statut": "validee"
+    },
+    {
+      "nom": "L2_pivot",
+      "type_sc": "revolute",
+      "couplage_screw": false,
+      "solide_a": "Bati",
+      "solide_b": "Roue2",
+      "centre": [
+        0.08,
+        0.0,
+        0.0
+      ],
+      "axe_sc": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "valeur_pose": 0.0,
+      "type": "pivot",
+      "axe": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "direction": null,
+      "statut": "validee"
+    }
+  ],
+  "couplages": [
+    {
+      "genre": "engrenage",
+      "nom": "Engrenage L1_pivot-L2_pivot",
+      "liaison_1": "L1_pivot",
+      "liaison_2": "L2_pivot",
+      "k": 0.3333333333333333,
+      "sens": "exterieur",
+      "rendement": 1.0
+    }
+  ],
+  "pilotes": [
+    {
+      "liaison": "L1_pivot",
+      "loi": "Piecewise((15.0*(t - 0.2/pi*sin(pi*t/0.2)), t < 0.2), (3.0 + 30.0*(t - 0.2), True))",
+      "constantes": {},
+      "grandeur": null
+    }
+  ],
+  "capteurs": [
+    {
+      "genre": "point",
+      "nom": "Point_jante_roue2",
+      "solide": "Roue2",
+      "point": [
+        0.14,
+        0.0,
+        0.005
+      ],
+      "solide_reference": "Bati",
+      "base": "reference"
+    },
+    {
+      "genre": "liaison",
+      "nom": "T_L1",
+      "liaison": "L1_pivot",
+      "sens": "i_vers_j",
+      "base": "liaison"
+    },
+    {
+      "genre": "liaison",
+      "nom": "T_L2",
+      "liaison": "L2_pivot",
+      "sens": "i_vers_j",
+      "base": "liaison"
+    }
+  ],
+  "pesanteur": {
+    "vecteur": [
+      0.0,
+      0.0,
+      -9.81
+    ],
+    "actif": false
+  },
+  "reglages": {
+    "duree": 1.0,
+    "nb_pas": 1000,
+    "periode_ecriture": 0.002
+  },
+  "actions": [
+    {
+      "nom": "C_resistant",
+      "solide": "Roue2",
+      "nature": "couple",
+      "composantes": [
+        "0.0",
+        "0.0",
+        "1.0"
+      ],
+      "repere": "monde",
+      "point": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "constantes": {}
+    }
+  ]
+}

@@ -18,6 +18,15 @@ et lit les torseurs de liaison.
    défaut ; Meca3D lit le port courant dans le dossier de contrôle de SolidCraft). La fenêtre de
    SolidCraft doit rester visible pendant l'animation ; Meca3D la ramène si elle est réduite.
 
+## Documentation et exemples
+
+- **Guide utilisateur** : [docs/guide/Meca3D_Guide_utilisateur.pdf](docs/guide/Meca3D_Guide_utilisateur.pdf)
+  (également livré dans le zip de l'exécutable).
+- **Exemples** : le dossier [`exemples/`](exemples/) contient cinq études complètes, prêtes à simuler
+  sans SolidCraft (bielle-manivelle, pendule simple, pendule double, réducteur à engrenage,
+  vis-écrou), et leurs maquettes SolidCraft dans `exemples/maquettes/`. Premier essai :
+  **Fichier → Ouvrir une étude…**, `exemples/bielle_manivelle.meca3d`, puis **Simuler (dynamique)**.
+
 ## Utilisation rapide
 
 1. Ouvrir la maquette dans SolidCraft (solides et liaisons posés).

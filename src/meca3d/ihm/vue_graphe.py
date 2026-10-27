@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import QComboBox, QLabel, QVBoxLayout, QWidget
 
 from meca3d.graphe.mobilite import ResultatMobilite
 from meca3d.ihm import textes
+from meca3d.modele.couplage import Couplage, Engrenage, PignonCremaillere
 from meca3d.modele.etude import Etude
 
 COULEUR_ARETE = "#6b7280"
@@ -18,6 +19,7 @@ COULEUR_CYCLE = "#dc2626"
 COULEUR_NOEUD = "#dbeafe"
 COULEUR_BATI = "#d1d5db"
 COULEUR_ISOLE = "#fca5a5"
+COULEUR_COUPLAGE = "#0891b2"
 COURBURE_PARALLELES = 0.25  # écart d'arc entre deux liaisons en parallèle
 
 
@@ -118,6 +120,8 @@ class VueGraphe(QWidget):
                 color=COULEUR_CYCLE if cycle else "black",
                 bbox={"boxstyle": "round,pad=0.2", "fc": "white", "ec": "none", "alpha": 0.9},
             )
+        for couplage in etude.couplages:
+            self._dessiner_couplage(ax, etude, couplage, pos)
         for n in g.nodes:
             bati = n == mobilite.graphe.bati
             isole = n in mobilite.graphe.isoles
@@ -139,3 +143,47 @@ class VueGraphe(QWidget):
         ax.set_ylim(-1.5, 1.5)
         ax.set_aspect("equal")
         self.canevas.draw_idle()
+
+    @staticmethod
+    def _dessiner_couplage(ax: Any, etude: Etude, couplage: Couplage, pos: dict) -> None:
+        """Couplage (EX-14) : tireté entre les deux solides menés par ses liaisons. Il n'est pas
+        une arête du graphe (il ne crée pas de cycle) mais ajoute une équation à Ec (EX-21)."""
+        try:
+            l1, l2 = etude.liaison(couplage.liaison_1), etude.liaison(couplage.liaison_2)
+        except KeyError:
+            return
+        s1, s2 = {l1.solide_a, l1.solide_b}, {l2.solide_a, l2.solide_b}
+        commun = s1 & s2
+        u = next(iter(s1 - commun), l1.solide_b)
+        v = next(iter(s2 - commun), l2.solide_b)
+        if u not in pos or v not in pos or u == v:
+            return
+        ax.add_patch(
+            FancyArrowPatch(
+                (float(pos[u][0]), float(pos[u][1])),
+                (float(pos[v][0]), float(pos[v][1])),
+                arrowstyle="-",
+                linestyle="--",
+                color=COULEUR_COUPLAGE,
+                linewidth=1.5,
+                shrinkA=14,
+                shrinkB=14,
+            )
+        )
+        if isinstance(couplage, Engrenage):
+            valeur = couplage.k
+        elif isinstance(couplage, PignonCremaillere):
+            valeur = couplage.r
+        else:
+            valeur = couplage.p
+        milieu = (pos[u] + pos[v]) / 2
+        ax.text(
+            milieu[0],
+            milieu[1],
+            textes.libelle_couplage(couplage.GENRE, valeur, couplage.rendement),
+            ha="center",
+            va="center",
+            fontsize=8,
+            color=COULEUR_COUPLAGE,
+            bbox={"boxstyle": "round,pad=0.2", "fc": "white", "ec": "none", "alpha": 0.9},
+        )

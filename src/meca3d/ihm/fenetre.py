@@ -109,6 +109,13 @@ class _Tache(QRunnable):
             self.signaux.reussi.emit(resultat)
 
 
+def dossier_exemples() -> Path | None:
+    """Dossier `exemples` livré : à côté de l'exécutable, ou à la racine du dépôt (sources)."""
+    candidats = [Path(sys.executable).parent / "exemples"] if getattr(sys, "frozen", False) else []
+    candidats.append(Path(__file__).resolve().parents[3] / "exemples")
+    return next((c for c in candidats if c.is_dir()), None)
+
+
 def _connecter_canal(fabrique: Callable[[], CanalSolidCraft]) -> CanalSolidCraft:
     canal = fabrique()
     canal.connecter()
@@ -474,7 +481,7 @@ class FenetrePrincipale(QMainWindow):
             self.proprietes.afficher_capteur(None)
         elif nom == textes.RUBRIQUE_COURBES:
             self.onglets.setCurrentWidget(self.vue_courbes)
-            self.proprietes.afficher_texte(nom, self.vue_courbes.etiquette_stats.text())
+            self.proprietes.afficher_texte(nom, textes.COURBES_AIDE)
         elif nom == textes.RUBRIQUE_ANIMATION:
             self.onglets.setCurrentWidget(self.vue_animation)
             self.proprietes.afficher_texte(nom, textes.ANIMATION_AIDE)
@@ -688,8 +695,12 @@ class FenetrePrincipale(QMainWindow):
 
     # --- fichiers : étude (EX-60) et CSV (EX-52) ---------------------------------------------
     def _dialogue_ouvrir(self) -> Path | None:
+        depart = self.chemin_etude.parent if self.chemin_etude else dossier_exemples()
         nom, _ = QFileDialog.getOpenFileName(
-            self, textes.ACTION_OUVRIR.replace("&", ""), "", textes.FILTRE_ETUDE
+            self,
+            textes.ACTION_OUVRIR.replace("&", ""),
+            "" if depart is None else str(depart),
+            textes.FILTRE_ETUDE,
         )
         return Path(nom) if nom else None
 

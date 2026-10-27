@@ -1,0 +1,150 @@
+{
+  "version_etude": 2,
+  "maquette": "maquettes/pendule_simple.solidcraft",
+  "revision": 22,
+  "validation_en_bloc": false,
+  "solides": [
+    {
+      "nom": "Bati",
+      "fixe": true,
+      "masse": 0.5616,
+      "cdg": [
+        0.0,
+        0.02,
+        0.0
+      ],
+      "inertie": [
+        [
+          0.00018719999999999997,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.00033695999999999997,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.00018719999999999997
+        ]
+      ]
+    },
+    {
+      "nom": "Barre",
+      "fixe": false,
+      "masse": 1.2480000000000009,
+      "cdg": [
+        -0.09999999999999999,
+        -7.878220157332497e-19,
+        -0.17320508075688773
+      ],
+      "inertie": [
+        [
+          0.012531999999999996,
+          5.009151196921845e-19,
+          -0.0071873180310878075
+        ],
+        [
+          5.009151196921845e-19,
+          0.01668159999999999,
+          8.676104375863093e-19
+        ],
+        [
+          -0.0071873180310878075,
+          8.676104375863093e-19,
+          0.004232799999999995
+        ]
+      ],
+      "repere": {
+        "rotation": [
+          [
+            0.8660254037844387,
+            0.0,
+            0.49999999999999994
+          ],
+          [
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            -0.49999999999999994,
+            0.0,
+            0.8660254037844387
+          ]
+        ],
+        "origine": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    }
+  ],
+  "liaisons": [
+    {
+      "nom": "L01_pivot",
+      "type_sc": "revolute",
+      "couplage_screw": false,
+      "solide_a": "Bati",
+      "solide_b": "Barre",
+      "centre": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "axe_sc": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "valeur_pose": 0.5235987755982988,
+      "type": "pivot",
+      "axe": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "direction": null,
+      "statut": "validee"
+    }
+  ],
+  "couplages": [],
+  "pilotes": [],
+  "capteurs": [
+    {
+      "genre": "point",
+      "nom": "Bout_barre",
+      "solide": "Barre",
+      "point": [
+        -0.19999999999999998,
+        -1.5756440314664994e-18,
+        -0.34641016151377546
+      ],
+      "solide_reference": "Bati",
+      "base": "reference"
+    },
+    {
+      "genre": "liaison",
+      "nom": "T_L01",
+      "liaison": "L01_pivot",
+      "sens": "i_vers_j",
+      "base": "liaison"
+    }
+  ],
+  "pesanteur": {
+    "vecteur": [
+      0.0,
+      0.0,
+      -9.81
+    ],
+    "actif": true
+  },
+  "reglages": {
+    "duree": 3.0,
+    "nb_pas": 3000,
+    "periode_ecriture": 0.005
+  }
+}

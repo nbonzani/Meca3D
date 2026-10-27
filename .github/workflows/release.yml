@@ -30,6 +30,13 @@ jobs:
         env:
           MECA3D_EXE_DIR: dist/meca3d
         run: uv run pytest -q -m slow tests/test_exe.py
+      - name: Exemples et guide utilisateur dans le dossier livré
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist/meca3d/exemples | Out-Null
+          Copy-Item exemples/*.meca3d dist/meca3d/exemples/
+          Copy-Item exemples/maquettes dist/meca3d/exemples/maquettes -Recurse
+          Copy-Item docs/guide/Meca3D_Guide_utilisateur.pdf dist/meca3d/
       - name: Archive zip du dossier
         shell: pwsh
         run: |
