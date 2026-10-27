@@ -700,7 +700,8 @@ def contenu(g: Guide) -> None:
             "Une liaison sur une sous-occurrence est signalée et ignorée.",
             "Les **couplages** se définissent dans SolidCraft : engrenage (`joint.gear`), "
             "pignon-crémaillère (`joint.rack_pinion`), vis-écrou (`joint.screw`). Meca3D les "
-            "importe avec leur rapport.",
+            "importe avec leur rapport ; un couplage absent de la maquette se saisit dans "
+            "Meca3D (§ 5.3).",
             "Les masses viennent des matériaux SolidCraft : affecter un matériau à chaque pièce.",
             "Placer la maquette dans une **configuration générale**, hors point mort : le calcul "
             "de m et h se fait dans la pose d'import.",
@@ -768,6 +769,31 @@ def contenu(g: Guide) -> None:
         "tirée d'une rotule. La rotule à doigt et la linéaire rectiligne demandent une "
         "**seconde direction**, projetée orthogonalement à l'axe ; une direction presque "
         "colinéaire à l'axe (moins de 1°) est refusée."
+    )
+    g.h3("Frottement de Coulomb")
+    g.p(
+        "Pour une glissière, un appui plan ou un pivot, le groupe **Frottement de Coulomb** "
+        "règle le coefficient f (0 : liaison parfaite). Un pivot frottant demande en plus le "
+        "rayon r de l'axe, en mm : le couple résistant vaut f·r·|R_radiale|. La loi est "
+        "régularisée près de la vitesse nulle, F = f·|N|·tanh(v/v_ε) ; la vitesse de "
+        "régularisation affiche « défaut » (v_ε = 10⁻⁴ m/s, ω_ε = 10⁻² rad/s) et peut être "
+        "changée. **Appliquer le frottement** enregistre les trois valeurs."
+    )
+    g.h3("Pas d'une liaison hélicoïdale")
+    g.p(
+        "Une liaison hélicoïdale demande son pas p, en mm par tour (Tx = p·Rx / 2π) : groupe "
+        "**Pas de la liaison hélicoïdale**, puis **Appliquer le pas**."
+    )
+    g.h3("Couplages")
+    g.p(
+        "La rubrique **Couplages** du modèle cinématique liste les couplages importés et "
+        "saisis. Sélectionner la rubrique pour en créer un : genre, liaison d'entrée (1) et "
+        "liaison de sortie (2), puis le rapport : nombres de dents Z₁ et Z₂ et sens "
+        "(extérieur ou intérieur) pour un engrenage, rayon primitif r (mm) pour un "
+        "pignon-crémaillère, pas p (mm par tour) pour un vis-écrou. Le **rendement η**, entre "
+        "0 (exclu) et 1, s'applique dans le sens de la puissance transmise. Chaque couplage "
+        "ajoute une équation au calcul de m et h (§ 5.4). Sélectionner un couplage permet de "
+        "le modifier ou de le supprimer."
     )
 
     g.h2("5.4 Graphe, mobilité et hyperstatisme")
@@ -906,10 +932,11 @@ def contenu(g: Guide) -> None:
         "bloqué), le message indique l'instant de l'échec et rappelle les causes possibles."
     )
     g.p(
-        "Les **réglages de simulation** (durée, nombre de pas, période d'écriture des capteurs) "
-        "sont enregistrés dans l'étude. Une étude importée reçoit 1 s, 1 000 pas et 1 ms. "
-        "Dans la version 0.1.0, ils ne se modifient pas encore depuis l'interface (voir "
-        "l'annexe B pour les modifier dans le fichier d'étude)."
+        "Les **réglages de simulation** s'ouvrent par un clic sur l'étape **Simulation** ou par "
+        "**Simulation → Réglages de simulation…** : durée (s), nombre de pas d'intégration et "
+        "période d'écriture des capteurs (ms). Le pas de temps h = durée / nombre de pas est "
+        "affiché ; 1 ms convient à la plupart des mécanismes de TP. **Appliquer les réglages** "
+        "les enregistre dans l'étude. Une étude importée reçoit 1 s, 1 000 pas et 1 ms."
     )
 
     g.h2("5.9 Exploiter les résultats")
@@ -1205,19 +1232,12 @@ def contenu(g: Guide) -> None:
             "post-traitement avancé (FFT) : seuls minimum, maximum et moyenne sont fournis.",
         ]
     )
-    g.h2("Réglages non encore exposés dans l'interface")
+    g.h2("Réglages")
     g.p(
-        "Le moteur de calcul et le fichier d'étude les prennent en charge, mais l'interface de la "
-        "version 0.1.0 ne permet pas encore de les saisir :"
+        "Tous les réglages de l'étude se saisissent dans l'interface : réglages de simulation "
+        "(§ 5.8), frottement, pas des hélicoïdales et couplages (§ 5.3). Le fichier `.meca3d` "
+        "n'a jamais besoin d'être modifié à la main (annexe B)."
     )
-    g.puces(
-        [
-            "durée, nombre de pas et période d'écriture de la simulation ;",
-            "coefficient de frottement de Coulomb d'une liaison et rayon d'axe d'un pivot frottant ;",
-            "rendement d'un couplage, et saisie d'un couplage absent de la maquette.",
-        ]
-    )
-    g.p("L'annexe B indique comment les renseigner dans le fichier `.meca3d`.")
     g.h2("Distribution")
     g.puces(
         [
@@ -1265,16 +1285,18 @@ def contenu(g: Guide) -> None:
 
     g.h1("Annexe B — Le fichier d'étude", "Annexes")
     g.p(
-        "Le fichier `.meca3d` est un texte JSON lisible, en UTF-8. Un enseignant peut le modifier "
-        "avec un éditeur de texte (Bloc-notes, VS Code) pour renseigner les réglages que "
-        "l'interface 0.1.0 n'expose pas. Enregistrer une copie avant toute modification : un "
-        "fichier invalide est refusé à l'ouverture."
+        "Le fichier `.meca3d` est un texte JSON lisible, en UTF-8. Toutes ses valeurs se "
+        "saisissent dans l'interface ; cette annexe montre comment elles y sont écrites, pour "
+        "relire une étude ou la préparer avec un éditeur de texte (Bloc-notes, VS Code). "
+        "Enregistrer une copie avant toute modification à la main : un fichier invalide est "
+        "refusé à l'ouverture."
     )
     g.h3("Réglages de simulation")
     g.code(['"reglages": {"duree": 3.0, "nb_pas": 3000, "periode_ecriture": 0.005}'])
     g.p(
-        "Durée en s, nombre de pas d'intégration, période d'écriture des capteurs en s. Un pas "
-        "de 1 ms convient à la plupart des mécanismes de TP."
+        "Durée en s, nombre de pas d'intégration, période d'écriture des capteurs en s "
+        "(saisie en ms dans l'interface). Un pas de 1 ms convient à la plupart des mécanismes "
+        "de TP. Interface : étape Simulation ou menu Simulation → Réglages de simulation…"
     )
     g.h3("Frottement de Coulomb d'une liaison")
     g.code(
@@ -1284,14 +1306,26 @@ def contenu(g: Guide) -> None:
         ]
     )
     g.p(
-        "Coefficient f sans dimension ; rayon d'axe en m pour un pivot. La loi est régularisée "
-        "près de la vitesse nulle (v_ε = 10⁻⁴ m/s, ω_ε = 10⁻² rad/s)."
+        "Coefficient f sans dimension ; rayon d'axe en m pour un pivot (saisi en mm). La loi "
+        "est régularisée près de la vitesse nulle (v_ε = 10⁻⁴ m/s, ω_ε = 10⁻² rad/s par "
+        "défaut ; clé optionnelle `epsilon`). Interface : groupe Frottement de Coulomb du "
+        "panneau de la liaison. Le pas d'une hélicoïdale s'écrit dans la clé `pas`, en m par "
+        "tour (groupe Pas de la liaison hélicoïdale)."
     )
     g.h3("Rendement d'un couplage")
-    g.code(['{"genre": "engrenage", ..., "k": 0.3333333333333333, "rendement": 0.95}'])
+    g.code(
+        [
+            '{"genre": "engrenage", "nom": "K1", "liaison_1": "L1", "liaison_2": "L2",',
+            ' "k": 0.3333333333333333, "sens": "exterieur", "rendement": 0.95,',
+            ' "z1": 20, "z2": 60}',
+        ]
+    )
     g.p(
         "Rendement η entre 0 (exclu) et 1. Le sens de la perte suit le signe de la puissance "
-        "transmise à chaque instant."
+        "transmise à chaque instant. Les nombres de dents `z1` et `z2`, facultatifs, sont "
+        "écrits quand l'engrenage a été saisi par ses dents ; le calcul n'utilise que k. "
+        "Pignon-crémaillère : clé `r` (m) ; vis-écrou : clé `p` (m par tour). Interface : "
+        "rubrique Couplages."
     )
     g.h3("Structure générale")
     g.tableau(
@@ -1301,7 +1335,7 @@ def contenu(g: Guide) -> None:
             ["`maquette`, `revision`", "maquette SolidCraft d'origine"],
             ["`solides`", "nom, fixe, masse (kg), centre de gravité (m), inertie (kg·m²), pose"],
             ["`liaisons`", "liaison SolidCraft, type choisi, axe, statut, frottement"],
-            ["`couplages`", "genre, liaisons couplées, rapport, rendement"],
+            ["`couplages`", "genre, liaisons couplées, rapport (et dents), rendement"],
             ["`pilotes`", "liaison et loi d'entrée"],
             ["`pesanteur`, `actions`, `ressorts`", "données d'entrée"],
             ["`capteurs`", "capteurs de point et de liaison"],

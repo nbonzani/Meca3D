@@ -75,6 +75,9 @@ PROPOSITION_SOLIDCRAFT: dict[str, TypeLiaison] = {
     "rigid": TypeLiaison.ENCASTREMENT,
 }
 
+# EX-15 : liaisons dont le frottement de Coulomb est modélisé (moteur/couplages.py)
+LIAISONS_FROTTANTES = frozenset({TypeLiaison.GLISSIERE, TypeLiaison.APPUI_PLAN, TypeLiaison.PIVOT})
+
 
 class Statut(StrEnum):
     PROPOSEE = "proposee"
@@ -199,9 +202,16 @@ class Liaison:
         )
 
     def choisir(self, type_liaison: TypeLiaison) -> None:
-        """EX-11 : choix libre parmi les 11 liaisons ; le nouveau choix est à valider."""
+        """EX-11 : choix libre parmi les 11 liaisons ; le nouveau choix est à valider.
+
+        Le frottement (EX-15) ne survit pas à un type qui ne le prend pas en charge, et le rayon
+        d'axe n'a de sens que pour un pivot."""
         self.type = TypeLiaison(type_liaison)
         self.statut = Statut.PROPOSEE
+        if self.type not in LIAISONS_FROTTANTES:
+            self.frottement, self.epsilon = 0.0, None
+        if self.type is not TypeLiaison.PIVOT:
+            self.rayon_axe = None
 
     def definir_direction(self, vecteur: Sequence[float] | np.ndarray) -> None:
         """EX-12 : seconde direction (monde) ; refusée si l'angle avec l'axe z est < 1°."""
@@ -230,6 +240,34 @@ class Liaison:
         if p.shape != (3,) or not np.all(np.isfinite(p)):
             raise ValueError("Centre invalide : trois coordonnées finies sont attendues.")
         self.centre = p
+
+    def regler_frottement(
+        self, frottement: float, rayon_axe: float | None = None, epsilon: float | None = None
+    ) -> None:
+        """EX-15 : coefficient f, rayon r de l'axe d'un pivot (m), vitesse de régularisation
+        (None : défaut de la SPEC). Refusé, sans modification, pour un pivot frottant sans
+        rayon ou pour une valeur invalide."""
+        ancien = (self.frottement, self.rayon_axe, self.epsilon)
+        rayon = rayon_axe if self.type is TypeLiaison.PIVOT else None
+        if frottement > 0.0 and self.type is TypeLiaison.PIVOT and rayon is None:
+            raise ValueError(
+                f"Liaison {self.nom} : le rayon de l'axe est à saisir pour le frottement d'un "
+                "pivot (couple résistant f·r·|R_radiale|)."
+            )
+        self.frottement, self.rayon_axe, self.epsilon = float(frottement), rayon, epsilon
+        try:
+            self._verifier_frottement()
+        except ValueError:
+            self.frottement, self.rayon_axe, self.epsilon = ancien
+            raise
+
+    def definir_pas(self, pas: float) -> None:
+        """EX-10 : pas p de l'hélicoïdale (m par tour), strictement positif."""
+        if not (math.isfinite(pas) and pas > 0.0):
+            raise ValueError(
+                f"Liaison {self.nom} : le pas doit être un nombre fini strictement positif."
+            )
+        self.pas = float(pas)
 
     def valider(self) -> None:
         if self.type is None:

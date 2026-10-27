@@ -5,11 +5,12 @@ Chaque couplage relie deux liaisons par leur nom :
 - engrenage : ω₂ = −k·ω₁ (extérieur) ou +k·ω₁ (intérieur), k = Z₁/Z₂ ;
 - pignon-crémaillère : v = r·ω (liaison_1 : pivot du pignon, liaison_2 : glissière) ;
 - vis-écrou : v = p·ω / 2π (liaison_1 : rotation de la vis, liaison_2 : translation de l'écrou).
-Le rendement η ∈ ]0 ; 1] vaut 1 par défaut.
+Le rendement η ∈ ]0 ; 1] vaut 1 par défaut. Les nombres de dents Z₁ et Z₂ d'un engrenage sont
+mémorisés quand ils sont connus (clés optionnelles `z1`, `z2`, lot 14) pour être réaffichés.
 """
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any, ClassVar
 
@@ -29,6 +30,17 @@ def _positif_fini(valeur: float, nom: str) -> float:
     if not (math.isfinite(valeur) and valeur > 0.0):
         raise ErreurCouplage(f"{nom} doit être un nombre fini strictement positif.")
     return float(valeur)
+
+
+TOLERANCE_DENTS = 1e-12  # écart relatif admis entre k et Z₁/Z₂ relus
+
+
+def _verifier_dents(nom: str, z1: int, z2: int) -> None:
+    for z in (z1, z2):
+        if isinstance(z, bool) or not isinstance(z, int) or z <= 0:
+            raise ErreurCouplage(
+                f"Couplage {nom} : les nombres de dents sont des entiers strictement positifs."
+            )
 
 
 def _verifier_commun(nom: str, liaison_1: str, liaison_2: str, rendement: float) -> None:
@@ -57,10 +69,20 @@ class Engrenage:
     k: float
     sens: SensEngrenage = SensEngrenage.EXTERIEUR
     rendement: float = 1.0
+    # Nombres de dents, s'ils sont connus : affichage seulement, le calcul n'utilise que k
+    z1: int | None = field(default=None, compare=False)
+    z2: int | None = field(default=None, compare=False)
 
     def __post_init__(self) -> None:
         _verifier_commun(self.nom, self.liaison_1, self.liaison_2, self.rendement)
         _positif_fini(self.k, f"Couplage {self.nom} : le rapport k")
+        if self.z1 is None and self.z2 is None:
+            return
+        if self.z1 is None or self.z2 is None:
+            raise ErreurCouplage(f"Couplage {self.nom} : Z₁ et Z₂ vont ensemble.")
+        _verifier_dents(self.nom, self.z1, self.z2)
+        if abs(self.z1 / self.z2 - self.k) > TOLERANCE_DENTS * self.k:
+            raise ErreurCouplage(f"Couplage {self.nom} : k ne vaut pas Z₁/Z₂.")
 
     @classmethod
     def depuis_dents(
@@ -74,19 +96,15 @@ class Engrenage:
         rendement: float = 1.0,
     ) -> "Engrenage":
         """k = Z₁/Z₂ (ω₂ = −k·ω₁ : Z₁ = 20, Z₂ = 60 donne k = 1/3)."""
-        for z in (z1, z2):
-            if isinstance(z, bool) or not isinstance(z, int) or z <= 0:
-                raise ErreurCouplage(
-                    f"Couplage {nom} : les nombres de dents sont des entiers strictement positifs."
-                )
-        return cls(nom, liaison_1, liaison_2, z1 / z2, sens, rendement)
+        _verifier_dents(nom, z1, z2)
+        return cls(nom, liaison_1, liaison_2, z1 / z2, sens, rendement, z1, z2)
 
     @property
     def signe(self) -> float:
         return -1.0 if self.sens is SensEngrenage.EXTERIEUR else 1.0
 
     def vers_dict(self) -> dict[str, Any]:
-        return {
+        d = {
             "genre": self.GENRE,
             "nom": self.nom,
             "liaison_1": self.liaison_1,
@@ -95,6 +113,9 @@ class Engrenage:
             "sens": self.sens.value,
             "rendement": self.rendement,
         }
+        if self.z1 is not None:
+            d["z1"], d["z2"] = self.z1, self.z2
+        return d
 
 
 @dataclass(frozen=True)
@@ -161,7 +182,9 @@ def couplage_depuis_dict(d: dict[str, Any]) -> Couplage:
         commun = (str(d["nom"]), str(d["liaison_1"]), str(d["liaison_2"]))
         rendement = d["rendement"]
         if genre == Engrenage.GENRE:
-            return Engrenage(*commun, d["k"], SensEngrenage(d["sens"]), rendement)
+            return Engrenage(
+                *commun, d["k"], SensEngrenage(d["sens"]), rendement, d.get("z1"), d.get("z2")
+            )
         if genre == PignonCremaillere.GENRE:
             return PignonCremaillere(*commun, d["r"], rendement)
         if genre == VisEcrou.GENRE:

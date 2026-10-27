@@ -54,6 +54,7 @@ from meca3d.ihm import textes, theme
 from meca3d.ihm.arbre import (
     GENRE_ACTION,
     GENRE_CAPTEUR,
+    GENRE_COUPLAGE,
     GENRE_LIAISON,
     GENRE_PILOTE,
     GENRE_RESSORT,
@@ -252,6 +253,7 @@ class FenetrePrincipale(QMainWindow):
             textes.ACTION_SIMULER_CINEMATIQUE, textes.INFO_SIMULER_CINEMATIQUE
         )
         self.action_annuler = self._action(textes.ACTION_ANNULER)
+        self.action_reglages = self._action(textes.ACTION_REGLAGES, textes.INFO_REGLAGES)
         self.action_valider_toutes = self._action(textes.ACTION_VALIDER_TOUTES)
         self.action_validation_en_bloc = self._action(
             textes.ACTION_VALIDATION_EN_BLOC, textes.INFO_VALIDATION_EN_BLOC, cochable=True
@@ -272,6 +274,7 @@ class FenetrePrincipale(QMainWindow):
         self.action_simuler.triggered.connect(self._sur_simuler)
         self.action_simuler_cinematique.triggered.connect(self._sur_simuler_cinematique)
         self.action_annuler.triggered.connect(self.annuler)
+        self.action_reglages.triggered.connect(self.afficher_reglages)
         self.action_valider_toutes.triggered.connect(self.valider_toutes)
         self.action_validation_en_bloc.triggered.connect(self._sur_validation_en_bloc)
         self.action_hyperstatique.triggered.connect(self._sur_hyperstatique)
@@ -298,6 +301,8 @@ class FenetrePrincipale(QMainWindow):
         simulation.addAction(self.action_simuler)
         simulation.addAction(self.action_simuler_cinematique)
         simulation.addAction(self.action_annuler)
+        simulation.addSeparator()
+        simulation.addAction(self.action_reglages)
         enseignant.addAction(self.action_validation_en_bloc)
         enseignant.addAction(self.action_hyperstatique)
         affichage.addAction(self.action_theme_sombre)
@@ -386,8 +391,17 @@ class FenetrePrincipale(QMainWindow):
         branche, vue = branches[rang], vues[rang]
         if branche is not None:
             self.arbre.selectionner_branche(branche)
+        else:  # étape Simulation : ses réglages (EX-40)
+            self.afficher_reglages()
         if vue is not None:
             self.onglets.setCurrentWidget(vue)
+
+    def afficher_reglages(self) -> None:
+        """Réglages de simulation de l'étude dans le panneau des propriétés (EX-40)."""
+        if self.etude is None:
+            self._message(textes.MSG_PAS_D_ETUDE)
+            return
+        self.proprietes.afficher_reglages()
 
     def _maj_etapes(self, simulable: bool) -> None:
         arbre = self.arbre
@@ -548,6 +562,8 @@ class FenetrePrincipale(QMainWindow):
             return
         if genre in (GENRE_LIAISON, GENRE_PILOTE):
             self.proprietes.afficher_liaison(etude.liaison(nom))
+        elif genre == GENRE_COUPLAGE:
+            self.proprietes.afficher_couplage(next(c for c in etude.couplages if c.nom == nom))
         elif genre == GENRE_ACTION:
             self.proprietes.afficher_action(next(a for a in etude.actions if a.nom == nom))
         elif genre == GENRE_RESSORT:
@@ -569,6 +585,8 @@ class FenetrePrincipale(QMainWindow):
         if nom == textes.RUBRIQUE_GRAPHE:
             self.onglets.setCurrentWidget(self.vue_graphe)
             self.proprietes.afficher_texte(nom, self.vue_graphe.resume())
+        elif nom == textes.RUBRIQUE_COUPLAGES:
+            self.proprietes.afficher_couplage(None)
         elif nom == textes.RUBRIQUE_PESANTEUR:
             self.proprietes.afficher_pesanteur()
         elif nom == textes.RUBRIQUE_ACTIONS:

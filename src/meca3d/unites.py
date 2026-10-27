@@ -10,6 +10,7 @@ from collections.abc import Sequence
 import numpy as np
 
 MM_PAR_M = 1000.0
+MS_PAR_S = 1000.0
 G_PAR_KG = 1000.0
 ANGLE_COLINEAIRE_MIN_DEG = 1.0  # EX-12 : en dessous, la seconde direction est refusée
 
@@ -24,6 +25,14 @@ def mm_vers_m[T: (float, np.ndarray)](x: T) -> T:
 
 def m_vers_mm[T: (float, np.ndarray)](x: T) -> T:
     return x * MM_PAR_M
+
+
+def ms_vers_s[T: (float, np.ndarray)](x: T) -> T:
+    return x / MS_PAR_S
+
+
+def s_vers_ms[T: (float, np.ndarray)](x: T) -> T:
+    return x * MS_PAR_S
 
 
 def g_vers_kg[T: (float, np.ndarray)](x: T) -> T:

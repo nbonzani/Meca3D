@@ -43,7 +43,7 @@ from meca3d.modele.couplage import (
     VisEcrou,
 )
 from meca3d.modele.etude import Etude
-from meca3d.modele.liaison import Liaison, TypeLiaison
+from meca3d.modele.liaison import LIAISONS_FROTTANTES, Liaison, TypeLiaison
 from meca3d.moteur.base import ErreurModele, Fluage
 
 exu: Any = importlib.import_module("exudyn")
@@ -63,7 +63,6 @@ P_EPS_RENDEMENT = 0.5
 # Masse (kg) des coordonnées auxiliaires de la décomposition d'une relation à plus de deux corps
 MASSE_AUXILIAIRE = 1e-9
 
-LIAISONS_FROTTANTES = frozenset({TypeLiaison.GLISSIERE, TypeLiaison.APPUI_PLAN, TypeLiaison.PIVOT})
 _LIBRES_ROTATION = frozenset(
     {TypeLiaison.PIVOT, TypeLiaison.PIVOT_GLISSANT, TypeLiaison.HELICOIDALE}
 )

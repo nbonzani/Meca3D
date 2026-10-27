@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Panneau des propriétés : liaison (EX-11 à EX-13) avec sa loi d'entrée (EX-30), pesanteur
-(EX-31), actions (EX-32), ressorts (EX-33), capteurs (EX-50, EX-51) ou résumé de l'élément."""
+"""Panneau des propriétés : liaison (EX-11 à EX-13) avec sa loi d'entrée (EX-30), son frottement
+(EX-15) et le pas d'une hélicoïdale (EX-10), couplage (EX-14, EX-16), pesanteur (EX-31), actions
+(EX-32), ressorts (EX-33), capteurs (EX-50, EX-51), réglages de simulation (EX-40) ou résumé."""
 
 import numpy as np
 from PyQt6.QtCore import Qt, pyqtSignal
@@ -17,11 +18,15 @@ from PyQt6.QtWidgets import (
 from meca3d import unites
 from meca3d.ihm import textes
 from meca3d.ihm.saisie import (
+    ROLE_ERREUR,
     EditeurAction,
     EditeurCapteur,
+    EditeurCouplage,
     EditeurLoi,
     EditeurPesanteur,
+    EditeurReglages,
     EditeurRessort,
+    champ,
     trois_champs,
 )
 from meca3d.modele.actions import (
@@ -32,10 +37,19 @@ from meca3d.modele.actions import (
     grandeurs_pilotables,
 )
 from meca3d.modele.capteurs import Capteur
+from meca3d.modele.couplage import Couplage
 from meca3d.modele.etude import Etude
-from meca3d.modele.liaison import AXES_MONDE, DIRECTION_REQUISE, Liaison, Statut, TypeLiaison
+from meca3d.modele.liaison import (
+    AXES_MONDE,
+    DIRECTION_REQUISE,
+    LIAISONS_FROTTANTES,
+    Liaison,
+    Statut,
+    TypeLiaison,
+)
 
 TOLERANCE_AXE_NOMME = 1e-9
+DECIMALES_EPSILON = 5
 
 
 class PanneauProprietes(QWidget):
@@ -122,9 +136,42 @@ class PanneauProprietes(QWidget):
         ):
             pilote.addWidget(w)
 
+        # frottement de Coulomb (EX-15) : 0 vaut « non renseigné » ou « défaut » (None)
+        self.groupe_frottement = QGroupBox(textes.GROUPE_FROTTEMENT)
+        frottement = QVBoxLayout(self.groupe_frottement)
+        self.saisie_frottement = champ("", 3, 0.0)
+        self.etiquette_rayon_axe = QLabel(textes.CHAMP_RAYON_AXE)
+        self.etiquette_rayon_axe.setWordWrap(True)
+        self.saisie_rayon_axe = champ(" mm", 3, 0.0)
+        self.saisie_rayon_axe.setSpecialValueText(textes.VALEUR_NON_RENSEIGNEE)
+        self.etiquette_epsilon = QLabel()
+        self.saisie_epsilon = champ("", DECIMALES_EPSILON, 0.0)
+        self.saisie_epsilon.setSpecialValueText(textes.VALEUR_DEFAUT)
+        self.saisie_epsilon.setToolTip(textes.AIDE_EPSILON)
+        self.bouton_frottement = QPushButton(textes.BOUTON_FROTTEMENT)
+        for w in (
+            QLabel(textes.CHAMP_FROTTEMENT),
+            self.saisie_frottement,
+            self.etiquette_rayon_axe,
+            self.saisie_rayon_axe,
+            self.etiquette_epsilon,
+            self.saisie_epsilon,
+            self.bouton_frottement,
+        ):
+            frottement.addWidget(w)
+
+        # pas de l'hélicoïdale (EX-10)
+        self.groupe_pas = QGroupBox(textes.GROUPE_PAS)
+        pas = QVBoxLayout(self.groupe_pas)
+        self.saisie_pas = champ(" mm/tour", 3, 0.0)
+        self.saisie_pas.setSpecialValueText(textes.VALEUR_NON_RENSEIGNEE)
+        self.bouton_pas = QPushButton(textes.BOUTON_PAS)
+        pas.addWidget(self.saisie_pas)
+        pas.addWidget(self.bouton_pas)
+
         self.message = QLabel()
         self.message.setWordWrap(True)
-        self.message.setStyleSheet("color: #b91c1c;")
+        self.message.setProperty("role", ROLE_ERREUR)
         for w in (
             self.etiquette_type_sc,
             self.choix_type,
@@ -133,6 +180,8 @@ class PanneauProprietes(QWidget):
             self.groupe_axe,
             self.groupe_direction,
             self.groupe_centre,
+            self.groupe_frottement,
+            self.groupe_pas,
             self.groupe_pilote,
             self.message,
         ):
@@ -143,11 +192,15 @@ class PanneauProprietes(QWidget):
         self.editeur_action = EditeurAction()
         self.editeur_ressort = EditeurRessort()
         self.editeur_capteur = EditeurCapteur()
+        self.editeur_reglages = EditeurReglages()
+        self.editeur_couplage = EditeurCouplage()
         self._editeurs = (
             self.editeur_pesanteur,
             self.editeur_action,
             self.editeur_ressort,
             self.editeur_capteur,
+            self.editeur_reglages,
+            self.editeur_couplage,
         )
         for editeur in self._editeurs:
             disposition.addWidget(editeur)
@@ -166,6 +219,8 @@ class PanneauProprietes(QWidget):
         self.bouton_centre.clicked.connect(self._deplacer_centre)
         self.bouton_pilote.clicked.connect(self._appliquer_loi)
         self.bouton_retirer_pilote.clicked.connect(self._retirer_loi)
+        self.bouton_frottement.clicked.connect(self._appliquer_frottement)
+        self.bouton_pas.clicked.connect(self._appliquer_pas)
         self.choix_grandeur.currentIndexChanged.connect(self._sur_choix_grandeur)
 
     # --- étude -------------------------------------------------------------------------------
@@ -214,6 +269,19 @@ class PanneauProprietes(QWidget):
         else:
             self.editeur_capteur.afficher_capteur(capteur)
 
+    def afficher_reglages(self) -> None:
+        self._montrer(self.editeur_reglages)
+        self.titre.setText(textes.TITRE_REGLAGES)
+        self.editeur_reglages.afficher()
+
+    def afficher_couplage(self, couplage: Couplage | None) -> None:
+        self._montrer(self.editeur_couplage)
+        self.titre.setText(textes.TITRE_COUPLAGE)
+        if couplage is None:
+            self.editeur_couplage.afficher_nouveau()
+        else:
+            self.editeur_couplage.afficher_couplage(couplage)
+
     def afficher_liaison(self, liaison: Liaison) -> None:
         self._montrer(self.zone_liaison)
         self._liaison = liaison
@@ -225,12 +293,13 @@ class PanneauProprietes(QWidget):
         self._remplir(self.saisie_centre, tuple(float(x) for x in unites.m_vers_mm(liaison.centre)))
         if liaison.direction is not None:
             self._remplir(self.saisie_direction, tuple(float(x) for x in liaison.direction))
+        self._charger_frottement()
         self._charger_pilote()
 
     @staticmethod
     def _remplir(champs: list, valeurs: tuple[float, ...]) -> None:  # type: ignore[type-arg]
-        for champ, valeur in zip(champs, valeurs, strict=True):
-            champ.setValue(valeur)
+        for champ_saisie, valeur in zip(champs, valeurs, strict=True):
+            champ_saisie.setValue(valeur)
 
     @staticmethod
     def _code_axe(axe: np.ndarray) -> str:
@@ -259,11 +328,66 @@ class PanneauProprietes(QWidget):
             assert liaison.axe is not None
             code = self._code_axe(liaison.axe)
             self.choix_axe.setCurrentIndex(self.choix_axe.findData(code))
-            for champ in self.saisie_axe:
-                champ.setEnabled(code == "vecteur")
+            for champ_axe in self.saisie_axe:
+                champ_axe.setEnabled(code == "vecteur")
+            self._rafraichir_frottement()
             self._rafraichir_pilote()
         finally:
             self._rafraichit = False
+
+    # --- frottement (EX-15) et pas de l'hélicoïdale (EX-10) -----------------------------------
+    def _rafraichir_frottement(self) -> None:
+        liaison = self._liaison
+        if liaison is None:
+            return
+        self.groupe_frottement.setVisible(liaison.type in LIAISONS_FROTTANTES)
+        pivot = liaison.type is TypeLiaison.PIVOT
+        self.etiquette_rayon_axe.setVisible(pivot)
+        self.saisie_rayon_axe.setVisible(pivot)
+        self.etiquette_epsilon.setText(
+            textes.CHAMP_EPSILON_ROTATION if pivot else textes.CHAMP_EPSILON_TRANSLATION
+        )
+        self.saisie_epsilon.setSuffix(" rad/s" if pivot else " m/s")
+        self.groupe_pas.setVisible(liaison.type is TypeLiaison.HELICOIDALE)
+
+    def _charger_frottement(self) -> None:
+        liaison = self._liaison
+        if liaison is None:
+            return
+        self.saisie_frottement.setValue(liaison.frottement)
+        rayon = liaison.rayon_axe
+        self.saisie_rayon_axe.setValue(0.0 if rayon is None else float(unites.m_vers_mm(rayon)))
+        self.saisie_epsilon.setValue(0.0 if liaison.epsilon is None else liaison.epsilon)
+        pas = liaison.pas
+        self.saisie_pas.setValue(0.0 if pas is None else float(unites.m_vers_mm(pas)))
+
+    def _appliquer_frottement(self) -> None:
+        liaison = self._liaison
+        if liaison is None:
+            return
+        rayon_mm, epsilon = self.saisie_rayon_axe.value(), self.saisie_epsilon.value()
+        try:
+            liaison.regler_frottement(
+                self.saisie_frottement.value(),
+                float(unites.mm_vers_m(rayon_mm)) if rayon_mm > 0.0 else None,
+                epsilon if epsilon > 0.0 else None,
+            )
+        except ValueError as e:
+            self._signaler(e)
+            return
+        self._charger_frottement()
+        self._signaler(None)
+
+    def _appliquer_pas(self) -> None:
+        liaison = self._liaison
+        if liaison is None:
+            return
+        try:
+            liaison.definir_pas(float(unites.mm_vers_m(self.saisie_pas.value())))
+        except ValueError as e:
+            self._signaler(e)
+            return
+        self._signaler(None)
 
     # --- loi d'entrée (EX-30) ----------------------------------------------------------------
     def _pilote_de(self, liaison: Liaison) -> Pilote | None:
@@ -372,8 +496,8 @@ class PanneauProprietes(QWidget):
         code = str(self.choix_axe.currentData())
         if code in AXES_MONDE:
             self._remplir(self.saisie_axe, AXES_MONDE[code])
-        for champ in self.saisie_axe:
-            champ.setEnabled(code == "vecteur")
+        for champ_axe in self.saisie_axe:
+            champ_axe.setEnabled(code == "vecteur")
 
     def _valider(self) -> None:
         if self._liaison is None:

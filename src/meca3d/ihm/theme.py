@@ -233,6 +233,7 @@ QFrame#bandeau {{ background: {c.panneau}; border: 1px solid {c.alerte};
     border-left: 4px solid {c.alerte}; }}
 QStatusBar {{ border-top: 1px solid {c.bordure}; }}
 QStatusBar::item {{ border: none; }}
+QLabel[role="erreur"] {{ color: {c.alerte}; }}
 QLabel[etat] {{
     font-family: {POLICE_VALEURS}; padding: 1px 8px; margin: 1px 2px;
     border: 1px solid {c.bordure}; border-left: 4px solid {c.bordure}; border-radius: 2px;

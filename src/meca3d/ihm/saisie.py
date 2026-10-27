@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Éditeurs de saisie des données d'entrée (EX-30 à EX-33, EX-50, EX-51).
+"""Éditeurs de saisie des données d'entrée (EX-30 à EX-33, EX-50, EX-51), des réglages de
+simulation (EX-40) et des couplages (EX-14, EX-16).
 
 Les widgets ne portent aucune logique métier : ils construisent des objets de `modele/` (qui
 valident) et les placent dans l'`Etude`. Les points sont saisis en coordonnées pièce (repère du
@@ -7,6 +8,7 @@ composant, D15) et convertis en repère monde par `Solide.vers_monde` (R9).
 """
 
 from collections.abc import Sequence
+from fractions import Fraction
 from typing import Any
 
 import numpy as np
@@ -20,6 +22,7 @@ from PyQt6.QtWidgets import (
     QLabel,
     QLineEdit,
     QPushButton,
+    QSpinBox,
     QVBoxLayout,
     QWidget,
 )
@@ -44,12 +47,23 @@ from meca3d.modele.capteurs import (
     ErreurCapteur,
     SensTorseur,
 )
-from meca3d.modele.etude import Etude
+from meca3d.modele.couplage import (
+    Couplage,
+    Engrenage,
+    ErreurCouplage,
+    PignonCremaillere,
+    SensEngrenage,
+    VisEcrou,
+)
+from meca3d.modele.etude import Etude, Reglages
 from meca3d.modele.solide import Solide
 
 BORNE_SAISIE = 1.0e6
-STYLE_ERREUR = "color: #b91c1c;"
+ROLE_ERREUR = "erreur"  # QLabel[role="erreur"] : couleur d'alerte du thème (ihm/theme.py)
 ERREURS_SAISIE = (ErreurAction, ErreurCapteur, ErreurLoi, ValueError)
+DENTS_MAX = 100_000
+NB_PAS_MAX = 10_000_000
+DENOMINATEUR_MAX = 1000  # dents réaffichées pour un engrenage connu par son seul rapport k
 
 
 def champ(suffixe: str, decimales: int, minimum: float = -BORNE_SAISIE) -> QDoubleSpinBox:
@@ -89,6 +103,22 @@ def remplir_point(
     local = unites.m_vers_mm(solide.vers_local(np.array(monde, dtype=float)))
     for c, v in zip(champs_mm, local, strict=True):
         c.setValue(float(v))
+
+
+def entier(minimum: int, maximum: int) -> QSpinBox:
+    c = QSpinBox()
+    c.setRange(minimum, maximum)
+    return c
+
+
+def ligne(etiquette: str, widget: QWidget) -> QWidget:
+    """Étiquette au-dessus de son champ, masquables ensemble."""
+    conteneur = QWidget()
+    disposition = QVBoxLayout(conteneur)
+    disposition.setContentsMargins(0, 0, 0, 0)
+    disposition.addWidget(QLabel(etiquette))
+    disposition.addWidget(widget)
+    return conteneur
 
 
 def _groupe(titre: str, contenu: QWidget) -> QGroupBox:
@@ -132,7 +162,7 @@ class _EditeurBase(QWidget):
         self.corps.setContentsMargins(0, 0, 0, 0)
         self.message = QLabel()
         self.message.setWordWrap(True)
-        self.message.setStyleSheet(STYLE_ERREUR)
+        self.message.setProperty("role", ROLE_ERREUR)
 
     def definir_etude(self, etude: Etude | None) -> None:
         self.etude = etude
@@ -170,7 +200,7 @@ class EditeurLoi(QWidget):
         disposition.addLayout(ligne)
         self.etiquette_erreur = QLabel()
         self.etiquette_erreur.setWordWrap(True)
-        self.etiquette_erreur.setStyleSheet(STYLE_ERREUR)
+        self.etiquette_erreur.setProperty("role", ROLE_ERREUR)
         disposition.addWidget(self.etiquette_erreur)
         self.zone_apercu = QWidget()
         apercu = QHBoxLayout(self.zone_apercu)
@@ -683,5 +713,215 @@ class EditeurCapteur(_EditeurBase):
         if self.etude is None or self._edite is None:
             return
         self.etude.capteurs.remove(self._edite)
+        self._termine()
+        self.afficher_nouveau()
+
+
+class EditeurReglages(_EditeurBase):
+    """Durée, nombre de pas et période d'écriture des capteurs (EX-40) ; pas de temps affiché."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.saisie_duree = champ(" s", 4, 1e-4)
+        self.saisie_nb_pas = entier(1, NB_PAS_MAX)
+        self.saisie_periode = champ(" ms", 3, 1e-3)
+        self.etiquette_pas = QLabel()
+        self.bouton = QPushButton(textes.BOUTON_REGLAGES)
+        self.corps.addWidget(ligne(textes.CHAMP_DUREE, self.saisie_duree))
+        self.corps.addWidget(ligne(textes.CHAMP_NB_PAS, self.saisie_nb_pas))
+        self.corps.addWidget(self.etiquette_pas)
+        self.corps.addWidget(ligne(textes.CHAMP_PERIODE, self.saisie_periode))
+        self.corps.addWidget(self.bouton)
+        self.corps.addWidget(self.message)
+        self.saisie_duree.valueChanged.connect(self._sur_valeur)
+        self.saisie_nb_pas.valueChanged.connect(self._sur_valeur)
+        self.bouton.clicked.connect(self._appliquer)
+
+    def afficher(self) -> None:
+        self.message.setText("")
+        if self.etude is None:
+            return
+        r = self.etude.reglages
+        self.saisie_duree.setValue(r.duree)
+        self.saisie_nb_pas.setValue(r.nb_pas)
+        self.saisie_periode.setValue(unites.s_vers_ms(r.periode_ecriture))
+        self._sur_valeur()
+
+    def _sur_valeur(self, *_: object) -> None:
+        self.etiquette_pas.setText(
+            textes.info_pas_de_temps(self.saisie_duree.value(), self.saisie_nb_pas.value())
+        )
+
+    def _appliquer(self) -> None:
+        if self.etude is None:
+            return
+        self.etude.reglages = Reglages(
+            duree=self.saisie_duree.value(),
+            nb_pas=self.saisie_nb_pas.value(),
+            periode_ecriture=unites.ms_vers_s(self.saisie_periode.value()),
+        )
+        self._termine()
+
+
+class EditeurCouplage(_EditeurBase):
+    """Couplage entre deux liaisons (EX-14) et son rendement (EX-16)."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._edite: Couplage | None = None
+        self._dents_affichees: tuple[int, int] | None = None
+        self.champ_nom = QLineEdit()
+        self.choix_genre = _combo(list(textes.GENRES_COUPLAGE))
+        self.choix_liaison_1 = QComboBox()
+        self.choix_liaison_2 = QComboBox()
+        self.saisie_z1 = entier(1, DENTS_MAX)
+        self.saisie_z2 = entier(1, DENTS_MAX)
+        self.choix_sens = _combo(
+            [(texte, SensEngrenage(code)) for texte, code in textes.SENS_ENGRENAGE]
+        )
+        self.saisie_rayon = champ(" mm", 3, 1e-3)
+        self.saisie_pas = champ(" mm/tour", 3, 1e-3)
+        self.saisie_rendement = champ("", 3, 1e-3)
+        self.saisie_rendement.setMaximum(1.0)
+        self.zone_engrenage = QWidget()
+        engrenage = QVBoxLayout(self.zone_engrenage)
+        engrenage.setContentsMargins(0, 0, 0, 0)
+        for etiquette, w in (
+            (textes.CHAMP_Z1, self.saisie_z1),
+            (textes.CHAMP_Z2, self.saisie_z2),
+            (textes.CHAMP_SENS_ENGRENAGE, self.choix_sens),
+        ):
+            engrenage.addWidget(ligne(etiquette, w))
+        self.zone_rayon = ligne(textes.CHAMP_RAYON_PRIMITIF, self.saisie_rayon)
+        self.zone_pas = ligne(textes.CHAMP_PAS_VIS, self.saisie_pas)
+        aide = QLabel(textes.AIDE_COUPLAGE)
+        aide.setWordWrap(True)
+        self.bouton_ajouter = QPushButton(textes.BOUTON_AJOUTER)
+        self.bouton_supprimer = QPushButton(textes.BOUTON_SUPPRIMER)
+        for etiquette, w in (
+            (textes.CHAMP_NOM, self.champ_nom),
+            (textes.CHAMP_GENRE, self.choix_genre),
+            (textes.CHAMP_LIAISON_1, self.choix_liaison_1),
+            (textes.CHAMP_LIAISON_2, self.choix_liaison_2),
+        ):
+            self.corps.addWidget(ligne(etiquette, w))
+        for w in (
+            aide,
+            self.zone_engrenage,
+            self.zone_rayon,
+            self.zone_pas,
+            ligne(textes.CHAMP_RENDEMENT, self.saisie_rendement),
+            self.bouton_ajouter,
+            self.bouton_supprimer,
+            self.message,
+        ):
+            self.corps.addWidget(w)
+        self.choix_genre.currentIndexChanged.connect(self._sur_genre)
+        self.bouton_ajouter.clicked.connect(self._enregistrer)
+        self.bouton_supprimer.clicked.connect(self._supprimer)
+        self._sur_genre(0)
+
+    def _genre(self) -> str:
+        return str(self.choix_genre.currentData())
+
+    def _sur_genre(self, _: int) -> None:
+        genre = self._genre()
+        self.zone_engrenage.setVisible(genre == Engrenage.GENRE)
+        self.zone_rayon.setVisible(genre == PignonCremaillere.GENRE)
+        self.zone_pas.setVisible(genre == VisEcrou.GENRE)
+
+    def _remplir_liaisons(self) -> None:
+        noms = [] if self.etude is None else [x.nom for x in self.etude.liaisons]
+        for combo in (self.choix_liaison_1, self.choix_liaison_2):
+            combo.clear()
+            combo.addItems(noms)
+        if len(noms) > 1:
+            self.choix_liaison_2.setCurrentIndex(1)
+
+    def afficher_nouveau(self) -> None:
+        self._edite = None
+        self._dents_affichees = None
+        self.message.setText("")
+        self._remplir_liaisons()
+        existants = {c.nom for c in self.etude.couplages} if self.etude else set()
+        self.champ_nom.setText(_nom_libre("K", existants))
+        self.saisie_z1.setValue(1)
+        self.saisie_z2.setValue(1)
+        self.saisie_rendement.setValue(1.0)
+        self.bouton_ajouter.setText(textes.BOUTON_AJOUTER)
+        self.bouton_supprimer.setVisible(False)
+
+    def afficher_couplage(self, couplage: Couplage) -> None:
+        self._edite = couplage
+        self._dents_affichees = None
+        self.message.setText("")
+        self._remplir_liaisons()
+        self.champ_nom.setText(couplage.nom)
+        self.choix_genre.setCurrentIndex(self.choix_genre.findData(couplage.GENRE))
+        for combo, nom in (
+            (self.choix_liaison_1, couplage.liaison_1),
+            (self.choix_liaison_2, couplage.liaison_2),
+        ):
+            combo.setCurrentIndex(max(combo.findText(nom), 0))
+        if isinstance(couplage, Engrenage):
+            if couplage.z1 is not None and couplage.z2 is not None:
+                z1, z2 = couplage.z1, couplage.z2
+            else:  # rapport seul : fraction approchée affichée, k conservé si elle est inchangée
+                f = Fraction(couplage.k).limit_denominator(DENOMINATEUR_MAX)
+                z1, z2 = f.numerator, f.denominator
+            self.saisie_z1.setValue(z1)
+            self.saisie_z2.setValue(z2)
+            if couplage.z1 is None:  # valeurs réellement affichées (champs bornés)
+                self._dents_affichees = (self.saisie_z1.value(), self.saisie_z2.value())
+            self.choix_sens.setCurrentIndex(self.choix_sens.findData(couplage.sens))
+        elif isinstance(couplage, PignonCremaillere):
+            self.saisie_rayon.setValue(float(unites.m_vers_mm(couplage.r)))
+        else:
+            self.saisie_pas.setValue(float(unites.m_vers_mm(couplage.p)))
+        self.saisie_rendement.setValue(couplage.rendement)
+        self.bouton_ajouter.setText(textes.BOUTON_APPLIQUER)
+        self.bouton_supprimer.setVisible(True)
+
+    def _construire(self) -> Couplage:
+        nom = self.champ_nom.text()
+        l1, l2 = self.choix_liaison_1.currentText(), self.choix_liaison_2.currentText()
+        rendement = self.saisie_rendement.value()
+        genre = self._genre()
+        if genre == Engrenage.GENRE:
+            sens = SensEngrenage(self.choix_sens.currentData())
+            z1, z2 = self.saisie_z1.value(), self.saisie_z2.value()
+            edite = self._edite
+            if isinstance(edite, Engrenage) and (z1, z2) == self._dents_affichees:
+                return Engrenage(nom, l1, l2, edite.k, sens, rendement)
+            return Engrenage.depuis_dents(nom, l1, l2, z1, z2, sens, rendement)
+        if genre == PignonCremaillere.GENRE:
+            r = float(unites.mm_vers_m(self.saisie_rayon.value()))
+            return PignonCremaillere(nom, l1, l2, r, rendement)
+        p = float(unites.mm_vers_m(self.saisie_pas.value()))
+        return VisEcrou(nom, l1, l2, p, rendement)
+
+    def _enregistrer(self) -> None:
+        etude = self.etude
+        if etude is None:
+            return
+        if self.champ_nom.text() in {c.nom for c in etude.couplages if c is not self._edite}:
+            self._erreur(textes.MSG_NOM_EXISTE)
+            return
+        try:
+            couplage = self._construire()
+        except ErreurCouplage as e:
+            self._erreur(e)
+            return
+        if self._edite is None:
+            etude.couplages.append(couplage)
+        else:
+            etude.couplages[etude.couplages.index(self._edite)] = couplage
+        self._termine()
+        self.afficher_couplage(couplage)
+
+    def _supprimer(self) -> None:
+        if self.etude is None or self._edite is None:
+            return
+        self.etude.couplages.remove(self._edite)
         self._termine()
         self.afficher_nouveau()

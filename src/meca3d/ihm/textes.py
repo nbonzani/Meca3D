@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Tous les textes de l'interface, en français (règle IHM). Unités toujours indiquées."""
 
+from meca3d import unites
 from meca3d.modele.liaison import Statut, TypeLiaison
 from meca3d.modele.loi_affichage import loi_lisible as _loi_lisible
 
@@ -12,6 +13,7 @@ BRANCHE_DONNEES = "Données d'entrée"
 BRANCHE_RESULTATS = "Résultats"
 RUBRIQUE_SOLIDES = "Solides"
 RUBRIQUE_LIAISONS = "Liaisons"
+RUBRIQUE_COUPLAGES = "Couplages"
 RUBRIQUE_GRAPHE = "Graphe"
 RUBRIQUE_PILOTES = "Pilotes"
 RUBRIQUE_PESANTEUR = "Pesanteur"
@@ -102,6 +104,8 @@ ACTION_IMPORTER = "Importer la maquette"
 ACTION_SIMULER = "Simuler (dynamique)"
 ACTION_SIMULER_CINEMATIQUE = "Simuler (cinématique)"
 ACTION_ANNULER = "Annuler le calcul"
+ACTION_REGLAGES = "Réglages de simulation…"
+INFO_REGLAGES = "Durée, nombre de pas et période d'écriture des capteurs (EX-40)."
 ACTION_VALIDER_TOUTES = "Valider toutes les propositions"
 ACTION_VALIDATION_EN_BLOC = "Validation en bloc"
 ACTION_HYPERSTATIQUE = "Hyperstatique autorisé"
@@ -155,6 +159,21 @@ BOUTON_CENTRE = "Déplacer le centre"
 GROUPE_AXE = "Orientation de l'axe (repère monde)"
 GROUPE_DIRECTION = "Seconde direction (repère monde, projetée orthogonalement à l'axe)"
 GROUPE_CENTRE = "Centre de la liaison (repère monde)"
+# frottement de Coulomb (EX-15) et pas de l'hélicoïdale (EX-10)
+GROUPE_FROTTEMENT = "Frottement de Coulomb"
+CHAMP_FROTTEMENT = "Coefficient f (0 : liaison parfaite)"
+CHAMP_RAYON_AXE = "Rayon r de l'axe (couple résistant f·r·|R_radiale|)"
+CHAMP_EPSILON_TRANSLATION = "Vitesse de régularisation v_ε"
+CHAMP_EPSILON_ROTATION = "Vitesse de régularisation ω_ε"
+VALEUR_DEFAUT = "défaut"
+VALEUR_NON_RENSEIGNEE = "non renseigné"
+BOUTON_FROTTEMENT = "Appliquer le frottement"
+GROUPE_PAS = "Pas de la liaison hélicoïdale"
+BOUTON_PAS = "Appliquer le pas"
+AIDE_EPSILON = (
+    "Loi régularisée F = f·|N|·tanh(v/v_ε) ; « défaut » : v_ε = 10⁻⁴ m/s en translation, "
+    "ω_ε = 10⁻² rad/s en rotation (SPEC EX-15)."
+)
 AXES_MONDE = (
     ("Axe x du repère monde", "x"),
     ("Axe y du repère monde", "y"),
@@ -285,6 +304,46 @@ CHAMP_SOLIDE_2 = "Solide 2"
 CHAMP_RAIDEUR = "Raideur k"
 CHAMP_LONGUEUR_LIBRE = "Longueur libre l₀"
 CHAMP_AMORTISSEMENT = "Amortissement c"
+
+TITRE_REGLAGES = "Réglages de simulation"
+CHAMP_DUREE = "Durée simulée"
+CHAMP_NB_PAS = "Nombre de pas d'intégration"
+CHAMP_PERIODE = "Période d'écriture des capteurs"
+BOUTON_REGLAGES = "Appliquer les réglages"
+
+
+def info_pas_de_temps(duree: float, nb_pas: int) -> str:
+    """Pas de temps fixe de l'intégrateur, h = durée / nombre de pas, en ms."""
+    h_ms = unites.s_vers_ms(duree / nb_pas)
+    return f"Pas de temps h = {h_ms:.4g} ms".replace(".", ",")
+
+
+TITRE_COUPLAGE = "Couplage"
+GENRES_COUPLAGE = (
+    ("Engrenage (ω₂ = ∓k·ω₁, k = Z₁/Z₂)", "engrenage"),
+    ("Pignon-crémaillère (v = r·ω)", "pignon_cremaillere"),
+    ("Vis-écrou (v = p·ω / 2π)", "vis_ecrou"),
+)
+CHAMP_GENRE = "Genre"
+CHAMP_LIAISON_1 = "Liaison d'entrée (1)"
+CHAMP_LIAISON_2 = "Liaison de sortie (2)"
+CHAMP_Z1 = "Nombre de dents Z₁"
+CHAMP_Z2 = "Nombre de dents Z₂"
+CHAMP_SENS_ENGRENAGE = "Engrenage"
+SENS_ENGRENAGE = (("extérieur (ω₂ = −k·ω₁)", "exterieur"), ("intérieur (ω₂ = +k·ω₁)", "interieur"))
+CHAMP_RAYON_PRIMITIF = "Rayon primitif r du pignon"
+CHAMP_PAS_VIS = "Pas p de la vis"
+CHAMP_RENDEMENT = "Rendement η (]0 ; 1], le sens suit la puissance)"
+AIDE_COUPLAGE = (
+    "Liaison 1 : rotation de la roue d'entrée, du pignon ou de la vis ; liaison 2 : roue de "
+    "sortie, glissière de la crémaillère ou de l'écrou."
+)
+
+
+def libelle_couplage_arbre(nom: str, genre: str, liaison_1: str, liaison_2: str) -> str:
+    libelle = dict((code, texte.split(" (")[0]) for texte, code in GENRES_COUPLAGE)[genre]
+    return f"{nom} : {libelle.lower()} {liaison_1} → {liaison_2}"
+
 
 TITRE_CAPTEUR = "Capteur"
 GENRES_CAPTEUR = (("Capteur de liaison (torseur)", "liaison"), ("Capteur de point", "point"))

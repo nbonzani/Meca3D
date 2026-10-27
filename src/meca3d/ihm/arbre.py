@@ -21,6 +21,7 @@ GENRE_BRANCHE = "branche"
 GENRE_RUBRIQUE = "rubrique"
 GENRE_SOLIDE = "solide"
 GENRE_LIAISON = "liaison"
+GENRE_COUPLAGE = "couplage"
 GENRE_PILOTE = "pilote"
 GENRE_ACTION = "action"
 GENRE_RESSORT = "ressort"
@@ -29,7 +30,12 @@ GENRE_CAPTEUR = "capteur"
 STRUCTURE: tuple[tuple[str, tuple[str, ...]], ...] = (
     (
         textes.BRANCHE_MODELE,
-        (textes.RUBRIQUE_SOLIDES, textes.RUBRIQUE_LIAISONS, textes.RUBRIQUE_GRAPHE),
+        (
+            textes.RUBRIQUE_SOLIDES,
+            textes.RUBRIQUE_LIAISONS,
+            textes.RUBRIQUE_COUPLAGES,
+            textes.RUBRIQUE_GRAPHE,
+        ),
     ),
     (
         textes.BRANCHE_DONNEES,
@@ -136,6 +142,11 @@ class ArbreEtude(QTreeWidget):
                 self._ajouter(
                     textes.RUBRIQUE_LIAISONS, texte, GENRE_LIAISON, liaison.nom, incomplet
                 )
+            for couplage in etude.couplages:
+                texte = textes.libelle_couplage_arbre(
+                    couplage.nom, couplage.GENRE, couplage.liaison_1, couplage.liaison_2
+                )
+                self._ajouter(textes.RUBRIQUE_COUPLAGES, texte, GENRE_COUPLAGE, couplage.nom)
             for pilote in etude.pilotes:
                 grandeur = (
                     pilote.grandeur
@@ -242,6 +253,9 @@ class ArbreEtude(QTreeWidget):
 
     def selectionner_ressort(self, nom: str) -> None:
         self._selectionner(GENRE_RESSORT, nom)
+
+    def selectionner_couplage(self, nom: str) -> None:
+        self._selectionner(GENRE_COUPLAGE, nom)
 
     def selectionner_capteur(self, nom: str) -> None:
         self._selectionner(GENRE_CAPTEUR, nom)
