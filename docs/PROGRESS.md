@@ -1,5 +1,13 @@
 # Journal de progression
 
+## 2026-10-27 — Lot 13 : interface modernisée, R12 (fait)
+- Fait : `ihm/theme.py` (QSS clair et sombre aux couleurs méca ia, palette Qt, couleurs des figures, icônes Tabler recolorées via QtSvg) ; `ihm/etapes.py` (barre 1 Modèle › 2 Données › 3 Simulation › 4 Résultats, état à faire / incomplet / prêt / fait, clic → branche de l'arbre et onglet) ; pastilles connexion, m, h (propriété QSS `etat`, h > 0 en cuivre) ; barre de commandes à icônes groupées, Simuler (dynamique) en action principale ; menu Affichage › Thème sombre ; graphe et courbes suivent le thème ; icônes embarquées par `meca3d.spec`, licence MIT dans `docs/LICENCES.md`.
+- Tests : `tests/test_ihm_theme.py` (14) ; suite 610 passed (hors slow/solidcraft/perf), ruff et pyright à 0 ; exécutable reconstruit, `meca3d.exe` en autotest code 0, `test_exe.py` 3 passed.
+- Décisions autonomes : états d'étape dérivés des marques de l'arbre, de `simulation_possible` et des résultats (aucune règle nouvelle) ; thème clair par défaut, non mémorisé ; style Fusion appliqué dans `lancer()` ; deux commits `style:` sur le test (ordre des imports, typage `Any`), sans changement d'assertion.
+- Dette (relecture) : messages d'erreur en rouge codé en dur dans `proprietes.py` et `saisie.py` (peu lisibles en sombre, hors charte) : à reprendre au lot 14, qui touche ces fichiers.
+- Optionnels non traités : icône de Simuler peu visible quand l'action est inactive ; cuivre partagé entre alerte et action principale ; étape Résultats « fait » tant que les résultats ne sont pas effacés ; tests de couleur et de non-régression du thème perfectibles (accord requis).
+- Prochaine action : lot 14 (saisies avancées).
+
 ## 2026-10-27 — Exemples livrés et guide utilisateur (fait)
 - Fait : dossier `exemples/` (5 études complètes générées par `exemples/generer_exemples.py` depuis les réponses SolidCraft enregistrées : bielle-manivelle, pendule simple, pendule double, réducteur, vis-écrou ; liaisons validées, pilotes, actions, capteurs, réglages ; maquettes copiées dans `exemples/maquettes/`) ; `tests/test_exemples.py` (ouverture sans élément incomplet, simulation, couplage visible) ; guide utilisateur charte méca ia `docs/guide/` (docx + PDF, captures `tests/outils_capture_guide.py`) ; exemples et PDF ajoutés au zip de la Release.
 - Corrections IHM : rubrique Pilotes signalée seulement si plus de lois que m (mouvement libre légitime en dynamique, infobulle explicative) ; couplages tracés en tireté sur le graphe avec leur rapport ; le panneau Courbes n'affiche plus des statistiques figées ; la boîte Ouvrir part du dossier `exemples`.

@@ -10,16 +10,10 @@ from matplotlib.patches import FancyArrowPatch
 from PyQt6.QtWidgets import QComboBox, QLabel, QVBoxLayout, QWidget
 
 from meca3d.graphe.mobilite import ResultatMobilite
-from meca3d.ihm import textes
+from meca3d.ihm import textes, theme
 from meca3d.modele.couplage import Couplage, Engrenage, PignonCremaillere
 from meca3d.modele.etude import Etude
 
-COULEUR_ARETE = "#6b7280"
-COULEUR_CYCLE = "#dc2626"
-COULEUR_NOEUD = "#dbeafe"
-COULEUR_BATI = "#d1d5db"
-COULEUR_ISOLE = "#fca5a5"
-COULEUR_COUPLAGE = "#0891b2"
 COURBURE_PARALLELES = 0.25  # écart d'arc entre deux liaisons en parallèle
 
 
@@ -28,6 +22,7 @@ class VueGraphe(QWidget):
         super().__init__()
         self._etude: Etude | None = None
         self._mobilite: ResultatMobilite | None = None
+        self._couleurs = theme.couleurs(theme.Theme.CLAIR)
         disposition = QVBoxLayout(self)
         self.etiquette_resume = QLabel(textes.resume_graphe(None, None, None))
         self.choix_cycle = QComboBox()
@@ -51,6 +46,11 @@ class VueGraphe(QWidget):
         return [nom for nom, _ in m.graphe.cycles[k].liaisons]
 
     # --- mise à jour -------------------------------------------------------------------------
+    def definir_couleurs(self, couleurs: theme.Couleurs) -> None:
+        """Couleurs du thème (R12) : fond, nœuds, arêtes ; cycle en cuivre."""
+        self._couleurs = couleurs
+        self._dessiner()
+
     def afficher(self, etude: Etude | None, mobilite: ResultatMobilite | None) -> None:
         self._etude, self._mobilite = etude, mobilite
         self.choix_cycle.blockSignals(True)
@@ -73,13 +73,24 @@ class VueGraphe(QWidget):
         self._dessiner()
 
     def _dessiner(self) -> None:
+        c = self._couleurs
         self.figure.clear()
+        self.figure.set_facecolor(c.panneau)
         ax: Any = self.figure.add_subplot(111)
         ax.set_axis_off()
         etude, mobilite = self._etude, self._mobilite
         if etude is None or mobilite is None:
             message = textes.GRAPHE_VIDE if etude is None else textes.GRAPHE_INDISPONIBLE
-            ax.text(0.5, 0.5, message, ha="center", va="center", wrap=True, transform=ax.transAxes)
+            ax.text(
+                0.5,
+                0.5,
+                message,
+                ha="center",
+                va="center",
+                wrap=True,
+                transform=ax.transAxes,
+                color=c.texte_secondaire,
+            )
             self.canevas.draw_idle()
             return
         g: nx.MultiGraph = mobilite.graphe.graphe
@@ -99,7 +110,7 @@ class VueGraphe(QWidget):
                 (float(pos[v][0]), float(pos[v][1])),
                 arrowstyle="-",
                 connectionstyle=f"arc3,rad={courbure}",
-                color=COULEUR_CYCLE if cycle else COULEUR_ARETE,
+                color=c.alerte if cycle else c.arete,
                 linewidth=3.0 if cycle else 1.5,
                 shrinkA=14,
                 shrinkB=14,
@@ -117,11 +128,11 @@ class VueGraphe(QWidget):
                 ha="center",
                 va="center",
                 fontsize=8,
-                color=COULEUR_CYCLE if cycle else "black",
-                bbox={"boxstyle": "round,pad=0.2", "fc": "white", "ec": "none", "alpha": 0.9},
+                color=c.alerte if cycle else c.texte,
+                bbox={"boxstyle": "round,pad=0.2", "fc": c.panneau, "ec": "none", "alpha": 0.9},
             )
         for couplage in etude.couplages:
-            self._dessiner_couplage(ax, etude, couplage, pos)
+            self._dessiner_couplage(ax, etude, couplage, pos, c)
         for n in g.nodes:
             bati = n == mobilite.graphe.bati
             isole = n in mobilite.graphe.isoles
@@ -133,10 +144,11 @@ class VueGraphe(QWidget):
                 va="center",
                 fontsize=10,
                 fontweight="bold",
+                color=c.texte,
                 bbox={
                     "boxstyle": "square,pad=0.4" if bati else "round,pad=0.4",
-                    "fc": COULEUR_ISOLE if isole else COULEUR_BATI if bati else COULEUR_NOEUD,
-                    "ec": "black",
+                    "fc": c.isole if isole else c.bati if bati else c.noeud,
+                    "ec": c.structure,
                 },
             )
         ax.set_xlim(-1.5, 1.5)
@@ -145,7 +157,9 @@ class VueGraphe(QWidget):
         self.canevas.draw_idle()
 
     @staticmethod
-    def _dessiner_couplage(ax: Any, etude: Etude, couplage: Couplage, pos: dict) -> None:
+    def _dessiner_couplage(
+        ax: Any, etude: Etude, couplage: Couplage, pos: dict, c: theme.Couleurs
+    ) -> None:
         """Couplage (EX-14) : tireté entre les deux solides menés par ses liaisons. Il n'est pas
         une arête du graphe (il ne crée pas de cycle) mais ajoute une équation à Ec (EX-21)."""
         try:
@@ -164,7 +178,7 @@ class VueGraphe(QWidget):
                 (float(pos[v][0]), float(pos[v][1])),
                 arrowstyle="-",
                 linestyle="--",
-                color=COULEUR_COUPLAGE,
+                color=c.ok,
                 linewidth=1.5,
                 shrinkA=14,
                 shrinkB=14,
@@ -184,6 +198,6 @@ class VueGraphe(QWidget):
             ha="center",
             va="center",
             fontsize=8,
-            color=COULEUR_COUPLAGE,
-            bbox={"boxstyle": "round,pad=0.2", "fc": "white", "ec": "none", "alpha": 0.9},
+            color=c.ok,
+            bbox={"boxstyle": "round,pad=0.2", "fc": c.panneau, "ec": "none", "alpha": 0.9},
         )

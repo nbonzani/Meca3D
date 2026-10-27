@@ -62,7 +62,29 @@ def etiquette_h(h: int | None) -> str:
     return f"h = {'—' if h is None else h}"
 
 
+# --- étapes de la démarche (R12) -----------------------------------------------------------
+ETAPES = ("Modèle", "Données", "Simulation", "Résultats")
+FLECHE_ETAPE = "›"
+LIBELLES_ETAT_ETAPE = {
+    "a_faire": "à faire",
+    "incomplet": "incomplet",
+    "pret": "prêt",
+    "fait": "fait",
+}
+
+
+def libelle_etape(rang: int, nom: str) -> str:
+    return f"{rang + 1}  {nom}"
+
+
+def info_etape(nom: str, etat: str) -> str:
+    return f"{nom} : {etat}"
+
+
 # --- commandes ------------------------------------------------------------------------------
+MENU_AFFICHAGE = "&Affichage"
+ACTION_THEME_SOMBRE = "Thème sombre"
+TITRE_BARRE_COMMANDES = "Commandes"
 MENU_FICHIER = "&Fichier"
 ACTION_NOUVEAU = "&Nouvelle étude"
 ACTION_OUVRIR = "&Ouvrir une étude…"

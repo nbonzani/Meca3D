@@ -15,6 +15,7 @@ from PyQt6.QtCore import (
     QElapsedTimer,
     QObject,
     QRunnable,
+    QSize,
     Qt,
     QThreadPool,
     QTimer,
@@ -35,6 +36,7 @@ from PyQt6.QtWidgets import (
     QSplitter,
     QTabWidget,
     QToolBar,
+    QToolButton,
     QVBoxLayout,
     QWidget,
 )
@@ -48,7 +50,7 @@ from meca3d.graphe.mobilite import (
     calculer_mobilite,
     verifier_avant_simulation,
 )
-from meca3d.ihm import textes
+from meca3d.ihm import textes, theme
 from meca3d.ihm.arbre import (
     GENRE_ACTION,
     GENRE_CAPTEUR,
@@ -59,6 +61,7 @@ from meca3d.ihm.arbre import (
     GENRE_SOLIDE,
     ArbreEtude,
 )
+from meca3d.ihm.etapes import BarreEtapes, etats_etapes
 from meca3d.ihm.proprietes import PanneauProprietes
 from meca3d.ihm.vue_animation import VueAnimation
 from meca3d.ihm.vue_courbes import VueCourbes
@@ -85,6 +88,21 @@ from meca3d.resultats.export import colonnes_resultats, ecrire_csv
 
 PERIODE_SCRUTATION_MS = 50  # minuteur de lecture de la progression du processus de calcul
 RESOLUTION_PROGRESSION = 1000
+TAILLE_ICONES = 20  # px, barre de commandes
+
+# Icônes Tabler (ihm/icones/) des commandes de la barre
+ICONES = {
+    "action_nouveau": "file-plus",
+    "action_ouvrir": "folder-open",
+    "action_enregistrer": "device-floppy",
+    "action_connecter": "plug-connected",
+    "action_importer": "file-import",
+    "action_valider_toutes": "checks",
+    "action_simuler": "player-play",
+    "action_simuler_cinematique": "route",
+    "action_annuler": "player-stop",
+    "action_exporter_csv": "file-spreadsheet",
+}
 
 
 class _SignauxTache(QObject):
@@ -154,6 +172,7 @@ class FenetrePrincipale(QMainWindow):
         self._verification_en_cours = False
         self._simulation_en_attente = False
         self._etude_avant_import: Etude | None = None
+        self.theme = theme.Theme.CLAIR
 
         self.arbre = ArbreEtude()
         self.proprietes = PanneauProprietes()
@@ -176,16 +195,19 @@ class FenetrePrincipale(QMainWindow):
         self.separateur.setSizes([280, 600, 320])
         # bandeau « maquette modifiée » (EX-06), au-dessus de la zone de travail
         self.bandeau = QFrame()
-        self.bandeau.setStyleSheet("background: #fef3c7; border: 1px solid #b45309;")
+        self.bandeau.setObjectName("bandeau")
         ligne_bandeau = QHBoxLayout(self.bandeau)
         self.etiquette_bandeau = QLabel(textes.BANDEAU_MODIFIEE)
         self.bouton_reimporter = QPushButton(textes.BOUTON_REIMPORTER)
         ligne_bandeau.addWidget(self.etiquette_bandeau, 1)
         ligne_bandeau.addWidget(self.bouton_reimporter)
         self.bandeau.hide()
+        self.etapes = BarreEtapes()
         centre = QWidget()
         colonne = QVBoxLayout(centre)
         colonne.setContentsMargins(0, 0, 0, 0)
+        colonne.setSpacing(0)
+        colonne.addWidget(self.etapes)
         colonne.addWidget(self.bandeau)
         colonne.addWidget(self.separateur, 1)
         self.setCentralWidget(centre)
@@ -204,6 +226,8 @@ class FenetrePrincipale(QMainWindow):
         self.vue_animation.trajectoire_demandee.connect(self.tracer_trajectoire)
         self.vue_animation.effacement_demande.connect(self.effacer_trajectoires)
         self.vue_animation.erreur.connect(self._message)
+        self.etapes.etape_choisie.connect(self._sur_etape)
+        self.definir_theme(theme.Theme.CLAIR)
         self._actualiser()
 
     # --- construction ------------------------------------------------------------------------
@@ -235,6 +259,8 @@ class FenetrePrincipale(QMainWindow):
         self.action_hyperstatique = self._action(
             textes.ACTION_HYPERSTATIQUE, textes.INFO_HYPERSTATIQUE, cochable=True
         )
+        self.action_theme_sombre = self._action(textes.ACTION_THEME_SOMBRE, cochable=True)
+        self.action_theme_sombre.toggled.connect(self._sur_theme_sombre)
         self.action_quitter.triggered.connect(self.close)
         self.action_nouveau.triggered.connect(self._sur_nouveau)
         self.action_ouvrir.triggered.connect(self._sur_ouvrir)
@@ -257,7 +283,8 @@ class FenetrePrincipale(QMainWindow):
         solidcraft = barre.addMenu(textes.MENU_SOLIDCRAFT)
         simulation = barre.addMenu(textes.MENU_SIMULATION)
         enseignant = barre.addMenu(textes.MENU_ENSEIGNANT)
-        assert fichier and solidcraft and simulation and enseignant
+        affichage = barre.addMenu(textes.MENU_AFFICHAGE)
+        assert fichier and solidcraft and simulation and enseignant and affichage
         fichier.addAction(self.action_nouveau)
         fichier.addAction(self.action_ouvrir)
         fichier.addAction(self.action_enregistrer)
@@ -273,20 +300,31 @@ class FenetrePrincipale(QMainWindow):
         simulation.addAction(self.action_annuler)
         enseignant.addAction(self.action_validation_en_bloc)
         enseignant.addAction(self.action_hyperstatique)
-        outils = QToolBar("Commandes", self)
+        affichage.addAction(self.action_theme_sombre)
+        outils = QToolBar(textes.TITRE_BARRE_COMMANDES, self)
         outils.setMovable(False)
-        for action in (
-            self.action_ouvrir,
-            self.action_enregistrer,
-            self.action_connecter,
-            self.action_importer,
-            self.action_valider_toutes,
-            self.action_simuler,
-            self.action_simuler_cinematique,
-            self.action_annuler,
-            self.action_exporter_csv,
-        ):
-            outils.addAction(action)
+        outils.setIconSize(QSize(TAILLE_ICONES, TAILLE_ICONES))
+        outils.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
+        groupes = (
+            (self.action_ouvrir, self.action_enregistrer),
+            (self.action_connecter, self.action_importer, self.action_valider_toutes),
+            (self.action_simuler, self.action_simuler_cinematique, self.action_annuler),
+            (self.action_exporter_csv,),
+        )
+        for rang, groupe in enumerate(groupes):
+            if rang:
+                outils.addSeparator()
+            for action in groupe:
+                outils.addAction(action)
+        # simulations : libellé à côté de l'icône ; Simuler (dynamique) est l'action principale
+        for action in (self.action_simuler, self.action_simuler_cinematique):
+            bouton = outils.widgetForAction(action)
+            if isinstance(bouton, QToolButton):
+                bouton.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        bouton_principal = outils.widgetForAction(self.action_simuler)
+        if bouton_principal is not None:
+            bouton_principal.setObjectName("actionPrincipale")
+        self.barre_commandes = outils
         self.addToolBar(outils)
 
     def _creer_barre_etat(self) -> None:
@@ -295,6 +333,8 @@ class FenetrePrincipale(QMainWindow):
         self.etiquette_connexion = QLabel(textes.CONNEXION_ABSENTE)
         self.etiquette_m = QLabel(textes.etiquette_m(None))
         self.etiquette_h = QLabel(textes.etiquette_h(None))
+        for pastille in (self.etiquette_connexion, self.etiquette_m, self.etiquette_h):
+            pastille.setProperty("etat", theme.ETAT_NEUTRE)
         self.barre_progression = QProgressBar()
         self.barre_progression.setRange(0, RESOLUTION_PROGRESSION)
         self.barre_progression.setMaximumWidth(200)
@@ -306,6 +346,60 @@ class FenetrePrincipale(QMainWindow):
             self.etiquette_connexion,
         ):
             barre.addPermanentWidget(w)
+
+    # --- présentation (R12) -------------------------------------------------------------------
+    def definir_theme(self, choix: theme.Theme) -> None:
+        """Applique le thème clair ou sombre à la fenêtre, aux icônes et aux figures."""
+        self.theme = choix
+        self.setPalette(theme.palette(choix))
+        self.setStyleSheet(theme.feuille_de_style(choix))
+        for attribut, nom in ICONES.items():
+            action: QAction = getattr(self, attribut)
+            couleur = theme.TEXTE_ACTION_PRINCIPALE if action is self.action_simuler else None
+            action.setIcon(theme.icone(nom, choix, couleur))
+        couleurs = theme.couleurs(choix)
+        self.arbre.definir_couleur_incomplet(couleurs.incomplet)
+        self.vue_graphe.definir_couleurs(couleurs)
+        self.vue_courbes.definir_couleurs(couleurs)
+        self.action_theme_sombre.blockSignals(True)
+        self.action_theme_sombre.setChecked(choix is theme.Theme.SOMBRE)
+        self.action_theme_sombre.blockSignals(False)
+
+    def _sur_theme_sombre(self, coche: bool) -> None:
+        self.definir_theme(theme.Theme.SOMBRE if coche else theme.Theme.CLAIR)
+
+    @staticmethod
+    def _pastille(etiquette: QLabel, etat: str) -> None:
+        """Change l'état (propriété QSS « etat ») d'une pastille de la barre d'état."""
+        if etiquette.property("etat") == etat:
+            return
+        etiquette.setProperty("etat", etat)
+        style = etiquette.style()
+        if style is not None:
+            style.unpolish(etiquette)
+            style.polish(etiquette)
+
+    def _sur_etape(self, rang: int) -> None:
+        """Clic sur une étape : sa branche de l'arbre et son onglet de travail."""
+        branches = (textes.BRANCHE_MODELE, textes.BRANCHE_DONNEES, None, textes.BRANCHE_RESULTATS)
+        vues = (self.vue_graphe, None, self.journal, self.vue_courbes)
+        branche, vue = branches[rang], vues[rang]
+        if branche is not None:
+            self.arbre.selectionner_branche(branche)
+        if vue is not None:
+            self.onglets.setCurrentWidget(vue)
+
+    def _maj_etapes(self, simulable: bool) -> None:
+        arbre = self.arbre
+        self.etapes.definir_etats(
+            etats_etapes(
+                etude_ouverte=self.etude is not None,
+                modele_incomplet=arbre.est_incomplet(arbre.item_branche(textes.BRANCHE_MODELE)),
+                donnees_incompletes=arbre.est_incomplet(arbre.item_branche(textes.BRANCHE_DONNEES)),
+                simulable=simulable,
+                resultats=self.resultats is not None,
+            )
+        )
 
     # --- messages ----------------------------------------------------------------------------
     def _message(self, texte: str) -> None:
@@ -397,6 +491,8 @@ class FenetrePrincipale(QMainWindow):
         h = None if self.mobilite is None else self.mobilite.h
         self.etiquette_m.setText(textes.etiquette_m(m))
         self.etiquette_h.setText(textes.etiquette_h(h))
+        self._pastille(self.etiquette_m, theme.etat_m(m))
+        self._pastille(self.etiquette_h, theme.etat_h(h))
         self.arbre.mettre_a_jour(etude, self.mobilite)
         self.vue_graphe.afficher(etude, self.mobilite)
         self.proprietes.rafraichir()
@@ -438,6 +534,8 @@ class FenetrePrincipale(QMainWindow):
             connecte and not self._import_en_cours and not self._verification_en_cours and libre
         )
         self.action_importer.setEnabled(peut_importer)
+        self._pastille(self.etiquette_connexion, theme.ETAT_OK if connecte else theme.ETAT_NEUTRE)
+        self._maj_etapes(simulable)
         self.bouton_reimporter.setEnabled(peut_importer)
         self.vue_animation.autoriser(
             connecte and not self._import_en_cours and not self._verification_en_cours
@@ -958,6 +1056,8 @@ def lancer() -> int:
     """Ouvre la fenêtre principale (`python -m meca3d` sans argument). Avec la variable
     MECA3D_AUTOTEST_DELAI_S, la fenêtre se ferme seule (vérification de l'exécutable)."""
     application = QApplication.instance() or QApplication(sys.argv)
+    if isinstance(application, QApplication):
+        application.setStyle("Fusion")  # rendu homogène de la feuille de style (R12)
     fenetre = FenetrePrincipale()
     delai = os.environ.get(VARIABLE_AUTOTEST)
     code = _armer_autotest(fenetre, float(delai)) if delai else None

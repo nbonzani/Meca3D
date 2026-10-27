@@ -7,7 +7,7 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from PyQt6.QtWidgets import QComboBox, QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
-from meca3d.ihm import textes
+from meca3d.ihm import textes, theme
 from meca3d.modele.etude import Etude
 from meca3d.moteur.base import ResultatsBruts
 from meca3d.resultats.export import colonnes_resultats, statistiques
@@ -22,6 +22,7 @@ class VueCourbes(QWidget):
         self._colonnes: dict[str, np.ndarray] = {}
         self._x = np.zeros(0)
         self._y = np.zeros(0)
+        self._couleurs = theme.couleurs(theme.Theme.CLAIR)
         disposition = QVBoxLayout(self)
         choix = QHBoxLayout()
         self.choix_x = QComboBox()
@@ -54,6 +55,11 @@ class VueCourbes(QWidget):
         return s.minimum, s.maximum, s.moyenne
 
     # --- mise à jour -------------------------------------------------------------------------
+    def definir_couleurs(self, couleurs: theme.Couleurs) -> None:
+        """Couleurs du thème (R12) : fond, axes, grille et trace."""
+        self._couleurs = couleurs
+        self._dessiner()
+
     def afficher(self, etude: Etude | None, resultats: ResultatsBruts | None) -> None:
         """Recalcule les grandeurs (post-traitement) et conserve les choix en cours."""
         precedent_x, precedent_y = self.choix_x.currentText(), self.choix_y.currentText()
@@ -83,18 +89,24 @@ class VueCourbes(QWidget):
         self._dessiner()
 
     def _dessiner(self) -> None:
+        c = self._couleurs
         self.figure.clear()
+        self.figure.set_facecolor(c.panneau)
         ax = self.figure.add_subplot(111)
+        ax.set_facecolor(c.panneau)
         if len(self._y) == 0:
             self.etiquette_stats.setText(textes.COURBE_VIDE)
             ax.set_axis_off()
             self.canevas.draw_idle()
             return
         nom_y = self.choix_y.currentText()
-        ax.plot(self._x, self._y, linewidth=1.5)
-        ax.set_xlabel(self.choix_x.currentText())
-        ax.set_ylabel(nom_y)
-        ax.grid(True, alpha=0.3)
+        ax.plot(self._x, self._y, linewidth=1.5, color=c.trace)
+        ax.set_xlabel(self.choix_x.currentText(), color=c.texte)
+        ax.set_ylabel(nom_y, color=c.texte)
+        ax.tick_params(colors=c.texte_secondaire, labelcolor=c.texte)
+        for bord in ax.spines.values():
+            bord.set_color(c.bordure)
+        ax.grid(True, color=c.grille, linewidth=0.8)
         self.figure.tight_layout()
         mini, maxi, moyenne = self.statistiques()
         self.etiquette_stats.setText(

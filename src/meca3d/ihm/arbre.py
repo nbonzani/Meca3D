@@ -15,7 +15,7 @@ from meca3d.modele.liaison import Statut
 ROLE_GENRE = Qt.ItemDataRole.UserRole
 ROLE_NOM = Qt.ItemDataRole.UserRole + 1
 ROLE_INCOMPLET = Qt.ItemDataRole.UserRole + 2
-COULEUR_INCOMPLET = QColor("#b45309")
+COULEUR_INCOMPLET = QColor("#B4561A")  # cuivre lisible sur fond clair (ihm/theme.py)
 
 GENRE_BRANCHE = "branche"
 GENRE_RUBRIQUE = "rubrique"
@@ -61,6 +61,7 @@ class ArbreEtude(QTreeWidget):
         self.setHeaderHidden(True)
         self._branches: dict[str, QTreeWidgetItem] = {}
         self._rubriques: dict[str, QTreeWidgetItem] = {}
+        self._couleur_incomplet = COULEUR_INCOMPLET
         for nom_branche, rubriques in STRUCTURE:
             branche = self._creer(self._racine(), nom_branche, GENRE_BRANCHE, nom_branche)
             self._branches[nom_branche] = branche
@@ -75,6 +76,13 @@ class ArbreEtude(QTreeWidget):
         racine = self.invisibleRootItem()
         assert racine is not None
         return racine
+
+    def definir_couleur_incomplet(self, couleur: str) -> None:
+        """Couleur des éléments incomplets selon le thème (R12) ; les marques sont reprises."""
+        self._couleur_incomplet = QColor(couleur)
+        for item in self._tous():
+            if self.est_incomplet(item):
+                item.setForeground(0, QBrush(self._couleur_incomplet))
 
     # --- construction -----------------------------------------------------------------------
     @staticmethod
@@ -97,7 +105,7 @@ class ArbreEtude(QTreeWidget):
             else item.text(0).removeprefix(textes.MARQUE_INCOMPLET)
         )
         item.setText(0, (textes.MARQUE_INCOMPLET if incomplet else "") + base)
-        item.setForeground(0, QBrush(COULEUR_INCOMPLET) if incomplet else QBrush())
+        item.setForeground(0, QBrush(self._couleur_incomplet) if incomplet else QBrush())
 
     def _ajouter(
         self, rubrique: str, texte: str, genre: str, nom: str, incomplet: bool = False
@@ -215,6 +223,9 @@ class ArbreEtude(QTreeWidget):
 
     def selectionner_liaison(self, nom: str) -> None:
         self.setCurrentItem(self.item_liaison(nom))
+
+    def selectionner_branche(self, nom: str) -> None:
+        self.setCurrentItem(self._branches[nom])
 
     def selectionner_rubrique(self, nom: str) -> None:
         self.setCurrentItem(self._rubriques[nom])

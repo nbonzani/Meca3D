@@ -34,7 +34,8 @@ def analyser(script):
     a = Analysis(  # noqa: F821
         [str(RACINE / "packaging" / script)],
         pathex=[str(RACINE / "src")],
-        datas=licences(),
+        # icônes Tabler (MIT) de la barre de commandes, avec leur licence (lot 13)
+        datas=licences() + [(str(RACINE / "src" / "meca3d" / "ihm" / "icones"), "meca3d/ihm/icones")],
         # Exudyn charge son module compilé par importlib : invisible pour l'analyse (Q5)
         hiddenimports=["exudyn.exudynCPP"],
         excludes=MODULES_EXCLUS,
