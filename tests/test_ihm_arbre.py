@@ -60,7 +60,12 @@ def _etude_longue() -> Etude:
 def test_ex61_trois_branches(fenetre: FenetrePrincipale) -> None:
     fenetre.charger_etude(etude_proposee("60"))
     assert fenetre.arbre.branches() == BRANCHES
-    assert fenetre.arbre.rubriques("Modèle cinématique") == ["Solides", "Liaisons", "Graphe"]
+    assert fenetre.arbre.rubriques("Modèle cinématique") == [
+        "Solides",
+        "Liaisons",
+        "Couplages",
+        "Graphe",
+    ]
     assert fenetre.arbre.rubriques("Données d'entrée") == [
         "Pilotes",
         "Pesanteur",
