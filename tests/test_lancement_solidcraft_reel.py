@@ -9,6 +9,7 @@ import shutil
 from pathlib import Path
 
 import pytest
+
 from meca3d.cao.lancement import (
     PORT_LANCEMENT,
     attendre_solidcraft,

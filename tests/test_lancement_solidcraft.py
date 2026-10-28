@@ -14,6 +14,9 @@ from typing import Any
 
 import pytest
 from faux_serveur import JETON_DE_TEST, FauxServeur, Scenario
+
+from meca3d.cao import lancement
+from meca3d.cao.canal import CanalSolidCraft, JetonIntrouvable, JetonRefuse, SolidCraftAbsent
 from meca3d.cao.lancement import (
     DELAI_LANCEMENT,
     PORT_LANCEMENT,
@@ -25,9 +28,6 @@ from meca3d.cao.lancement import (
     ouvrir_maquette,
     sonder_solidcraft,
 )
-
-from meca3d.cao import lancement
-from meca3d.cao.canal import CanalSolidCraft, JetonIntrouvable, JetonRefuse, SolidCraftAbsent
 from meca3d.cao.solidcraft import importer
 
 
