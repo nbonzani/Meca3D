@@ -57,6 +57,19 @@ Conventions de toutes les exigences : unités SI en interne (m, kg, s, rad, N, N
   - *Acceptation* : import à θ = 60° puis simulation à partir de θ₀ = 60° → x_B(0) = 0,3372281 m à 10⁻⁶ près.
 - **EX-06 Maquette modifiée.** Lors de l'import, Meca3D mémorise une **signature de structure** de la maquette : composants, occurrences, liaisons et leurs types, couplages, masses. Si cette signature change, un bandeau propose de réimporter, et les choix de l'élève sont conservés pour les liaisons de même nom. Le numéro `revision` de `document.inspect` ne convient pas, car il augmente aussi à chaque animation (constat du lot 1b).
   - *Acceptation* : révision changée (faux serveur) → bandeau affiché ; après réimport, les types de liaison choisis sont conservés.
+- **EX-07 Lancement de SolidCraft et ouverture de la maquette** (décidée le 28 octobre 2026, lot 15). L'élève pilote tout depuis Meca3D.
+  - *Exécutable* : Meca3D cherche `solidcraft.exe` dans le dossier de l'application, dans son dossier parent et jusqu'à deux niveaux sous ceux-ci (version portable dézippée à côté de Meca3D). À défaut, il le demande une fois par un sélecteur de fichier. Le chemin est mémorisé par utilisateur et modifiable par le menu SolidCraft.
+  - *Lancement* : `solidcraft.exe --control 7878`, en processus détaché. Meca3D attend le canal de ce port (jeton puis `document.inspect`) pendant 90 s au plus, puis se connecte. Le démarrage a pris 22,7 s le 28 octobre sur le PC portable Polytech. SolidCraft reste ouvert à la fermeture de Meca3D.
+  - *Au démarrage de Meca3D* : si SolidCraft répond, Meca3D s'y connecte ; sinon, il propose de le lancer.
+  - *Commande « Lancer SolidCraft »* (menu SolidCraft et barre de commandes) : si SolidCraft est déjà connecté, elle affiche un message et ne lance pas une seconde instance.
+  - *Chemin de la maquette* : il est mémorisé à l'import (champ `path` de `document.inspect`), ou par la commande « Ouvrir une maquette… » qui ouvre un fichier `.solidcraft` dans SolidCraft. Le `.meca3d` l'enregistre relativement au dossier de l'étude quand c'est possible (EX-60).
+  - *Ouverture d'une étude* : la maquette est ouverte dans SolidCraft par `doc.open`, après confirmation du lancement si SolidCraft est absent. Si elle y est déjà ouverte, il ne se passe rien. Si une autre maquette enregistrée ou modifiée est ouverte, une confirmation nomme les deux maquettes ; si elle a des modifications non enregistrées (`dirty`), le message prévient qu'elles seront perdues, car `doc.open` les abandonne sans demander (constaté le 28 octobre). Si l'étude n'a pas de chemin ou si le fichier n'existe plus, Meca3D cherche `<maquette>.solidcraft` à côté du `.meca3d`, puis demande le fichier.
+  - *Acceptation (recherche)* : `solidcraft.exe` dans un sous-dossier d'un dossier voisin → trouvé ; absent → sélecteur demandé une seule fois, puis chemin mémorisé.
+  - *Acceptation (démarrage)* : SolidCraft absent → question posée ; acceptée → lancement par `[exe, "--control", "7878"]` puis connexion ; refusée → aucun lancement, état « déconnecté ». SolidCraft présent → connexion sans question.
+  - *Acceptation (délai)* : SolidCraft ne répond pas dans le délai → message, sans plantage.
+  - *Acceptation (chemin)* : import → chemin mémorisé ; enregistré relatif ; relu correctement après déplacement conjoint de l'étude et de la maquette.
+  - *Acceptation (ouverture)* : autre maquette modifiée ouverte → confirmation nommant les deux maquettes et la perte des modifications ; acceptée → `doc.open` du chemin absolu ; refusée → pas de `doc.open`. Même maquette déjà ouverte → ni question ni `doc.open`.
+  - *Acceptation (réel, lancé à la main)* : lancement du vrai SolidCraft depuis Meca3D, puis ouverture de l'étude bielle → maquette chargée.
 
 ### 3.2 Modèle cinématique
 
@@ -248,7 +261,7 @@ Conventions de toutes les exigences : unités SI en interne (m, kg, s, rad, N, N
   - à droite, les propriétés de l'élément sélectionné ;
   - une barre d'état : connexion SolidCraft, m, h.
 - **Commandes** :
-  - Connecter et Importer ;
+  - Lancer SolidCraft, Ouvrir une maquette, Connecter et Importer (EX-07) ;
   - Valider toutes les propositions, avec confirmation, liaison par liaison possible ;
   - Simuler en dynamique ou en cinématique ;
   - Animer ;
