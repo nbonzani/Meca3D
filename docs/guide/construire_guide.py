@@ -27,9 +27,9 @@ CAPTURES_LOTS = ICI.parent / "captures"
 SORTIE = ICI / "Meca3D_Guide_utilisateur.docx"
 
 REFERENCE = "MIA-DOC-2026-101"
-VERSION_DOC = "1.0"
+VERSION_DOC = "1.1"
 VERSION_LOGICIEL = "0.1.0"
-DATE = "27/10/2026"
+DATE = "28/10/2026"
 
 BLUEPRINT = "1B3A6B"
 CYAN = "00B4D8"
@@ -513,8 +513,8 @@ def contenu(g: Guide) -> None:
     g.p(
         "Meca3D s'adresse aux élèves ingénieurs, en TP encadré comme chez eux, et aux "
         "enseignants pour la préparation des maquettes, les démonstrations et les corrigés. Il "
-        "fonctionne sous Windows 11. SolidCraft est lancé à côté, maquette ouverte ; Meca3D s'y "
-        "connecte, lit le mécanisme, puis renvoie le mouvement simulé dans la maquette."
+        "fonctionne sous Windows 11. Tout se pilote depuis Meca3D : il lance SolidCraft, y ouvre "
+        "la maquette, lit le mécanisme, puis renvoie le mouvement simulé dans la maquette."
     )
     g.encadre(
         "Sans SolidCraft",
@@ -558,11 +558,19 @@ def contenu(g: Guide) -> None:
     )
     g.h2("Préparer SolidCraft")
     g.p(
+        "SolidCraft 0.15.0 est livré en version **portable** : une archive à décompresser, sans "
+        "installation. La décompresser **à côté de Meca3D**, dans le dossier qui contient le "
+        "dossier `meca3d` (celui de `meca3d.exe`) : Meca3D y trouve `solidcraft.exe` tout seul, "
+        "jusqu'à deux niveaux de sous-dossiers. Sinon, il demande une seule fois où se trouve "
+        "`solidcraft.exe` et s'en souvient ; **SolidCraft → Emplacement de SolidCraft…** permet "
+        "de changer ce choix."
+    )
+    g.p(
         "Meca3D dialogue avec SolidCraft par son **canal de contrôle** local (TCP sur 127.0.0.1, "
-        "authentifié par un jeton que SolidCraft écrit dans son dossier de contrôle). Aucun "
-        "réglage n'est nécessaire : Meca3D lit le port courant dans "
-        "`%LOCALAPPDATA%\\SolidCraft\\control\\current.port`, et à défaut utilise le port 27878. "
-        "Pour imposer un port, lancer SolidCraft avec l'option `--control 7878`."
+        "authentifié par un jeton que SolidCraft écrit dans son dossier de contrôle). Quand "
+        "Meca3D lance SolidCraft, il lui passe l'option `--control 7878` et s'y connecte. Un "
+        "SolidCraft ouvert à la main est trouvé par le port courant, lu dans "
+        "`%LOCALAPPDATA%\\SolidCraft\\control\\current.port` (27878 à défaut)."
     )
     g.encadre(
         "Fenêtre SolidCraft visible",
@@ -590,8 +598,9 @@ def contenu(g: Guide) -> None:
     )
     g.puces(
         [
-            "Lancer Meca3D, puis **Fichier → Ouvrir une étude…** et choisir "
-            "`exemples\\bielle_manivelle.meca3d`.",
+            "Lancer Meca3D. S'il propose de lancer SolidCraft, répondre **Non** pour cet essai.",
+            "**Fichier → Ouvrir une étude…** et choisir `exemples\\bielle_manivelle.meca3d`. "
+            "Meca3D propose d'ouvrir la maquette dans SolidCraft : répondre **Non** ici aussi.",
             "Dans l'arbre, cliquer sur **Graphe** : le graphe des liaisons s'affiche avec "
             "μ = 1, m = 1, h = 0. Le mécanisme est isostatique et mobile.",
             "Cliquer sur **Simuler (dynamique)**. Le calcul tourne dans un processus séparé ; la "
@@ -621,7 +630,7 @@ def contenu(g: Guide) -> None:
             ["Barre de menus", "Fichier, SolidCraft, Simulation, Enseignant"],
             [
                 "Barre d'outils",
-                "Commandes courantes : ouvrir, enregistrer, connecter, importer, simuler, annuler, exporter",
+                "Commandes courantes : ouvrir, enregistrer, lancer SolidCraft, connecter, importer, simuler, annuler, exporter",
             ],
             [
                 "Arbre de l'étude (gauche)",
@@ -669,7 +678,10 @@ def contenu(g: Guide) -> None:
                 "Fichier",
                 "Nouvelle étude, Ouvrir une étude…, Enregistrer, Enregistrer sous…, Exporter les résultats en CSV…, Quitter",
             ],
-            ["SolidCraft", "Connecter, Importer la maquette"],
+            [
+                "SolidCraft",
+                "Lancer SolidCraft, Ouvrir une maquette…, Connecter, Importer la maquette, Emplacement de SolidCraft…",
+            ],
             ["Simulation", "Simuler (dynamique), Simuler (cinématique), Annuler le calcul"],
             ["Enseignant", "Validation en bloc, Hyperstatique autorisé (chapitre 8)"],
         ],
@@ -708,10 +720,33 @@ def contenu(g: Guide) -> None:
         ]
     )
 
-    g.h2("5.2 Connexion et import")
+    g.h2("5.2 Lancement, ouverture de la maquette et import")
     g.p(
-        "**SolidCraft → Connecter** établit la liaison avec SolidCraft ; la barre d'état affiche "
-        "« SolidCraft : connecté (port N) ». **SolidCraft → Importer la maquette** lit ensuite "
+        "Au démarrage, Meca3D se connecte à SolidCraft s'il est déjà ouvert ; sinon, il propose "
+        "de le lancer. **SolidCraft → Lancer SolidCraft** (aussi dans la barre d'outils) le lance "
+        "à tout moment. Le premier démarrage de SolidCraft peut prendre une demi-minute ; la "
+        "barre d'état affiche ensuite « SolidCraft : connecté (port N) ». **SolidCraft → "
+        "Connecter** sert à se reconnecter à un SolidCraft ouvert à la main."
+    )
+    g.p(
+        "**SolidCraft → Ouvrir une maquette…** ouvre un fichier `.solidcraft` dans SolidCraft. "
+        "Ouvrir la maquette par Meca3D a un avantage : Meca3D en retient le fichier, et l'étude "
+        "importée le mémorise. À la réouverture de l'étude, Meca3D rouvre alors la maquette dans "
+        "SolidCraft, en lançant SolidCraft au besoin. Le fichier est enregistré relativement au "
+        "dossier de l'étude : un dossier contenant l'étude et sa maquette se copie d'un poste à "
+        "l'autre sans réglage. Une étude dont la maquette est introuvable la cherche à côté du "
+        "`.meca3d`, puis demande le fichier."
+    )
+    g.encadre(
+        "Remplacement de la maquette ouverte",
+        "Si SolidCraft affiche déjà une autre maquette, Meca3D demande confirmation avant de la "
+        "remplacer. Si cette maquette a des modifications non enregistrées, elles seront "
+        "**perdues** : SolidCraft ne pose pas la question. Enregistrer d'abord dans SolidCraft "
+        "en cas de doute.",
+        CUIVRE,
+    )
+    g.p(
+        "**SolidCraft → Importer la maquette** lit ensuite "
         "les occurrences, les liaisons, les couplages, les masses, les centres de gravité et les "
         "matrices d'inertie. L'import se fait dans la pose courante de la maquette, qui devient "
         "la configuration de référence de l'étude."
@@ -1186,7 +1221,19 @@ def contenu(g: Guide) -> None:
         [
             [
                 "« SolidCraft n'est pas lancé ou n'accepte pas les connexions »",
-                "Lancer SolidCraft 0.15.0. Si un port a été imposé, vérifier `--control`.",
+                "SolidCraft → Lancer SolidCraft. S'il a été ouvert à la main avec un port imposé, vérifier `--control`.",
+            ],
+            [
+                "« solidcraft.exe introuvable »",
+                "SolidCraft → Emplacement de SolidCraft… et désigner `solidcraft.exe` dans le dossier de la version portable.",
+            ],
+            [
+                "« SolidCraft ne répond pas … s après son lancement »",
+                "Démarrage anormalement long ou bloqué : vérifier la fenêtre de SolidCraft, puis SolidCraft → Connecter.",
+            ],
+            [
+                "« Ouverture de la maquette impossible »",
+                "Fichier `.solidcraft` déplacé ou supprimé : SolidCraft → Ouvrir une maquette…, puis enregistrer l'étude.",
             ],
             ["« jeton refusé »", "SolidCraft a été relancé : cliquer de nouveau sur Connecter."],
             [
@@ -1333,6 +1380,10 @@ def contenu(g: Guide) -> None:
         [
             ["`version_etude`", "version du format (2)"],
             ["`maquette`, `revision`", "maquette SolidCraft d'origine"],
+            [
+                "`chemin_maquette`",
+                "fichier de la maquette, relatif au dossier de l'étude (facultatif)",
+            ],
             ["`solides`", "nom, fixe, masse (kg), centre de gravité (m), inertie (kg·m²), pose"],
             ["`liaisons`", "liaison SolidCraft, type choisi, axe, statut, frottement"],
             ["`couplages`", "genre, liaisons couplées, rapport (et dents), rendement"],
