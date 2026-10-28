@@ -39,10 +39,12 @@ def test_ex07_reel_lancement_puis_ouverture_de_la_maquette(tmp_path: Path) -> No
     try:
         canal = attendre_solidcraft(PORT_LANCEMENT)
         with canal:
-            ouvrir_maquette(canal, copie)
+            avant = etat_maquette(canal)
+            ouvert = ouvrir_maquette(canal, copie)
             etat = etat_maquette(canal)
+        assert avant.vide  # SolidCraft tout juste lancé
+        assert ouvert == copie.resolve()
         assert etat.nom == "bielle_manivelle"
-        assert etat.chemin is not None and etat.chemin.resolve() == copie.resolve()
-        assert not etat.modifiee
+        assert not etat.modifiee and not etat.vide
     finally:
         processus.kill()

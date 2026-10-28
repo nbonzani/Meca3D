@@ -209,7 +209,7 @@ def test_ex07_ouverture_etude_autre_maquette_modifiee_confirmee(
     banc: Banc, qtbot: QtBot, tmp_path: Path
 ) -> None:
     chemin, maquette = _etude_avec_maquette(tmp_path)
-    scenario = Scenario(chemin_maquette=str(tmp_path / "autre.solidcraft"), maquette_modifiee=True)
+    scenario = Scenario(nom_maquette="autre", maquette_modifiee=True)
     with FauxServeur(theta="60", scenario=scenario) as faux:
         banc.brancher(faux)
         banc.fenetre.action_connecter.trigger()
@@ -227,7 +227,7 @@ def test_ex07_ouverture_etude_autre_maquette_refusee(
     banc: Banc, qtbot: QtBot, tmp_path: Path
 ) -> None:
     chemin, _ = _etude_avec_maquette(tmp_path)
-    scenario = Scenario(chemin_maquette=str(tmp_path / "autre.solidcraft"))
+    scenario = Scenario(nom_maquette="autre")
     with FauxServeur(theta="60", scenario=scenario) as faux:
         banc.brancher(faux)
         banc.fenetre.action_connecter.trigger()
@@ -244,8 +244,8 @@ def test_ex07_ouverture_etude_autre_maquette_refusee(
 def test_ex07_ouverture_etude_maquette_deja_ouverte(
     banc: Banc, qtbot: QtBot, tmp_path: Path
 ) -> None:
-    chemin, maquette = _etude_avec_maquette(tmp_path)
-    with FauxServeur(theta="60", scenario=Scenario(chemin_maquette=str(maquette))) as faux:
+    chemin, _ = _etude_avec_maquette(tmp_path)
+    with FauxServeur(theta="60", scenario=Scenario(nom_maquette="bielle_manivelle")) as faux:
         banc.brancher(faux)
         banc.fenetre.action_connecter.trigger()
         qtbot.waitUntil(banc.connecte, timeout=DELAI)
@@ -262,8 +262,8 @@ def test_ex07_ouverture_etude_lance_solidcraft_puis_ouvre_la_maquette(
     banc: Banc, qtbot: QtBot, tmp_path: Path
 ) -> None:
     chemin, maquette = _etude_avec_maquette(tmp_path)
-    with FauxServeur(theta="60") as faux:  # SolidCraft lancé : document sans titre
-        banc.fenetre.port_lancement = faux.port
+    with FauxServeur(theta="60", scenario=Scenario(document_vide=True)) as faux:
+        banc.fenetre.port_lancement = faux.port  # SolidCraft tout juste lancé : document vide
         assert banc.fenetre.ouvrir_etude(chemin)
         qtbot.waitUntil(lambda: bool(faux.ouvertures), timeout=DELAI)
     assert len(banc.questions) == 1  # proposition de lancement seulement
@@ -288,7 +288,7 @@ def test_ex07_ouverture_etude_sans_maquette_trouvee_demande_le_fichier(
         return maquette
 
     banc.fenetre.dialogue_maquette = dialogue
-    with FauxServeur(theta="60") as faux:
+    with FauxServeur(theta="60", scenario=Scenario(document_vide=True)) as faux:
         banc.brancher(faux)
         banc.fenetre.action_connecter.trigger()
         qtbot.waitUntil(banc.connecte, timeout=DELAI)
@@ -312,3 +312,25 @@ def test_ex07_commande_ouvrir_une_maquette(banc: Banc, qtbot: QtBot, tmp_path: P
         banc.fenetre.action_ouvrir_maquette.trigger()
         qtbot.waitUntil(lambda: bool(faux.ouvertures), timeout=DELAI)
     assert faux.ouvertures == [str(maquette.resolve())]
+
+
+def test_ex07_import_apres_ouverture_memorise_le_chemin(
+    banc: Banc, qtbot: QtBot, tmp_path: Path
+) -> None:
+    """Le chemin n'est connu que par `doc.open` : maquette ouverte par Meca3D puis importée."""
+    maquette = tmp_path / "bielle_manivelle.solidcraft"
+    maquette.write_bytes(b"")
+    banc.fenetre.dialogue_maquette = lambda: maquette
+    with FauxServeur(theta="60", scenario=Scenario(document_vide=True)) as faux:
+        banc.brancher(faux)
+        banc.fenetre.action_connecter.trigger()
+        qtbot.waitUntil(banc.connecte, timeout=DELAI)
+        banc.fenetre.action_ouvrir_maquette.trigger()
+        qtbot.waitUntil(lambda: bool(faux.ouvertures), timeout=DELAI)
+        qtbot.waitUntil(lambda: banc.fenetre.action_importer.isEnabled(), timeout=DELAI)
+        banc.fenetre.action_importer.trigger()
+        qtbot.waitUntil(lambda: banc.fenetre.etude is not None, timeout=DELAI)
+    assert banc.questions == []  # document vide : rien à confirmer
+    etude = banc.fenetre.etude
+    assert etude is not None
+    assert Path(etude.chemin_maquette) == maquette.resolve()

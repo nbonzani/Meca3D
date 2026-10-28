@@ -146,48 +146,51 @@ def test_ex07_sonde_solidcraft_present() -> None:
 
 
 # --- maquette ouverte et doc.open --------------------------------------------------------------
-def test_ex07_import_memorise_le_chemin_de_la_maquette(tmp_path: Path) -> None:
-    maquette = tmp_path / "bielle_manivelle.solidcraft"
-    with FauxServeur(theta="60", scenario=Scenario(chemin_maquette=str(maquette))) as faux:
-        with CanalSolidCraft(port=faux.port, jeton=JETON_DE_TEST) as canal:
-            etude = importer(canal)
-    assert Path(etude.chemin_maquette) == maquette
-
-
-def test_ex07_import_sans_chemin_document_sans_titre() -> None:
-    with FauxServeur(theta="60") as faux:  # fixture : pas de champ `path`
+def test_ex07_import_document_inspect_ne_donne_pas_le_chemin() -> None:
+    """SolidCraft 0.15.0 : `path` est toujours nul ; l'import ne connaît pas le fichier."""
+    with FauxServeur(theta="60") as faux:
         with CanalSolidCraft(port=faux.port, jeton=JETON_DE_TEST) as canal:
             etude = importer(canal)
     assert etude.chemin_maquette == ""
 
 
-def test_ex07_etat_de_la_maquette_ouverte(tmp_path: Path) -> None:
-    autre = tmp_path / "autre.solidcraft"
-    scenario = Scenario(chemin_maquette=str(autre), maquette_modifiee=True)
+def test_ex07_etat_de_la_maquette_ouverte() -> None:
+    scenario = Scenario(nom_maquette="autre", maquette_modifiee=True)
     with FauxServeur(theta="60", scenario=scenario) as faux:
         with CanalSolidCraft(port=faux.port, jeton=JETON_DE_TEST) as canal:
             etat = etat_maquette(canal)
     assert etat.nom == "autre"
-    assert etat.chemin == autre
     assert etat.modifiee
+    assert not etat.vide
+
+
+def test_ex07_etat_solidcraft_tout_juste_lance() -> None:
+    with FauxServeur(theta="60", scenario=Scenario(document_vide=True)) as faux:
+        with CanalSolidCraft(port=faux.port, jeton=JETON_DE_TEST) as canal:
+            etat = etat_maquette(canal)
+    assert etat.vide
+    assert not etat.modifiee
 
 
 def test_ex07_meme_maquette(tmp_path: Path) -> None:
+    """Par le nom de la maquette, sans casse (le chemin n'est pas lisible dans SolidCraft)."""
     maquette = tmp_path / "Bielle.solidcraft"
-    etat = lancement.EtatMaquette(nom="Bielle", chemin=maquette, modifiee=False)
+    etat = lancement.EtatMaquette(nom="Bielle", modifiee=False, vide=False)
     assert meme_maquette(etat, maquette)
-    assert meme_maquette(etat, Path(str(maquette).upper()))  # Windows : casse indifférente
+    assert meme_maquette(etat, tmp_path / "BIELLE.solidcraft")
     assert not meme_maquette(etat, tmp_path / "autre.solidcraft")
-    sans_titre = lancement.EtatMaquette(nom="Untitled", chemin=None, modifiee=False)
-    assert not meme_maquette(sans_titre, maquette)
+    sans_titre = lancement.EtatMaquette(nom="Untitled", modifiee=False, vide=True)
+    assert not meme_maquette(sans_titre, tmp_path / "Untitled.solidcraft")
 
 
 def test_ex07_ouverture_par_doc_open(tmp_path: Path) -> None:
-    maquette = tmp_path / "bielle_manivelle.solidcraft"
+    maquette = tmp_path / "pendule.solidcraft"
     maquette.write_bytes(b"")
     with FauxServeur(theta="60") as faux:
         with CanalSolidCraft(port=faux.port, jeton=JETON_DE_TEST) as canal:
-            ouvrir_maquette(canal, maquette)
+            ouvert = ouvrir_maquette(canal, maquette)
             etat = etat_maquette(canal)
     assert faux.ouvertures == [str(maquette.resolve())]
-    assert etat.chemin == maquette.resolve()
+    assert ouvert == maquette.resolve()  # chemin rendu par doc.open
+    assert etat.nom == "pendule"
+    assert not etat.modifiee

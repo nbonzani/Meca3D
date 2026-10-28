@@ -15,10 +15,10 @@ en attente, seul `pending_moves` les liste), `engine.batch`, `component.revert_p
 `sequences_batch` garde les séquences reçues, `commandes_recues()` toutes les commandes dans
 l'ordre (lots compris), `pose(nom)` la pose courante (en attente comprise) d'une occurrence.
 
-Ouverture de maquette (lot 15, EX-07) : `document.inspect` rend `path` et `dirty` de la maquette
-ouverte (`Scenario.chemin_maquette`, `Scenario.maquette_modifiee`) ; `doc.open` refuse un fichier
-inexistant, comme le vrai SolidCraft, sinon remplace la maquette ouverte sans rien demander
-(constaté le 28/10) ; `ouvertures` garde les chemins reçus.
+Ouverture de maquette (lot 15, EX-07), comme SolidCraft 0.15.0 (constaté le 28/10) :
+`document.inspect` rend `path: null` en toutes circonstances, le nom et `dirty` de la maquette
+ouverte ; seule la réponse de `doc.open` donne le chemin. `doc.open` refuse un fichier inexistant,
+sinon remplace la maquette ouverte sans rien demander ; `ouvertures` garde les chemins reçus.
 """
 
 import copy
@@ -66,8 +66,9 @@ class Scenario:
     `revision` : remplace la révision de document.inspect (None : valeur de la fixture).
     `format_export` : remplace le champ `format` de l'export JSON.
     `sous_occurrence` : ajoute une liaison visant une sous-occurrence.
-    `chemin_maquette` : champ `path` de document.inspect (None : absent, comme la fixture) ;
-    le nom rendu est alors celui du fichier. `maquette_modifiee` : champ `dirty`.
+    `nom_maquette` : remplace le nom de la maquette ouverte (fixture : « bielle_manivelle »).
+    `maquette_modifiee` : champ `dirty`. `document_vide` : SolidCraft tout juste lancé, document
+    sans titre, sans corps ni historique.
     `fenetre_reduite` : la fenêtre est réduite : chaque requête coûte `latence_reduite` s (115 ms
     mesurés, RESULTATS_1b § Q3) jusqu'à un `ui.window {"action": "maximize"}`.
     """
@@ -82,8 +83,9 @@ class Scenario:
     sous_occurrence: bool = False
     fenetre_reduite: bool = False
     latence_reduite: float = 0.12
-    chemin_maquette: str | None = None
+    nom_maquette: str | None = None
     maquette_modifiee: bool = False
+    document_vide: bool = False
 
 
 def _lire(nom: str) -> Any:
@@ -292,9 +294,11 @@ class FauxServeur:
         if methode == "document.inspect":
             inspection = _lire(f"document_inspect_theta{self.theta}.json")
             inspection["revision"] = self.revision
-            if self.scenario.chemin_maquette is not None:
-                inspection["path"] = self.scenario.chemin_maquette
-                inspection["name"] = Path(self.scenario.chemin_maquette).stem
+            inspection["path"] = None  # toujours nul dans SolidCraft 0.15.0
+            if self.scenario.document_vide:
+                inspection.update(name="Untitled", bodies=[], timeline=[])
+            elif self.scenario.nom_maquette is not None:
+                inspection["name"] = self.scenario.nom_maquette
             inspection["dirty"] = self.scenario.maquette_modifiee
             return {"id": ident, "ok": True, "result": inspection}
         if methode == "engine.batch":
@@ -454,8 +458,9 @@ class FauxServeur:
             self.ouvertures.append(chemin)
         if not Path(chemin).is_file():
             return {"id": ident, "ok": False, "error": f"{chemin}: design container: introuvable"}
-        self.scenario.chemin_maquette = chemin
+        self.scenario.nom_maquette = Path(chemin).stem
         self.scenario.maquette_modifiee = False
+        self.scenario.document_vide = False
         nom = Path(chemin).stem
         return {"id": ident, "ok": True, "result": {"errors": 0, "name": nom, "path": chemin}}
 
