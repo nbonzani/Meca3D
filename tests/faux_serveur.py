@@ -14,6 +14,11 @@ en attente, seul `pending_moves` les liste), `engine.batch`, `component.revert_p
 `sketch.create` / `sketch.options` / `sketch.spline3d` / `sketch.finish`, `timeline.delete`.
 `sequences_batch` garde les séquences reçues, `commandes_recues()` toutes les commandes dans
 l'ordre (lots compris), `pose(nom)` la pose courante (en attente comprise) d'une occurrence.
+
+Ouverture de maquette (lot 15, EX-07) : `document.inspect` rend `path` et `dirty` de la maquette
+ouverte (`Scenario.chemin_maquette`, `Scenario.maquette_modifiee`) ; `doc.open` refuse un fichier
+inexistant, comme le vrai SolidCraft, sinon remplace la maquette ouverte sans rien demander
+(constaté le 28/10) ; `ouvertures` garde les chemins reçus.
 """
 
 import copy
@@ -61,6 +66,8 @@ class Scenario:
     `revision` : remplace la révision de document.inspect (None : valeur de la fixture).
     `format_export` : remplace le champ `format` de l'export JSON.
     `sous_occurrence` : ajoute une liaison visant une sous-occurrence.
+    `chemin_maquette` : champ `path` de document.inspect (None : absent, comme la fixture) ;
+    le nom rendu est alors celui du fichier. `maquette_modifiee` : champ `dirty`.
     `fenetre_reduite` : la fenêtre est réduite : chaque requête coûte `latence_reduite` s (115 ms
     mesurés, RESULTATS_1b § Q3) jusqu'à un `ui.window {"action": "maximize"}`.
     """
@@ -75,6 +82,8 @@ class Scenario:
     sous_occurrence: bool = False
     fenetre_reduite: bool = False
     latence_reduite: float = 0.12
+    chemin_maquette: str | None = None
+    maquette_modifiee: bool = False
 
 
 def _lire(nom: str) -> Any:
@@ -99,6 +108,7 @@ class FauxServeur:
         self.poses_en_attente: dict[int, np.ndarray] = {}
         self.sequences_batch: list[list[dict[str, Any]]] = []
         self.esquisses: list[Esquisse] = []
+        self.ouvertures: list[str] = []  # chemins reçus par doc.open (EX-07)
         self._verrou = threading.Lock()
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -282,6 +292,10 @@ class FauxServeur:
         if methode == "document.inspect":
             inspection = _lire(f"document_inspect_theta{self.theta}.json")
             inspection["revision"] = self.revision
+            if self.scenario.chemin_maquette is not None:
+                inspection["path"] = self.scenario.chemin_maquette
+                inspection["name"] = Path(self.scenario.chemin_maquette).stem
+            inspection["dirty"] = self.scenario.maquette_modifiee
             return {"id": ident, "ok": True, "result": inspection}
         if methode == "engine.batch":
             return self._lot(ident, requete.get("params") or {})
@@ -313,6 +327,8 @@ class FauxServeur:
             return self._esquisse(ident, commande, params)
         if commande == "timeline.delete":
             return self._supprimer(ident, params)
+        if commande == "doc.open":
+            return self._ouvrir(ident, params)
         return {"id": ident, "ok": False, "error": f"unknown command: {commande}"}
 
     # --- animation et trajectoires (lot 10) -----------------------------------------------
@@ -431,6 +447,17 @@ class FauxServeur:
         # les poses en attente ne modifient pas `transform` (constaté sur le vrai SolidCraft)
         liste["pending_moves"] = sorted(self.poses_en_attente)
         return liste
+
+    def _ouvrir(self, ident: Any, params: dict[str, Any]) -> dict[str, Any]:
+        chemin = str(params.get("path", ""))
+        with self._verrou:
+            self.ouvertures.append(chemin)
+        if not Path(chemin).is_file():
+            return {"id": ident, "ok": False, "error": f"{chemin}: design container: introuvable"}
+        self.scenario.chemin_maquette = chemin
+        self.scenario.maquette_modifiee = False
+        nom = Path(chemin).stem
+        return {"id": ident, "ok": True, "result": {"errors": 0, "name": nom, "path": chemin}}
 
     def _exporter(self, ident: Any, params: dict[str, Any]) -> dict[str, Any]:
         chemin = Path(str(params.get("path", "")))
