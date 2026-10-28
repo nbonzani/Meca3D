@@ -52,6 +52,7 @@ class Banc:
         self.exe.parent.mkdir(parents=True)
         self.exe.write_bytes(b"")
         fenetre.memoire = Memoire()
+        fenetre.ouverture_maquette_auto = True  # actif dans l'application réelle (`lancer()`)
         fenetre.recherche_solidcraft = lambda: self.exe
         fenetre.confirmer = self._confirmer
         fenetre.lanceur = self._lanceur
