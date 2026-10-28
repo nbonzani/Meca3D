@@ -4,6 +4,7 @@
 import copy
 import json
 import math
+import os
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -117,6 +118,9 @@ class Etude:
     # Signature de structure de la maquette à l'import (EX-06, R3) ; clé optionnelle
     # `signature_structure` du fichier (ajoutée par `ecrire_etude`, absente de `vers_dict`).
     signature: str = ""
+    # Chemin absolu du fichier de la maquette SolidCraft (EX-07, EX-60) ; clé optionnelle
+    # `chemin_maquette` du fichier, relative au dossier de l'étude quand c'est possible.
+    chemin_maquette: str = ""
 
     def solide(self, nom: str) -> Solide:
         for s in self.solides:
@@ -270,6 +274,7 @@ class Etude:
                 ressorts=[RessortAmortisseur.depuis_dict(r) for r in donnees.get("ressorts", [])],
                 hyperstatique_autorise=_booleen(donnees.get("hyperstatique_autorise", False)),
                 signature=_texte(donnees.get("signature_structure", "")),
+                chemin_maquette=_texte(donnees.get("chemin_maquette", "")),
             )
         except (KeyError, TypeError, ValueError, AttributeError, ErreurLoi, ErreurAction) as e:
             raise ErreurEtude(f"Fichier d'étude incohérent ({type(e).__name__} : {e}).") from e
@@ -290,10 +295,47 @@ def simulation_possible(etude: Etude) -> bool:
     return not liaisons_non_validees(etude)
 
 
+EXTENSION_MAQUETTE = ".solidcraft"
+
+
+def _chemin_relatif(cible: str, dossier: Path) -> str:
+    """Chemin relatif à `dossier` (séparateurs /), ou absolu sur un autre lecteur."""
+    try:
+        return Path(os.path.relpath(cible, dossier)).as_posix()
+    except ValueError:  # Windows : lecteurs différents
+        return str(cible)
+
+
+def chercher_maquette(etude: Etude, chemin_etude: Path | None) -> Path | None:
+    """EX-07 : fichier de la maquette de l'étude. Le chemin mémorisé s'il existe, sinon
+    `<maquette>.solidcraft` à côté du `.meca3d` ; None si rien n'est trouvé."""
+    if etude.chemin_maquette and Path(etude.chemin_maquette).is_file():
+        return Path(etude.chemin_maquette)
+    if chemin_etude is None:
+        return None
+    noms = [Path(etude.chemin_maquette).name] if etude.chemin_maquette else []
+    if etude.maquette:  # nom de document.inspect, ou chemin relatif (études d'exemple)
+        nom = (
+            etude.maquette
+            if etude.maquette.endswith(EXTENSION_MAQUETTE)
+            else (etude.maquette + EXTENSION_MAQUETTE)
+        )
+        noms += [nom, Path(nom).name]
+    for nom in noms:
+        candidat = chemin_etude.parent / nom
+        if candidat.is_file():
+            return candidat
+    return None
+
+
 def ecrire_etude(etude: Etude, chemin: Path | str) -> None:
     donnees = etude.vers_dict()
     if etude.signature:  # R3 : écrite dans le fichier, hors de `vers_dict` (transmis au calcul)
         donnees["signature_structure"] = etude.signature
+    if etude.chemin_maquette:  # EX-07 : hors de `vers_dict`, comme la signature
+        donnees["chemin_maquette"] = _chemin_relatif(
+            etude.chemin_maquette, Path(chemin).resolve().parent
+        )
     texte = json.dumps(donnees, indent=2, ensure_ascii=False) + "\n"
     Path(chemin).write_text(texte, encoding="utf-8", newline="\n")
 
@@ -309,4 +351,8 @@ def lire_etude(chemin: Path | str) -> Etude:
         raise ErreurEtude(f"Fichier d'étude corrompu (JSON invalide) : {e}") from e
     if not isinstance(donnees, dict):
         raise ErreurEtude("Fichier d'étude corrompu : objet JSON attendu.")
-    return Etude.depuis_dict(donnees)
+    etude = Etude.depuis_dict(donnees)
+    if etude.chemin_maquette:  # relatif au dossier de l'étude (EX-07)
+        absolu = Path(chemin).resolve().parent / etude.chemin_maquette
+        etude.chemin_maquette = os.path.normpath(absolu)
+    return etude

@@ -35,6 +35,10 @@ class JetonRefuse(ErreurCanal):
     """Jeton absent, illisible ou refusé par SolidCraft."""
 
 
+class JetonIntrouvable(JetonRefuse):
+    """Fichier de jeton absent ou encore vide : SolidCraft n'a pas (encore) ouvert ce port."""
+
+
 class Occupe(ErreurCanal):
     """Réponse `busy` : une autre requête est en cours sur la connexion."""
 
@@ -104,11 +108,11 @@ class CanalSolidCraft:
         try:
             jeton = fichier.read_text(encoding="utf-8").strip()
         except OSError as e:
-            raise JetonRefuse(
+            raise JetonIntrouvable(
                 f"SolidCraft : jeton refusé, fichier de jeton introuvable pour le port {self.port}."
             ) from e
-        if not jeton:
-            raise JetonRefuse(
+        if not jeton:  # SolidCraft crée le fichier vide puis y écrit le jeton (constat EX-07)
+            raise JetonIntrouvable(
                 f"SolidCraft : jeton refusé, fichier de jeton vide (port {self.port})."
             )
         return jeton

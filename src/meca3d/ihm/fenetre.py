@@ -7,14 +7,17 @@ Aucune logique métier ici : `modele/`, `graphe/` et `cao/` décident ; la simul
 
 import os
 import sys
+import threading
 from collections.abc import Callable
 from functools import partial
 from pathlib import Path
+from typing import Protocol
 
 from PyQt6.QtCore import (
     QElapsedTimer,
     QObject,
     QRunnable,
+    QSettings,
     QSize,
     Qt,
     QThreadPool,
@@ -42,6 +45,19 @@ from PyQt6.QtWidgets import (
 )
 
 from meca3d.cao.canal import CanalSolidCraft, ErreurCanal
+from meca3d.cao.lancement import (
+    DELAI_LANCEMENT,
+    PORT_LANCEMENT,
+    EtatMaquette,
+    attendre_solidcraft,
+    chercher_solidcraft,
+    dossiers_de_recherche,
+    etat_maquette,
+    lancer_solidcraft,
+    meme_maquette,
+    ouvrir_maquette,
+    sonder_solidcraft,
+)
 from meca3d.cao.solidcraft import importer, reimporter, structure_a_change
 from meca3d.graphe.graphe import depuis_etude
 from meca3d.graphe.mobilite import (
@@ -73,6 +89,7 @@ from meca3d.modele.etude import (
     ErreurEtude,
     ErreurValidation,
     Etude,
+    chercher_maquette,
     ecrire_etude,
     lire_etude,
     simulation_possible,
@@ -96,6 +113,7 @@ ICONES = {
     "action_nouveau": "file-plus",
     "action_ouvrir": "folder-open",
     "action_enregistrer": "device-floppy",
+    "action_lancer_solidcraft": "lancer-application",
     "action_connecter": "plug-connected",
     "action_importer": "file-import",
     "action_valider_toutes": "checks",
@@ -126,6 +144,32 @@ class _Tache(QRunnable):
             self.signaux.echec.emit(str(e))
         else:
             self.signaux.reussi.emit(resultat)
+
+
+CLE_EXECUTABLE = "solidcraft/executable"  # réglage mémorisé par utilisateur (EX-07)
+
+
+class Memoire(Protocol):
+    def lire(self, cle: str) -> str | None: ...
+    def ecrire(self, cle: str, valeur: str) -> None: ...
+
+
+class MemoireReglages:
+    """Réglages mémorisés par utilisateur (QSettings : registre Windows)."""
+
+    def __init__(self) -> None:
+        self._reglages = QSettings("meca ia", "Meca3D")
+
+    def lire(self, cle: str) -> str | None:
+        valeur = self._reglages.value(cle)
+        return valeur if isinstance(valeur, str) and valeur else None
+
+    def ecrire(self, cle: str, valeur: str) -> None:
+        self._reglages.setValue(cle, valeur)
+
+
+def _chercher_solidcraft() -> Path | None:
+    return chercher_solidcraft(dossiers_de_recherche())
 
 
 def dossier_exemples() -> Path | None:
@@ -166,6 +210,25 @@ class FenetrePrincipale(QMainWindow):
         self.dialogue_ouvrir: Callable[[], Path | None] = self._dialogue_ouvrir
         self.dialogue_enregistrer: Callable[[str], Path | None] = self._dialogue_enregistrer
         self.dialogue_csv: Callable[[str], Path | None] = self._dialogue_csv
+        # EX-07 : lancement de SolidCraft et ouverture de la maquette de l'étude
+        self.memoire: Memoire = MemoireReglages()
+        self.recherche_solidcraft: Callable[[], Path | None] = _chercher_solidcraft
+        self.lanceur: Callable[[Path, int], object] = lancer_solidcraft
+        self.dialogue_executable: Callable[[], Path | None] = self._dialogue_executable
+        self.dialogue_maquette: Callable[[], Path | None] = self._dialogue_maquette
+        self.port_lancement = PORT_LANCEMENT
+        self.delai_lancement = DELAI_LANCEMENT
+        # Ouverture de la maquette à l'ouverture d'une étude : activée par `lancer()` (application
+        # réelle) ; désactivée par défaut pour qu'une fenêtre de test ne pilote pas SolidCraft.
+        self.ouverture_maquette_auto = False
+        self._lancement_en_cours = False
+        self._arret_lancement = threading.Event()  # fermeture de la fenêtre pendant un lancement
+        # Suite d'une connexion en cours (ouverture de maquette) : demandée pendant une sonde ou
+        # un lancement, elle attend la connexion au lieu d'être perdue.
+        self._apres_connexion: Callable[[], None] | None = None
+        # Fichier ouvert par Meca3D dans SolidCraft (`doc.open`) : seule source du chemin
+        # de la maquette, que `document.inspect` ne donne pas (EX-07).
+        self.maquette_ouverte: Path | None = None
         self._pool = QThreadPool(self)
         self._taches: list[_Tache] = []
         self._connexion_en_cours = False
@@ -247,6 +310,15 @@ class FenetrePrincipale(QMainWindow):
         self.action_exporter_csv = self._action(textes.ACTION_EXPORTER_CSV)
         self.action_quitter = self._action(textes.ACTION_QUITTER)
         self.action_connecter = self._action(textes.ACTION_CONNECTER)
+        self.action_lancer_solidcraft = self._action(
+            textes.ACTION_LANCER_SOLIDCRAFT, textes.INFO_LANCER_SOLIDCRAFT
+        )
+        self.action_ouvrir_maquette = self._action(
+            textes.ACTION_OUVRIR_MAQUETTE, textes.INFO_OUVRIR_MAQUETTE
+        )
+        self.action_emplacement_solidcraft = self._action(
+            textes.ACTION_EMPLACEMENT_SOLIDCRAFT, textes.INFO_EMPLACEMENT_SOLIDCRAFT
+        )
         self.action_importer = self._action(textes.ACTION_IMPORTER)
         self.action_simuler = self._action(textes.ACTION_SIMULER, textes.INFO_SIMULER)
         self.action_simuler_cinematique = self._action(
@@ -270,6 +342,9 @@ class FenetrePrincipale(QMainWindow):
         self.action_enregistrer_sous.triggered.connect(self._sur_enregistrer_sous)
         self.action_exporter_csv.triggered.connect(self._sur_exporter_csv)
         self.action_connecter.triggered.connect(self.connecter)
+        self.action_lancer_solidcraft.triggered.connect(self._sur_lancer_solidcraft)
+        self.action_ouvrir_maquette.triggered.connect(self._sur_ouvrir_maquette)
+        self.action_emplacement_solidcraft.triggered.connect(self.choisir_emplacement_solidcraft)
         self.action_importer.triggered.connect(self.importer)
         self.action_simuler.triggered.connect(self._sur_simuler)
         self.action_simuler_cinematique.triggered.connect(self._sur_simuler_cinematique)
@@ -296,8 +371,13 @@ class FenetrePrincipale(QMainWindow):
         fichier.addAction(self.action_exporter_csv)
         fichier.addSeparator()
         fichier.addAction(self.action_quitter)
+        solidcraft.addAction(self.action_lancer_solidcraft)
+        solidcraft.addAction(self.action_ouvrir_maquette)
+        solidcraft.addSeparator()
         solidcraft.addAction(self.action_connecter)
         solidcraft.addAction(self.action_importer)
+        solidcraft.addSeparator()
+        solidcraft.addAction(self.action_emplacement_solidcraft)
         simulation.addAction(self.action_simuler)
         simulation.addAction(self.action_simuler_cinematique)
         simulation.addAction(self.action_annuler)
@@ -312,7 +392,12 @@ class FenetrePrincipale(QMainWindow):
         outils.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
         groupes = (
             (self.action_ouvrir, self.action_enregistrer),
-            (self.action_connecter, self.action_importer, self.action_valider_toutes),
+            (
+                self.action_lancer_solidcraft,
+                self.action_connecter,
+                self.action_importer,
+                self.action_valider_toutes,
+            ),
             (self.action_simuler, self.action_simuler_cinematique, self.action_annuler),
             (self.action_exporter_csv,),
         )
@@ -542,7 +627,12 @@ class FenetrePrincipale(QMainWindow):
             x.statut is Statut.PROPOSEE and x.type is not None for x in etude.liaisons
         )
         self.action_valider_toutes.setEnabled(en_bloc and a_valider)
-        self.action_connecter.setEnabled(not self._connexion_en_cours)
+        occupe = self._connexion_en_cours or self._lancement_en_cours
+        self.action_connecter.setEnabled(not occupe)
+        self.action_lancer_solidcraft.setEnabled(not occupe)
+        self.action_ouvrir_maquette.setEnabled(
+            not self._import_en_cours and not self._verification_en_cours
+        )
         connecte = self.canal is not None and self.canal.connecte
         peut_importer = (
             connecte and not self._import_en_cours and not self._verification_en_cours and libre
@@ -670,14 +760,21 @@ class FenetrePrincipale(QMainWindow):
     def _connexion_reussie(self, canal: object) -> None:
         assert isinstance(canal, CanalSolidCraft)
         self._connexion_en_cours = False
+        if self.canal is not canal:
+            self.maquette_ouverte = None  # autre connexion : maquette ouverte inconnue
         self.canal = canal
         self.etiquette_connexion.setText(textes.connexion_etablie(canal.port))
         self._message(textes.connexion_etablie(canal.port))
         self._maj_actions()
-        self.verifier_structure()  # EX-06 : la maquette ouverte est-elle celle de l'étude ?
+        suite, self._apres_connexion = self._apres_connexion, None
+        if suite is not None:  # EX-07 : ouverture de la maquette, vérification ensuite
+            suite()
+        else:
+            self.verifier_structure()  # EX-06 : la maquette ouverte est-elle celle de l'étude ?
 
     def _connexion_echouee(self, message: str) -> None:
         self._connexion_en_cours = False
+        self._apres_connexion = None
         self.canal = None
         self.etiquette_connexion.setText(textes.CONNEXION_ABSENTE)
         self._message(message)
@@ -703,6 +800,9 @@ class FenetrePrincipale(QMainWindow):
         self._import_en_cours = False
         ancienne, self._etude_avant_import = self._etude_avant_import, None
         reportes = [] if ancienne is None else etude.reporter_saisies(ancienne)
+        ouverte = self.maquette_ouverte  # EX-07 : chemin connu si Meca3D l'a ouverte
+        if ouverte is not None and ouverte.stem.casefold() == etude.maquette.casefold():
+            etude.chemin_maquette = str(ouverte)
         self.charger_etude(etude)
         self.modifiee = True  # l'étude importée n'est pas encore enregistrée
         self._actualiser()
@@ -809,6 +909,173 @@ class FenetrePrincipale(QMainWindow):
 
         self._lancer(travail, reussite, echec)
 
+    # --- lancement de SolidCraft et ouverture de la maquette (EX-07) --------------------------
+    def demarrer_avec_solidcraft(self) -> None:
+        """Au démarrage : connexion si SolidCraft répond, sinon proposition de le lancer."""
+        self._assurer_solidcraft(textes.TEXTE_PROPOSER_LANCEMENT, None)
+
+    def _assurer_solidcraft(self, question: str, suite: Callable[[], None] | None) -> None:
+        """Connecte SolidCraft (le lance après `question` s'il est absent), puis `suite`."""
+        if self.canal is not None and self.canal.connecte:
+            if suite is not None:
+                suite()
+            return
+        if suite is not None:
+            self._apres_connexion = suite
+        if self._connexion_en_cours or self._lancement_en_cours:
+            return  # la suite attend la connexion en cours
+        self._connexion_en_cours = True
+        self.etiquette_connexion.setText(textes.CONNEXION_EN_COURS)
+        self._maj_actions()
+        fabrique = self.fabrique_canal
+
+        def reussite(canal: object) -> None:
+            if isinstance(canal, CanalSolidCraft):
+                self._connexion_reussie(canal)
+                return
+            self._connexion_en_cours = False  # SolidCraft n'est pas lancé
+            self.etiquette_connexion.setText(textes.CONNEXION_ABSENTE)
+            self._maj_actions()
+            if self.confirmer(textes.TITRE_LANCER_SOLIDCRAFT, question):
+                self.lancer_solidcraft()  # la suite mémorisée est conservée
+            else:
+                self._apres_connexion = None
+
+        self._lancer(lambda: sonder_solidcraft(fabrique), reussite, self._connexion_echouee)
+
+    def _sur_lancer_solidcraft(self) -> None:
+        self.lancer_solidcraft()
+
+    def lancer_solidcraft(self, suite: Callable[[], None] | None = None) -> None:
+        """Lance SolidCraft (`--control`), attend son canal, s'y connecte, puis `suite`."""
+        if self.canal is not None and self.canal.connecte:
+            self._message(textes.MSG_SOLIDCRAFT_DEJA_LANCE)
+            if suite is not None:
+                suite()
+            return
+        if suite is not None:
+            self._apres_connexion = suite
+        if self._lancement_en_cours or self._connexion_en_cours:
+            return  # la suite attend la connexion en cours
+        executable = self._executable_solidcraft()
+        if executable is None:
+            self._apres_connexion = None
+            self._message(textes.MSG_SOLIDCRAFT_INTROUVABLE)
+            return
+        self._lancement_en_cours = True
+        self.etiquette_connexion.setText(textes.CONNEXION_EN_COURS)
+        self._message(textes.MSG_LANCEMENT_EN_COURS)
+        self._maj_actions()
+        lanceur, port, delai = self.lanceur, self.port_lancement, self.delai_lancement
+        arret = self._arret_lancement
+
+        def travail() -> object:
+            lanceur(executable, port)
+            return attendre_solidcraft(port, delai, arret=arret)
+
+        self._lancer(travail, self._lancement_reussi, self._lancement_echoue)
+
+    def _lancement_reussi(self, canal: object) -> None:
+        self._lancement_en_cours = False
+        assert isinstance(canal, CanalSolidCraft)
+        self._connexion_reussie(canal)
+
+    def _lancement_echoue(self, message: str) -> None:
+        self._lancement_en_cours = False
+        self._connexion_echouee(textes.MSG_LANCEMENT_IMPOSSIBLE + message)
+
+    def _executable_solidcraft(self) -> Path | None:
+        """Chemin mémorisé s'il existe encore, sinon recherche, sinon question ; mémorisé."""
+        memorise = self.memoire.lire(CLE_EXECUTABLE)
+        if memorise and Path(memorise).is_file():
+            return Path(memorise)
+        executable = self.recherche_solidcraft() or self.dialogue_executable()
+        if executable is not None:
+            self.memoire.ecrire(CLE_EXECUTABLE, str(executable))
+        return executable
+
+    def choisir_emplacement_solidcraft(self) -> None:
+        executable = self.dialogue_executable()
+        if executable is not None:
+            self.memoire.ecrire(CLE_EXECUTABLE, str(executable))
+            self._message(textes.MSG_EXECUTABLE_MEMORISE + str(executable))
+
+    def _sur_ouvrir_maquette(self) -> None:
+        self.ouvrir_maquette()
+
+    def ouvrir_maquette(self, chemin: Path | None = None) -> None:
+        """Ouvre un fichier `.solidcraft` dans SolidCraft, lancé au besoin (EX-07)."""
+        if chemin is None:
+            chemin = self.dialogue_maquette()
+            if chemin is None:
+                return
+        question = textes.texte_lancer_pour_maquette(chemin.stem)
+        self._assurer_solidcraft(question, partial(self._ouvrir_dans_solidcraft, chemin))
+
+    def charger_maquette_etude(self) -> None:
+        """Ouvre dans SolidCraft la maquette de l'étude courante (EX-07)."""
+        etude = self.etude
+        if etude is None or not (etude.maquette or etude.chemin_maquette):
+            return
+        chemin = chercher_maquette(etude, self.chemin_etude)
+        if chemin is None:
+            chemin = self.dialogue_maquette()
+            if chemin is None:
+                self._message(textes.MSG_MAQUETTE_INTROUVABLE)
+                return
+        if str(chemin) != etude.chemin_maquette:  # chemin retrouvé : à enregistrer
+            etude.chemin_maquette = str(chemin)
+            self.modifiee = True
+            self._maj_titre()
+        self.ouvrir_maquette(chemin)
+
+    def _ouvrir_dans_solidcraft(self, chemin: Path) -> None:
+        canal = self.canal
+        if canal is None:
+            return
+        self._lancer(
+            lambda: etat_maquette(canal),
+            partial(self._sur_etat_maquette, chemin),
+            self._ouverture_echouee,
+        )
+
+    def _sur_etat_maquette(self, chemin: Path, etat: object) -> None:
+        assert isinstance(etat, EtatMaquette)
+        if meme_maquette(etat, chemin):
+            self.maquette_ouverte = chemin.resolve()
+            self._message(textes.MSG_MAQUETTE_DEJA_OUVERTE)
+            self.verifier_structure()
+            return
+        if not etat.vide or etat.modifiee:  # document vide : rien à perdre
+            texte = textes.texte_remplacer_maquette(etat.nom, chemin.stem, etat.modifiee)
+            if not self.confirmer(textes.TITRE_REMPLACER_MAQUETTE, texte):
+                return
+        canal = self.canal
+        if canal is None:
+            return
+        if self._import_en_cours or self._verification_en_cours:
+            self._message(textes.MSG_OUVERTURE_MAQUETTE_IMPOSSIBLE + textes.MSG_CANAL_OCCUPE)
+            return
+        self.vue_animation.arreter()  # restaure la pose de la maquette quittée (EX-53)
+        self._lancer(
+            lambda: ouvrir_maquette(canal, chemin),
+            self._sur_maquette_ouverte,
+            self._ouverture_echouee,
+        )
+
+    def _sur_maquette_ouverte(self, chemin: object) -> None:
+        assert isinstance(chemin, Path)
+        self.maquette_ouverte = chemin
+        self._message(textes.MSG_MAQUETTE_OUVERTE + chemin.name)
+        self.verifier_structure()
+
+    def _ouverture_echouee(self, message: str) -> None:
+        self._message(textes.MSG_OUVERTURE_MAQUETTE_IMPOSSIBLE + message)
+        if self.canal is not None and not self.canal.connecte:
+            self.canal = None
+            self.etiquette_connexion.setText(textes.CONNEXION_ABSENTE)
+        self._maj_actions()
+
     # --- fichiers : étude (EX-60) et CSV (EX-52) ---------------------------------------------
     def _dialogue_ouvrir(self) -> Path | None:
         depart = self.chemin_etude.parent if self.chemin_etude else dossier_exemples()
@@ -817,6 +1084,22 @@ class FenetrePrincipale(QMainWindow):
             textes.ACTION_OUVRIR.replace("&", ""),
             "" if depart is None else str(depart),
             textes.FILTRE_ETUDE,
+        )
+        return Path(nom) if nom else None
+
+    def _dialogue_executable(self) -> Path | None:
+        nom, _ = QFileDialog.getOpenFileName(
+            self, textes.ACTION_EMPLACEMENT_SOLIDCRAFT, "", textes.FILTRE_EXECUTABLE
+        )
+        return Path(nom) if nom else None
+
+    def _dialogue_maquette(self) -> Path | None:
+        depart = self.chemin_etude.parent if self.chemin_etude else dossier_exemples()
+        nom, _ = QFileDialog.getOpenFileName(
+            self,
+            textes.ACTION_OUVRIR_MAQUETTE,
+            "" if depart is None else str(depart),
+            textes.FILTRE_MAQUETTE,
         )
         return Path(nom) if nom else None
 
@@ -877,6 +1160,8 @@ class FenetrePrincipale(QMainWindow):
         self.chemin_etude = chemin
         self._remplacer_etude(etude)
         self._message(textes.MSG_ETUDE_OUVERTE + chemin.name)
+        if self.ouverture_maquette_auto:
+            self.charger_maquette_etude()
         return True
 
     def enregistrer_etude(self) -> bool:
@@ -1033,6 +1318,7 @@ class FenetrePrincipale(QMainWindow):
         self._prechauffer()
 
     def closeEvent(self, a0: QCloseEvent | None) -> None:  # noqa: N802 - nom imposé par Qt
+        self._arret_lancement.set()  # un lancement de SolidCraft en attente cesse d'attendre
         self.annuler()
         self._pool.waitForDone(2000)  # un tracé de trajectoire en cours doit se terminer
         self.vue_animation.arreter()  # restaure la pose de la maquette (EX-53)
@@ -1080,5 +1366,8 @@ def lancer() -> int:
     delai = os.environ.get(VARIABLE_AUTOTEST)
     code = _armer_autotest(fenetre, float(delai)) if delai else None
     fenetre.show()
+    if code is None:  # EX-07 : SolidCraft piloté depuis Meca3D (pas pendant l'auto-test)
+        fenetre.ouverture_maquette_auto = True
+        QTimer.singleShot(0, fenetre.demarrer_avec_solidcraft)
     sortie = application.exec()
     return sortie if code is None else code[0]

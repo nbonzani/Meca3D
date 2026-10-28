@@ -423,4 +423,5 @@ def reimporter(
             )
     nouvelle.pesanteur = etude_ancienne.pesanteur
     nouvelle.reglages = etude_ancienne.reglages
+    nouvelle.chemin_maquette = etude_ancienne.chemin_maquette  # illisible par le canal (EX-07)
     return nouvelle

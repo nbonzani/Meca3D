@@ -227,6 +227,49 @@ BANDEAU_MODIFIEE = "Maquette modifiée — réimporter pour mettre l'étude à j
 BOUTON_REIMPORTER = "Réimporter"
 MSG_VERIFICATION_IMPOSSIBLE = "Vérification de la maquette impossible : "
 
+# --- lancement de SolidCraft et ouverture de la maquette (EX-07) -----------------------------
+ACTION_LANCER_SOLIDCRAFT = "Lancer SolidCraft"
+INFO_LANCER_SOLIDCRAFT = "Lance SolidCraft avec son canal de contrôle, puis s'y connecte."
+ACTION_OUVRIR_MAQUETTE = "Ouvrir une maquette…"
+INFO_OUVRIR_MAQUETTE = "Ouvre un fichier .solidcraft dans SolidCraft."
+ACTION_EMPLACEMENT_SOLIDCRAFT = "Emplacement de SolidCraft…"
+INFO_EMPLACEMENT_SOLIDCRAFT = "Choisit le fichier solidcraft.exe utilisé par Lancer SolidCraft."
+FILTRE_EXECUTABLE = "SolidCraft (solidcraft.exe)"
+FILTRE_MAQUETTE = "Maquette SolidCraft (*.solidcraft)"
+TITRE_LANCER_SOLIDCRAFT = "Lancer SolidCraft"
+TEXTE_PROPOSER_LANCEMENT = (
+    "SolidCraft n'est pas lancé (ou n'accepte pas les connexions). Le lancer maintenant ?"
+)
+MSG_SOLIDCRAFT_DEJA_LANCE = "SolidCraft est déjà lancé et connecté."
+MSG_SOLIDCRAFT_INTROUVABLE = (
+    "solidcraft.exe introuvable : indiquez-le par SolidCraft > Emplacement de SolidCraft…"
+)
+MSG_LANCEMENT_EN_COURS = "Lancement de SolidCraft… (une demi-minute environ)"
+MSG_LANCEMENT_IMPOSSIBLE = "Lancement de SolidCraft impossible : "
+MSG_EXECUTABLE_MEMORISE = "Emplacement de SolidCraft mémorisé : "
+TITRE_REMPLACER_MAQUETTE = "Ouvrir la maquette de l'étude"
+MSG_MAQUETTE_DEJA_OUVERTE = "La maquette de l'étude est déjà ouverte dans SolidCraft."
+MSG_MAQUETTE_OUVERTE = "Maquette ouverte dans SolidCraft : "
+MSG_MAQUETTE_INTROUVABLE = (
+    "Maquette de l'étude introuvable : ouvrez-la par SolidCraft > Ouvrir une maquette…"
+)
+MSG_OUVERTURE_MAQUETTE_IMPOSSIBLE = "Ouverture de la maquette impossible : "
+MSG_CANAL_OCCUPE = "un import ou une vérification de la maquette est en cours."
+
+
+def texte_lancer_pour_maquette(nom: str) -> str:
+    return f"SolidCraft n'est pas lancé. Le lancer pour ouvrir la maquette « {nom} » ?"
+
+
+def texte_remplacer_maquette(ouverte: str, nouvelle: str, modifiee: bool) -> str:
+    texte = f"SolidCraft a la maquette « {ouverte} » ouverte. La remplacer par « {nouvelle} » ?"
+    if modifiee:
+        texte += (
+            f"\n\nAttention : « {ouverte} » a des modifications non enregistrées ; "
+            "elles seront perdues (SolidCraft ne demande pas de confirmation)."
+        )
+    return texte
+
 
 def titre_fenetre(chemin: str | None, modifiee: bool) -> str:
     nom = "sans titre" if chemin is None else chemin
