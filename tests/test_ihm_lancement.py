@@ -107,24 +107,14 @@ def _etude_avec_maquette(dossier: Path) -> tuple[Path, Path]:
 
 
 # --- démarrage ---------------------------------------------------------------------------------
-def test_ex07_demarrage_solidcraft_absent_lancement_accepte(banc: Banc, qtbot: QtBot) -> None:
+def test_ex07_demarrage_solidcraft_absent_lance_sans_question(banc: Banc, qtbot: QtBot) -> None:
+    """Révisé le 29/10 (accord de l'utilisateur) : SolidCraft démarre avec Meca3D, sans question."""
     with FauxServeur(theta="60") as faux:
         banc.fenetre.port_lancement = faux.port
         banc.fenetre.demarrer_avec_solidcraft()
         qtbot.waitUntil(banc.connecte, timeout=DELAI)
-    assert len(banc.questions) == 1
-    assert "SolidCraft" in banc.questions[0]
+    assert banc.questions == []
     assert banc.lances == [(banc.exe, faux.port)]
-
-
-def test_ex07_demarrage_solidcraft_absent_lancement_refuse(banc: Banc, qtbot: QtBot) -> None:
-    banc.reponse = False
-    banc.fenetre.demarrer_avec_solidcraft()
-    qtbot.waitUntil(lambda: len(banc.questions) == 1, timeout=DELAI)
-    qtbot.wait(200)
-    assert banc.lances == []
-    assert banc.fenetre.canal is None
-    assert banc.fenetre.etiquette_connexion.text() == textes.CONNEXION_ABSENTE
 
 
 def test_ex07_demarrage_solidcraft_present_connexion_sans_question(
@@ -138,7 +128,7 @@ def test_ex07_demarrage_solidcraft_present_connexion_sans_question(
     assert banc.lances == []
 
 
-# --- commande « Lancer SolidCraft » ------------------------------------------------------------
+# --- commande « Démarrer SolidCraft » ---------------------------------------------------------
 def test_ex07_bouton_lancer_dans_le_menu_et_la_barre(banc: Banc) -> None:
     f = banc.fenetre
     menus = [a.menu() for a in f.menuBar().actions() if a.menu() is not None]  # type: ignore[union-attr]
@@ -148,6 +138,7 @@ def test_ex07_bouton_lancer_dans_le_menu_et_la_barre(banc: Banc) -> None:
     assert f.action_emplacement_solidcraft in actions_menus
     assert f.action_lancer_solidcraft in f.barre_commandes.actions()
     assert f.action_lancer_solidcraft.isEnabled()
+    assert f.action_lancer_solidcraft.text() == "Démarrer SolidCraft"  # libellé du 29/10
 
 
 def test_ex07_lancer_alors_que_connecte_ne_relance_pas(banc: Banc, qtbot: QtBot) -> None:

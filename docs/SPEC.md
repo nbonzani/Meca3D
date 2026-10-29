@@ -60,12 +60,12 @@ Conventions de toutes les exigences : unités SI en interne (m, kg, s, rad, N, N
 - **EX-07 Lancement de SolidCraft et ouverture de la maquette** (décidée le 28 octobre 2026, lot 15). L'élève pilote tout depuis Meca3D.
   - *Exécutable* : Meca3D cherche `solidcraft.exe` dans le dossier de l'application, dans son dossier parent et jusqu'à deux niveaux sous ceux-ci (version portable dézippée à côté de Meca3D). À défaut, il le demande une fois par un sélecteur de fichier. Le chemin est mémorisé par utilisateur et modifiable par le menu SolidCraft.
   - *Lancement* : `solidcraft.exe --control 7878`, en processus détaché. Meca3D attend le canal de ce port (jeton puis `document.inspect`) pendant 90 s au plus, puis se connecte. Le démarrage a pris 22,7 s le 28 octobre sur le PC portable Polytech. SolidCraft reste ouvert à la fermeture de Meca3D.
-  - *Au démarrage de Meca3D* : si SolidCraft répond, Meca3D s'y connecte ; sinon, il propose de le lancer.
-  - *Commande « Lancer SolidCraft »* (menu SolidCraft et barre de commandes) : si SolidCraft est déjà connecté, elle affiche un message et ne lance pas une seconde instance.
+  - *Au démarrage de Meca3D* : si SolidCraft répond, Meca3D s'y connecte ; sinon, il le lance sans poser de question (révisé le 29 octobre 2026 à la demande de l'utilisateur).
+  - *Commande « Démarrer SolidCraft »* (menu SolidCraft et barre de commandes ; libellé « Lancer SolidCraft » jusqu'au 29 octobre) : si SolidCraft est déjà connecté, elle affiche un message et ne lance pas une seconde instance.
   - *Chemin de la maquette* : SolidCraft 0.15.0 ne le donne pas : `document.inspect` rend toujours `path: null`, même après `doc.open` (constaté le 28 octobre) ; seule la réponse de `doc.open` le contient. Meca3D connaît donc le chemin quand il ouvre lui-même la maquette (commande « Ouvrir une maquette… » ou ouverture d'une étude) : l'import le retient si le nom de la maquette importée est celui du fichier ouvert. Le `.meca3d` l'enregistre relativement au dossier de l'étude quand c'est possible (EX-60).
   - *Ouverture d'une étude* : la maquette est ouverte dans SolidCraft par `doc.open`, après confirmation du lancement si SolidCraft est absent. Si elle y est déjà ouverte (même nom de maquette, sans tenir compte de la casse), il ne se passe rien. Si une autre maquette est ouverte (document non vide : corps ou historique), une confirmation nomme les deux maquettes ; un document vide, celui d'un SolidCraft tout juste lancé, est remplacé sans question ; si elle a des modifications non enregistrées (`dirty`), le message prévient qu'elles seront perdues, car `doc.open` les abandonne sans demander (constaté le 28 octobre). Si l'étude n'a pas de chemin ou si le fichier n'existe plus, Meca3D cherche `<maquette>.solidcraft` à côté du `.meca3d`, puis demande le fichier.
   - *Acceptation (recherche)* : `solidcraft.exe` dans un sous-dossier d'un dossier voisin → trouvé ; absent → sélecteur demandé une seule fois, puis chemin mémorisé.
-  - *Acceptation (démarrage)* : SolidCraft absent → question posée ; acceptée → lancement par `[exe, "--control", "7878"]` puis connexion ; refusée → aucun lancement, état « déconnecté ». SolidCraft présent → connexion sans question.
+  - *Acceptation (démarrage)* : SolidCraft absent → lancement sans question par `[exe, "--control", "7878"]` puis connexion. SolidCraft présent → connexion sans question ni lancement.
   - *Acceptation (délai)* : SolidCraft ne répond pas dans le délai → message, sans plantage.
   - *Acceptation (chemin)* : maquette ouverte par Meca3D puis importée → chemin mémorisé ; enregistré relatif ; relu correctement après déplacement conjoint de l'étude et de la maquette.
   - *Acceptation (ouverture)* : autre maquette modifiée ouverte → confirmation nommant les deux maquettes et la perte des modifications ; acceptée → `doc.open` du chemin absolu ; refusée → pas de `doc.open`. Même maquette déjà ouverte → ni question ni `doc.open`.
@@ -233,6 +233,14 @@ Conventions de toutes les exigences : unités SI en interne (m, kg, s, rad, N, N
 - **EX-64 Licence.** Le code est publié sous GPL v3 (fichier LICENSE, en-tête SPDX dans chaque module) et les dépendances sont compatibles.
   - *Acceptation* : `pip-licenses`, ou équivalent, ne liste aucune dépendance incompatible avec la GPL v3.
 
+- **EX-65 Fichiers récents** (décidée le 29 octobre 2026). Meca3D mémorise par utilisateur les 10 dernières études (`.meca3d`) et les 10 dernières maquettes (`.solidcraft`). Le menu Fichier propose « Études récentes », et le menu SolidCraft « Maquettes récentes ». Le plus récent est en tête, et un même fichier n'apparaît qu'une fois (chemins comparés sans tenir compte de la casse).
+  - Une étude entre dans la liste quand elle est ouverte ou enregistrée. Une maquette y entre quand Meca3D l'ouvre dans SolidCraft, ou qu'il la trouve déjà ouverte.
+  - Choisir une étude récente revient à l'ouvrir (EX-60, EX-07). Choisir une maquette récente revient à « Ouvrir une maquette… » sur ce fichier.
+  - Un fichier qui n'existe plus donne un message et sort de la liste. Une liste vide montre une entrée inactive « (aucun fichier récent) ».
+  - *Acceptation* : 12 études ouvertes l'une après l'autre → 10 entrées, la dernière ouverte en tête ; rouvrir la troisième la remet en tête, sans doublon.
+  - *Acceptation* : entrée récente choisie → étude ouverte (ou `doc.open` de la maquette) ; fichier supprimé → message, et entrée retirée.
+  - *Acceptation* : la liste survit à la fermeture de la fenêtre (mémoire des réglages).
+
 ## 4. Données
 
 - **Entrée SolidCraft** (canal de contrôle, vérifié le 24 octobre 2026 sur SolidCraft 0.15.0) :
@@ -261,7 +269,8 @@ Conventions de toutes les exigences : unités SI en interne (m, kg, s, rad, N, N
   - à droite, les propriétés de l'élément sélectionné ;
   - une barre d'état : connexion SolidCraft, m, h.
 - **Commandes** :
-  - Lancer SolidCraft, Ouvrir une maquette, Connecter et Importer (EX-07) ;
+  - Démarrer SolidCraft, Ouvrir une maquette, Maquettes récentes, Connecter et Importer (EX-07, EX-65) ;
+  - Études récentes (EX-65) ;
   - Valider toutes les propositions, avec confirmation, liaison par liaison possible ;
   - Simuler en dynamique ou en cinématique ;
   - Animer ;
