@@ -14,9 +14,11 @@ et lit les torseurs de liaison.
    [Releases](https://github.com/nbonzani/Meca3D/releases), le décompresser et lancer `meca3d.exe`
    (aucune installation de Python n'est nécessaire). `meca3d-cli.exe` donne la ligne de commande :
    `meca3d-cli simuler etude.meca3d --csv sortie.csv`.
-3. Lancer SolidCraft avec le canal de contrôle : `solidcraft --control 7878` (ou laisser le port par
-   défaut ; Meca3D lit le port courant dans le dossier de contrôle de SolidCraft). La fenêtre de
-   SolidCraft doit rester visible pendant l'animation ; Meca3D la ramène si elle est réduite.
+3. Placer la version portable de SolidCraft à côté du dossier `meca3d` : Meca3D la trouve et la
+   démarre avec son canal de contrôle (`solidcraft --control 7878`) s'il ne la trouve pas déjà
+   ouverte (s'il ne trouve pas `solidcraft.exe`, il le demande ; SolidCraft › Emplacement de
+   SolidCraft… permet de changer ce choix). La fenêtre de SolidCraft doit rester
+   visible pendant l'animation ; Meca3D la ramène si elle est réduite.
 
 ## Documentation et exemples
 

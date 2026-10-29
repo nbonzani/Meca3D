@@ -11,7 +11,6 @@ import threading
 from collections.abc import Callable
 from functools import partial
 from pathlib import Path
-from typing import Protocol
 
 from PyQt6.QtCore import (
     QElapsedTimer,
@@ -32,6 +31,7 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QMainWindow,
+    QMenu,
     QMessageBox,
     QPlainTextEdit,
     QProgressBar,
@@ -80,6 +80,15 @@ from meca3d.ihm.arbre import (
 )
 from meca3d.ihm.etapes import BarreEtapes, etats_etapes
 from meca3d.ihm.proprietes import PanneauProprietes
+from meca3d.ihm.recents import (
+    CLE_ETUDES_RECENTES,
+    CLE_MAQUETTES_RECENTES,
+    Memoire,
+    ajouter_recent,
+    ecrire_recents,
+    lire_recents,
+    retirer_recent,
+)
 from meca3d.ihm.vue_animation import VueAnimation
 from meca3d.ihm.vue_courbes import VueCourbes
 from meca3d.ihm.vue_graphe import VueGraphe
@@ -149,9 +158,18 @@ class _Tache(QRunnable):
 CLE_EXECUTABLE = "solidcraft/executable"  # réglage mémorisé par utilisateur (EX-07)
 
 
-class Memoire(Protocol):
-    def lire(self, cle: str) -> str | None: ...
-    def ecrire(self, cle: str, valeur: str) -> None: ...
+class MemoireVive:
+    """Réglages en mémoire, perdus à la fermeture : fenêtre de test. `lancer()` (application
+    réelle) branche `MemoireReglages`, pour qu'aucun test n'écrive dans le registre."""
+
+    def __init__(self) -> None:
+        self._valeurs: dict[str, str] = {}
+
+    def lire(self, cle: str) -> str | None:
+        return self._valeurs.get(cle)
+
+    def ecrire(self, cle: str, valeur: str) -> None:
+        self._valeurs[cle] = valeur
 
 
 class MemoireReglages:
@@ -211,7 +229,7 @@ class FenetrePrincipale(QMainWindow):
         self.dialogue_enregistrer: Callable[[str], Path | None] = self._dialogue_enregistrer
         self.dialogue_csv: Callable[[str], Path | None] = self._dialogue_csv
         # EX-07 : lancement de SolidCraft et ouverture de la maquette de l'étude
-        self.memoire: Memoire = MemoireReglages()
+        self.memoire: Memoire = MemoireVive()
         self.recherche_solidcraft: Callable[[], Path | None] = _chercher_solidcraft
         self.lanceur: Callable[[Path, int], object] = lancer_solidcraft
         self.dialogue_executable: Callable[[], Path | None] = self._dialogue_executable
@@ -365,6 +383,9 @@ class FenetrePrincipale(QMainWindow):
         assert fichier and solidcraft and simulation and enseignant and affichage
         fichier.addAction(self.action_nouveau)
         fichier.addAction(self.action_ouvrir)
+        self.menu_etudes_recentes = self._menu_recents(
+            fichier, textes.MENU_ETUDES_RECENTES, CLE_ETUDES_RECENTES
+        )
         fichier.addAction(self.action_enregistrer)
         fichier.addAction(self.action_enregistrer_sous)
         fichier.addSeparator()
@@ -373,6 +394,9 @@ class FenetrePrincipale(QMainWindow):
         fichier.addAction(self.action_quitter)
         solidcraft.addAction(self.action_lancer_solidcraft)
         solidcraft.addAction(self.action_ouvrir_maquette)
+        self.menu_maquettes_recentes = self._menu_recents(
+            solidcraft, textes.MENU_MAQUETTES_RECENTES, CLE_MAQUETTES_RECENTES
+        )
         solidcraft.addSeparator()
         solidcraft.addAction(self.action_connecter)
         solidcraft.addAction(self.action_importer)
@@ -416,6 +440,14 @@ class FenetrePrincipale(QMainWindow):
             bouton_principal.setObjectName("actionPrincipale")
         self.barre_commandes = outils
         self.addToolBar(outils)
+
+    def _menu_recents(self, parent: QMenu, titre: str, cle: str) -> QMenu:
+        menu = parent.addMenu(titre)
+        assert menu is not None
+        menu.aboutToShow.connect(partial(self._remplir_recents, menu, cle))
+        menu.triggered.connect(partial(self._sur_recent, cle))
+        self._remplir_recents(menu, cle)
+        return menu
 
     def _creer_barre_etat(self) -> None:
         barre = self.statusBar()
@@ -911,11 +943,13 @@ class FenetrePrincipale(QMainWindow):
 
     # --- lancement de SolidCraft et ouverture de la maquette (EX-07) --------------------------
     def demarrer_avec_solidcraft(self) -> None:
-        """Au démarrage : connexion si SolidCraft répond, sinon proposition de le lancer."""
-        self._assurer_solidcraft(textes.TEXTE_PROPOSER_LANCEMENT, None)
+        """Au démarrage : connexion si SolidCraft répond, sinon lancement sans question (EX-07,
+        révisée le 29/10)."""
+        self._assurer_solidcraft(None, None)
 
-    def _assurer_solidcraft(self, question: str, suite: Callable[[], None] | None) -> None:
-        """Connecte SolidCraft (le lance après `question` s'il est absent), puis `suite`."""
+    def _assurer_solidcraft(self, question: str | None, suite: Callable[[], None] | None) -> None:
+        """Connecte SolidCraft (le lance s'il est absent, après `question` si elle est donnée),
+        puis `suite`."""
         if self.canal is not None and self.canal.connecte:
             if suite is not None:
                 suite()
@@ -936,7 +970,7 @@ class FenetrePrincipale(QMainWindow):
             self._connexion_en_cours = False  # SolidCraft n'est pas lancé
             self.etiquette_connexion.setText(textes.CONNEXION_ABSENTE)
             self._maj_actions()
-            if self.confirmer(textes.TITRE_LANCER_SOLIDCRAFT, question):
+            if question is None or self.confirmer(textes.TITRE_LANCER_SOLIDCRAFT, question):
                 self.lancer_solidcraft()  # la suite mémorisée est conservée
             else:
                 self._apres_connexion = None
@@ -1043,6 +1077,7 @@ class FenetrePrincipale(QMainWindow):
         assert isinstance(etat, EtatMaquette)
         if meme_maquette(etat, chemin):
             self.maquette_ouverte = chemin.resolve()
+            self._noter_recent(CLE_MAQUETTES_RECENTES, self.maquette_ouverte)
             self._message(textes.MSG_MAQUETTE_DEJA_OUVERTE)
             self.verifier_structure()
             return
@@ -1066,6 +1101,7 @@ class FenetrePrincipale(QMainWindow):
     def _sur_maquette_ouverte(self, chemin: object) -> None:
         assert isinstance(chemin, Path)
         self.maquette_ouverte = chemin
+        self._noter_recent(CLE_MAQUETTES_RECENTES, chemin)
         self._message(textes.MSG_MAQUETTE_OUVERTE + chemin.name)
         self.verifier_structure()
 
@@ -1075,6 +1111,54 @@ class FenetrePrincipale(QMainWindow):
             self.canal = None
             self.etiquette_connexion.setText(textes.CONNEXION_ABSENTE)
         self._maj_actions()
+
+    # --- fichiers récents (EX-65) -------------------------------------------------------------
+    def etudes_recentes(self) -> list[Path]:
+        return [Path(c) for c in lire_recents(self.memoire, CLE_ETUDES_RECENTES)]
+
+    def maquettes_recentes(self) -> list[Path]:
+        return [Path(c) for c in lire_recents(self.memoire, CLE_MAQUETTES_RECENTES)]
+
+    def actualiser_recents(self) -> None:
+        """Reconstruit les deux menus (après un changement de liste ou de mémoire)."""
+        self._remplir_recents(self.menu_etudes_recentes, CLE_ETUDES_RECENTES)
+        self._remplir_recents(self.menu_maquettes_recentes, CLE_MAQUETTES_RECENTES)
+
+    def _remplir_recents(self, menu: QMenu, cle: str) -> None:
+        menu.clear()
+        recents = lire_recents(self.memoire, cle)
+        if not recents:
+            vide = menu.addAction(textes.AUCUN_FICHIER_RECENT)
+            assert vide is not None
+            vide.setEnabled(False)
+            return
+        for rang, chemin in enumerate(recents, start=1):
+            nom = Path(chemin).name.replace("&", "&&")  # « & » littéral, pas un raccourci
+            action = menu.addAction(f"&{rang % 10}  {nom}")
+            assert action is not None
+            action.setData(chemin)
+            action.setToolTip(chemin)
+            action.setStatusTip(chemin)
+
+    def _noter_recent(self, cle: str, chemin: Path) -> None:
+        ecrire_recents(self.memoire, cle, ajouter_recent(lire_recents(self.memoire, cle), chemin))
+        self.actualiser_recents()
+
+    def _sur_recent(self, cle: str, action: QAction) -> None:
+        donnee = action.data()
+        if not isinstance(donnee, str):
+            return
+        chemin = Path(donnee)
+        if not chemin.is_file():
+            restants = retirer_recent(lire_recents(self.memoire, cle), chemin)
+            ecrire_recents(self.memoire, cle, restants)
+            self.actualiser_recents()
+            self._message(textes.MSG_FICHIER_RECENT_INTROUVABLE + chemin.name)
+            return
+        if cle == CLE_ETUDES_RECENTES:
+            self.ouvrir_etude(chemin)
+        else:
+            self.ouvrir_maquette(chemin)
 
     # --- fichiers : étude (EX-60) et CSV (EX-52) ---------------------------------------------
     def _dialogue_ouvrir(self) -> Path | None:
@@ -1159,6 +1243,7 @@ class FenetrePrincipale(QMainWindow):
             return False
         self.chemin_etude = chemin
         self._remplacer_etude(etude)
+        self._noter_recent(CLE_ETUDES_RECENTES, chemin.absolute())
         self._message(textes.MSG_ETUDE_OUVERTE + chemin.name)
         if self.ouverture_maquette_auto:
             self.charger_maquette_etude()
@@ -1193,6 +1278,7 @@ class FenetrePrincipale(QMainWindow):
         self.chemin_etude = chemin
         self.modifiee = False
         self._maj_titre()
+        self._noter_recent(CLE_ETUDES_RECENTES, chemin.absolute())
         self._message(textes.MSG_ETUDE_ENREGISTREE + chemin.name)
         return True
 
@@ -1368,6 +1454,8 @@ def lancer() -> int:
     fenetre.show()
     if code is None:  # EX-07 : SolidCraft piloté depuis Meca3D (pas pendant l'auto-test)
         fenetre.ouverture_maquette_auto = True
+        fenetre.memoire = MemoireReglages()
+        fenetre.actualiser_recents()
         QTimer.singleShot(0, fenetre.demarrer_avec_solidcraft)
     sortie = application.exec()
     return sortie if code is None else code[0]

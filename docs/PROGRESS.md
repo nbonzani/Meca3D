@@ -1,5 +1,13 @@
 # Journal de progression
 
+## 2026-10-29 — Lot 16 : démarrage de SolidCraft sans question, fichiers récents, EX-07 révisée, EX-65 (fait)
+- Constat : l'échec signalé du démarrage automatique venait de `dist/meca3d/meca3d.exe`, construit le 27/10, avant le lot 15. Depuis les sources, le démarrage réel fonctionnait (question puis connexion en 8 s).
+- Fait : au démarrage, SolidCraft absent est lancé sans question ; commande renommée « Démarrer SolidCraft » ; `ihm/recents.py` (listes pures, 10 entrées, clé `normcase(resolve())`) ; menus Fichier › Études récentes et SolidCraft › Maquettes récentes ; fichier disparu retiré avec message ; `MemoireVive` par défaut, `lancer()` branche `MemoireReglages` (les tests n'écrivent plus dans le registre).
+- Tests : `test_ihm_recents.py` (10) ; `test_ihm_lancement.py` révisé avec accord (le test du refus au démarrage est supprimé) ; suite 690 passed ; ruff et pyright à 0 ; aller-retour d'une liste par QSettings (INI) vérifié hors test.
+- Docs : SPEC (EX-07, EX-65, § 5), PLAN (lot 16), README, guide 1.2 (§ 3, 4, 5.2, 10) ; docx et PDF régénérés ; captures non régénérées.
+- Exécutable reconstruit localement, auto-test code 0.
+- Optionnels non traités (relecture) : pas de test de déduplication entre nom court et nom long (nouveau test à accorder).
+
 ## 2026-10-28 — Lot 15 : lancement de SolidCraft et ouverture de la maquette, EX-07 (fait)
 - Fait : `cao/lancement.py` (recherche de `solidcraft.exe` à côté de Meca3D, lancement détaché `--control 7878`, attente du canal 90 s interruptible, sonde, état de la maquette, `doc.open`) ; `JetonIntrouvable` (jeton absent ou encore vide) ; `Etude.chemin_maquette` (clé optionnelle, relative au `.meca3d`) et `chercher_maquette` ; IHM : SolidCraft › Lancer SolidCraft (aussi dans la barre), Ouvrir une maquette…, Emplacement de SolidCraft… ; au démarrage, connexion ou proposition de lancement ; à l'ouverture d'une étude, maquette ouverte dans SolidCraft avec confirmation si un autre document non vide est ouvert (perte des modifications signalée). Icône `lancer-application.svg` dessinée pour le projet.
 - Constats réels (SolidCraft 0.15.0) : démarrage 22,7 s à froid, 3 s ensuite ; chaque instance réécrit `current.port` ; le fichier de jeton est créé vide puis rempli ; `doc.open` remplace la maquette sans confirmation, même modifiée ; `document.inspect` rend toujours `path: null` (seule la réponse de `doc.open` donne le chemin) : SPEC EX-07 corrigée, faux serveur rendu fidèle, tests révisés avec accord.

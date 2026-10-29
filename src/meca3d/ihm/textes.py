@@ -228,18 +228,15 @@ BOUTON_REIMPORTER = "Réimporter"
 MSG_VERIFICATION_IMPOSSIBLE = "Vérification de la maquette impossible : "
 
 # --- lancement de SolidCraft et ouverture de la maquette (EX-07) -----------------------------
-ACTION_LANCER_SOLIDCRAFT = "Lancer SolidCraft"
-INFO_LANCER_SOLIDCRAFT = "Lance SolidCraft avec son canal de contrôle, puis s'y connecte."
+ACTION_LANCER_SOLIDCRAFT = "Démarrer SolidCraft"
+INFO_LANCER_SOLIDCRAFT = "Démarre SolidCraft avec son canal de contrôle, puis s'y connecte."
 ACTION_OUVRIR_MAQUETTE = "Ouvrir une maquette…"
 INFO_OUVRIR_MAQUETTE = "Ouvre un fichier .solidcraft dans SolidCraft."
 ACTION_EMPLACEMENT_SOLIDCRAFT = "Emplacement de SolidCraft…"
-INFO_EMPLACEMENT_SOLIDCRAFT = "Choisit le fichier solidcraft.exe utilisé par Lancer SolidCraft."
+INFO_EMPLACEMENT_SOLIDCRAFT = "Choisit le fichier solidcraft.exe utilisé par Démarrer SolidCraft."
 FILTRE_EXECUTABLE = "SolidCraft (solidcraft.exe)"
 FILTRE_MAQUETTE = "Maquette SolidCraft (*.solidcraft)"
-TITRE_LANCER_SOLIDCRAFT = "Lancer SolidCraft"
-TEXTE_PROPOSER_LANCEMENT = (
-    "SolidCraft n'est pas lancé (ou n'accepte pas les connexions). Le lancer maintenant ?"
-)
+TITRE_LANCER_SOLIDCRAFT = "Démarrer SolidCraft"
 MSG_SOLIDCRAFT_DEJA_LANCE = "SolidCraft est déjà lancé et connecté."
 MSG_SOLIDCRAFT_INTROUVABLE = (
     "solidcraft.exe introuvable : indiquez-le par SolidCraft > Emplacement de SolidCraft…"
@@ -255,6 +252,12 @@ MSG_MAQUETTE_INTROUVABLE = (
 )
 MSG_OUVERTURE_MAQUETTE_IMPOSSIBLE = "Ouverture de la maquette impossible : "
 MSG_CANAL_OCCUPE = "un import ou une vérification de la maquette est en cours."
+
+# --- fichiers récents (EX-65) ---------------------------------------------------------------
+MENU_ETUDES_RECENTES = "Études &récentes"
+MENU_MAQUETTES_RECENTES = "Maquettes &récentes"
+AUCUN_FICHIER_RECENT = "(aucun fichier récent)"
+MSG_FICHIER_RECENT_INTROUVABLE = "Fichier introuvable, retiré de la liste des récents : "
 
 
 def texte_lancer_pour_maquette(nom: str) -> str:

@@ -27,7 +27,7 @@ CAPTURES_LOTS = ICI.parent / "captures"
 SORTIE = ICI / "Meca3D_Guide_utilisateur.docx"
 
 REFERENCE = "MIA-DOC-2026-101"
-VERSION_DOC = "1.1"
+VERSION_DOC = "1.2"
 VERSION_LOGICIEL = "0.1.0"
 DATE = "28/10/2026"
 
@@ -598,9 +598,11 @@ def contenu(g: Guide) -> None:
     )
     g.puces(
         [
-            "Lancer Meca3D. S'il propose de lancer SolidCraft, répondre **Non** pour cet essai.",
+            "Lancer Meca3D. Il démarre SolidCraft (s'il demande où se trouve `solidcraft.exe`, on "
+            "peut annuler pour cet essai).",
             "**Fichier → Ouvrir une étude…** et choisir `exemples\\bielle_manivelle.meca3d`. "
-            "Meca3D propose d'ouvrir la maquette dans SolidCraft : répondre **Non** ici aussi.",
+            "Si SolidCraft est ouvert, la maquette s'y charge ; sinon, répondre **Non** à la "
+            "proposition de le lancer.",
             "Dans l'arbre, cliquer sur **Graphe** : le graphe des liaisons s'affiche avec "
             "μ = 1, m = 1, h = 0. Le mécanisme est isostatique et mobile.",
             "Cliquer sur **Simuler (dynamique)**. Le calcul tourne dans un processus séparé ; la "
@@ -676,11 +678,11 @@ def contenu(g: Guide) -> None:
         [
             [
                 "Fichier",
-                "Nouvelle étude, Ouvrir une étude…, Enregistrer, Enregistrer sous…, Exporter les résultats en CSV…, Quitter",
+                "Nouvelle étude, Ouvrir une étude…, Études récentes, Enregistrer, Enregistrer sous…, Exporter les résultats en CSV…, Quitter",
             ],
             [
                 "SolidCraft",
-                "Lancer SolidCraft, Ouvrir une maquette…, Connecter, Importer la maquette, Emplacement de SolidCraft…",
+                "Démarrer SolidCraft, Ouvrir une maquette…, Maquettes récentes, Connecter, Importer la maquette, Emplacement de SolidCraft…",
             ],
             ["Simulation", "Simuler (dynamique), Simuler (cinématique), Annuler le calcul"],
             ["Enseignant", "Validation en bloc, Hyperstatique autorisé (chapitre 8)"],
@@ -722,14 +724,16 @@ def contenu(g: Guide) -> None:
 
     g.h2("5.2 Lancement, ouverture de la maquette et import")
     g.p(
-        "Au démarrage, Meca3D se connecte à SolidCraft s'il est déjà ouvert ; sinon, il propose "
-        "de le lancer. **SolidCraft → Lancer SolidCraft** (aussi dans la barre d'outils) le lance "
+        "Au démarrage, Meca3D se connecte à SolidCraft s'il est déjà ouvert ; sinon, il le "
+        "démarre. **SolidCraft → Démarrer SolidCraft** (aussi dans la barre d'outils) le lance "
         "à tout moment. Le premier démarrage de SolidCraft peut prendre une demi-minute ; la "
         "barre d'état affiche ensuite « SolidCraft : connecté (port N) ». **SolidCraft → "
         "Connecter** sert à se reconnecter à un SolidCraft ouvert à la main."
     )
     g.p(
         "**SolidCraft → Ouvrir une maquette…** ouvre un fichier `.solidcraft` dans SolidCraft. "
+        "**Fichier → Études récentes** et **SolidCraft → Maquettes récentes** rouvrent l'un des "
+        "dix derniers fichiers utilisés. "
         "Ouvrir la maquette par Meca3D a un avantage : Meca3D en retient le fichier, et l'étude "
         "importée le mémorise. À la réouverture de l'étude, Meca3D rouvre alors la maquette dans "
         "SolidCraft, en lançant SolidCraft au besoin. Le fichier est enregistré relativement au "
@@ -1221,7 +1225,7 @@ def contenu(g: Guide) -> None:
         [
             [
                 "« SolidCraft n'est pas lancé ou n'accepte pas les connexions »",
-                "SolidCraft → Lancer SolidCraft. S'il a été ouvert à la main avec un port imposé, vérifier `--control`.",
+                "SolidCraft → Démarrer SolidCraft. S'il a été ouvert à la main avec un port imposé, vérifier `--control`.",
             ],
             [
                 "« solidcraft.exe introuvable »",
